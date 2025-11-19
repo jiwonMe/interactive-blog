@@ -6,4 +6,7 @@ export { QuickSortVisualizer } from './components/QuickSortVisualizer';
 export { PivotSelector } from './components/PivotSelector';
 export { PartitionVisualizer } from './components/PartitionVisualizer';
 export { QuickSortProvider } from './components/QuickSortContext';
+export { CommandExecutor } from './components/CommandExecutor';
+export { CommandHistory } from './components/CommandHistory';
+export { CommandPatternProvider } from './components/CommandPatternContext';
 

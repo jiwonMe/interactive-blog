@@ -1,5 +1,5 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { InteractivePanel, Playground, YouTube, QuickSortVisualizer, PivotSelector, PartitionVisualizer, QuickSortProvider } from '@repo/interactive-ui';
+import { InteractivePanel, Playground, YouTube, QuickSortVisualizer, PivotSelector, PartitionVisualizer, QuickSortProvider, CommandExecutor, CommandHistory, CommandPatternProvider } from '@repo/interactive-ui';
 import { cn } from '../lib/utils';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
@@ -129,6 +129,9 @@ const components = {
   QuickSortProvider: (props: any) => (
     <QuickSortProvider {...props} />
   ),
+  CommandPatternProvider: (props: any) => (
+    <CommandPatternProvider {...props} />
+  ),
   QuickSortVisualizer: () => (
     <div className="my-8">
       <QuickSortVisualizer />
@@ -142,6 +145,16 @@ const components = {
   PartitionVisualizer: () => (
     <div className="my-8">
       <PartitionVisualizer />
+    </div>
+  ),
+  CommandExecutor: () => (
+    <div className="my-8">
+      <CommandExecutor />
+    </div>
+  ),
+  CommandHistory: () => (
+    <div className="my-8">
+      <CommandHistory />
     </div>
   ),
   YouTube,
