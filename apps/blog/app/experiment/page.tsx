@@ -5,9 +5,9 @@ export default function ExperimentsIndex() {
   return (
     <div className="w-full max-w-4xl">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Component Laboratory</h1>
+        <h1 className="text-4xl font-bold mb-4">컴포넌트 실험실</h1>
         <p className="text-gray-600 text-lg">
-          Isolated environment for testing and showcasing interactive components.
+          인터랙티브 컴포넌트를 테스트하고 시연하는 격리된 환경입니다.
         </p>
       </div>
 
