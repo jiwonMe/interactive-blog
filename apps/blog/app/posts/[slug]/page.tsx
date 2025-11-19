@@ -11,6 +11,12 @@ export async function generateStaticParams() {
   }));
 }
 
+function formatDate(dateString?: string) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
 export default async function Post({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params; 
   
@@ -27,9 +33,14 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
           ← Back to home
         </Link>
         <header className="mb-12 border-b border-gray-100 pb-8">
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 capitalize tracking-tight leading-tight">
-            {post.slug.replace(/-/g, ' ')}
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight leading-tight">
+            {post.title || post.slug.replace(/-/g, ' ')}
           </h1>
+          {post.date && (
+            <time dateTime={post.date} className="text-gray-500 text-sm">
+              {formatDate(post.date)}
+            </time>
+          )}
         </header>
         <CustomMDX source={post.content} />
       </article>

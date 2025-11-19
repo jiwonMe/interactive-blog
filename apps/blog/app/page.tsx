@@ -1,8 +1,14 @@
 import Link from 'next/link';
-import { getPostSlugs } from '../lib/posts';
+import { getAllPosts } from '../lib/posts';
+
+function formatDate(dateString?: string) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+}
 
 export default function Home() {
-  const slugs = getPostSlugs().map(slug => slug.replace(/\.mdx$/, ''));
+  const posts = getAllPosts();
 
   return (
     <main className="max-w-3xl mx-auto py-20 px-6">
@@ -17,15 +23,22 @@ export default function Home() {
           Recent Posts
         </h2>
         <ul className="space-y-6">
-          {slugs.map(slug => (
-            <li key={slug}>
-              <Link href={`/posts/${slug}`} className="group block">
-                <h3 className="text-xl font-semibold mb-2 group-hover:text-blue-600 transition-colors capitalize">
-                  {slug.replace(/-/g, ' ')}
-                </h3>
-                <p className="text-gray-500 text-sm">Read article →</p>
-              </Link>
-            </li>
+          {posts.map(post => (
+            post && (
+              <li key={post.slug}>
+                <Link href={`/posts/${post.slug}`} className="group block">
+                  <h3 className="text-xl font-semibold mb-2 group-hover:text-blue-600 transition-colors">
+                    {post.title || post.slug.replace(/-/g, ' ')}
+                  </h3>
+                  <div className="flex items-center gap-3 text-sm text-gray-500">
+                    {post.date && (
+                      <time dateTime={post.date}>{formatDate(post.date)}</time>
+                    )}
+                    <span>→</span>
+                  </div>
+                </Link>
+              </li>
+            )
           ))}
         </ul>
       </section>

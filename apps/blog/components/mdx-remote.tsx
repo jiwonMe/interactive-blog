@@ -4,6 +4,7 @@ import { cn } from '../lib/utils';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import Image from 'next/image';
+import { YouTube } from './video';
 
 const components = {
   InteractivePanel: (props: any) => (
@@ -16,6 +17,7 @@ const components = {
       <Playground />
     </div>
   ),
+  YouTube,
   Image: (props: any) => (
     <div className="my-8">
       <Image
