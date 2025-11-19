@@ -1,5 +1,5 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { InteractivePanel, Playground } from '@repo/interactive-ui';
+import { InteractivePanel, Playground, YouTube } from '@repo/interactive-ui';
 import { cn } from '../lib/utils';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
@@ -7,7 +7,6 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import Image from 'next/image';
-import { YouTube } from './video';
 
 const components = {
   InteractivePanel: (props: any) => (

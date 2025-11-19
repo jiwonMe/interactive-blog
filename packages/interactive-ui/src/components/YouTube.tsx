@@ -1,3 +1,5 @@
+'use client';
+
 export function YouTube({ id }: { id: string }) {
   return (
     <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-sm my-8 bg-gray-100">

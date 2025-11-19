@@ -43,12 +43,14 @@ export default function Home() {
         </ul>
       </section>
 
-      <section className="border-t border-gray-100 pt-12">
-        <h2 className="text-2xl font-bold mb-4">Experiments</h2>
-        <p className="mb-4 text-gray-700">
-          Check out the <Link href="/experiment" className="text-blue-600 hover:underline font-medium">component playground →</Link> to see our interactive UI elements in action.
-        </p>
-      </section>
+      {process.env.NODE_ENV === 'development' && (
+        <section className="border-t border-gray-100 pt-12">
+          <h2 className="text-2xl font-bold mb-4">Experiments</h2>
+          <p className="mb-4 text-gray-700">
+            Check out the <Link href="/experiment" className="text-blue-600 hover:underline font-medium">component playground →</Link> to see our interactive UI elements in action.
+          </p>
+        </section>
+      )}
     </main>
   );
 }
