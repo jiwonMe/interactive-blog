@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getPostBySlug, getPostSlugs } from '../../../lib/posts';
 import { CustomMDX } from '../../../components/mdx-remote';
 import { notFound } from 'next/navigation';
@@ -25,6 +26,9 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
 
   return (
     <article className="max-w-3xl mx-auto py-10 px-4">
+      <Link href="/" className="text-blue-600 hover:underline mb-8 inline-block">
+        ← Back to home
+      </Link>
       <h1 className="text-4xl font-bold mb-8 capitalize">{post.slug.replace(/-/g, ' ')}</h1>
       <CustomMDX source={post.content} />
     </article>
