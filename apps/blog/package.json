@@ -9,12 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@repo/interactive-ui": "workspace:*",
+    "clsx": "^2.1.0",
+    "github-slugger": "^2.0.0",
     "next": "15.0.0",
+    "next-mdx-remote": "^5.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "@repo/interactive-ui": "workspace:*",
-    "next-mdx-remote": "^5.0.0",
-    "clsx": "^2.1.0",
+    "rehype-autolink-headings": "^7.1.0",
+    "rehype-slug": "^6.0.0",
     "tailwind-merge": "^2.2.1"
   },
   "devDependencies": {
@@ -31,4 +34,3 @@
     "typescript": "^5.0.0"
   }
 }
-

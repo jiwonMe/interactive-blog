@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getPostBySlug, getPostSlugs } from '../../../lib/posts';
 import { CustomMDX } from '../../../components/mdx-remote';
+import { TableOfContents } from '../../../components/toc';
 import { notFound } from 'next/navigation';
 
 export async function generateStaticParams() {
@@ -11,11 +12,6 @@ export async function generateStaticParams() {
 }
 
 export default async function Post({ params }: { params: Promise<{ slug: string }> }) {
-  // Next.js 15 expects params to be a Promise or just params.
-  // In the latest Next.js 15 canary/rc, params is sometimes awaited, but standard usage is synchronous for now unless async params is fully enforced.
-  // Let's assume standard behavior or await if it's a promise. 
-  // Actually Next.js 15 (stable) might treat params as a Promise in the future or now.
-  // Safe bet:
   const { slug } = await params; 
   
   const post = getPostBySlug(slug);
@@ -25,13 +21,22 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
   }
 
   return (
-    <article className="max-w-3xl mx-auto py-10 px-4">
-      <Link href="/" className="text-blue-600 hover:underline mb-8 inline-block">
-        ← Back to home
-      </Link>
-      <h1 className="text-4xl font-bold mb-8 capitalize">{post.slug.replace(/-/g, ' ')}</h1>
-      <CustomMDX source={post.content} />
-    </article>
+    <div className="max-w-7xl mx-auto px-6 py-12 flex justify-center relative">
+      <article className="w-full max-w-3xl">
+        <Link href="/" className="text-blue-600 hover:underline mb-8 inline-block text-sm font-medium">
+          ← Back to home
+        </Link>
+        <header className="mb-12 border-b border-gray-100 pb-8">
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 capitalize tracking-tight leading-tight">
+            {post.slug.replace(/-/g, ' ')}
+          </h1>
+        </header>
+        <CustomMDX source={post.content} />
+      </article>
+      
+      {/* TOC Sidebar - only visible on large screens */}
+      <TableOfContents toc={post.toc} />
+    </div>
   );
 }
 

@@ -1,6 +1,8 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { InteractivePanel, Playground } from '@repo/interactive-ui';
 import { cn } from '../lib/utils';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 
 const components = {
   InteractivePanel: (props: any) => (
@@ -14,13 +16,13 @@ const components = {
     </div>
   ),
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h1 className="text-3xl font-bold mt-12 mb-6 tracking-tight" {...props} />
+    <h1 className="text-3xl font-bold mt-12 mb-6 tracking-tight scroll-mt-24" {...props} />
   ),
   h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 className="text-2xl font-bold mt-10 mb-4 tracking-tight border-b pb-2" {...props} />
+    <h2 className="text-2xl font-bold mt-10 mb-4 tracking-tight border-b pb-2 scroll-mt-24" {...props} />
   ),
   h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 className="text-xl font-semibold mt-8 mb-3" {...props} />
+    <h3 className="text-xl font-semibold mt-8 mb-3 scroll-mt-24" {...props} />
   ),
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
     <p className="mb-6 leading-8 text-gray-800" {...props} />
@@ -50,6 +52,14 @@ export function CustomMDX({ source }: { source: string }) {
     <MDXRemote
       source={source}
       components={components}
+      options={{
+        mdxOptions: {
+          rehypePlugins: [
+            rehypeSlug,
+            [rehypeAutolinkHeadings, { behavior: 'wrap' }],
+          ],
+        },
+      }}
     />
   );
 }
