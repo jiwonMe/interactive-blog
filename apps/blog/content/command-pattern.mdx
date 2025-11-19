@@ -48,19 +48,32 @@ Command Pattern은 다음과 같은 구성 요소로 이루어집니다:
 
 ## 간단한 예제: 조명 제어
 
-가장 기본적인 Command Pattern 예제를 살펴보겠습니다. 아래 인터랙티브 컴포넌트를 통해 실제로 동작하는 Command Pattern을 체험해보세요:
+<Section>
+  <StickyWrapper>
+    <CommandPatternProvider>
+      <CommandExecutor />
+    </CommandPatternProvider>
+  </StickyWrapper>
 
-<CommandPatternProvider>
-
-<CommandExecutor />
-
-**체험 포인트:**
-- "불 켜기"와 "불 끄기" 버튼을 클릭하여 명령을 실행해보세요
-- "실행 취소 (Undo)" 버튼으로 이전 명령을 취소할 수 있습니다
-- "다시 실행 (Redo)" 버튼으로 취소한 명령을 다시 실행할 수 있습니다
-- 하단의 명령 히스토리를 통해 실행된 모든 명령을 확인할 수 있습니다
-
-이 컴포넌트는 Command Pattern의 핵심 개념을 시각화합니다:
+  가장 기본적인 Command Pattern 예제는 리모컨으로 조명을 제어하는 것입니다.
+  
+  위의 인터랙티브 예제를 보세요. **화면 상단에 고정된 리모컨**을 통해 조명을 켜고 끌 수 있습니다.
+  
+  ### 어떻게 동작하나요?
+  
+  1. **Client**: 사용자가 버튼을 클릭합니다.
+  2. **Invoker**: 리모컨(`RemoteControl`)이 명령 객체를 받습니다.
+  3. **Command**: `LightOnCommand` 또는 `LightOffCommand` 객체가 생성됩니다.
+  4. **Receiver**: 실제 조명(`Light`) 객체의 `turnOn()`/`turnOff()` 메서드가 호출됩니다.
+  
+  이 과정에서 리모컨은 조명이 어떻게 켜지는지 알 필요가 없습니다. 단지 명령 객체의 `execute()`를 호출할 뿐입니다.
+  
+  **직접 체험해보세요:**
+  - "불 켜기" 버튼을 눌러보세요. 조명이 켜집니다.
+  - "불 끄기" 버튼을 눌러보세요. 조명이 꺼집니다.
+  - "실행 취소(Undo)" 버튼을 누르면 가장 최근의 명령이 취소됩니다.
+  
+  코드로 보면 다음과 같습니다:
 
 ```typescript
 // 1. Command 인터페이스
@@ -96,63 +109,36 @@ class LightOnCommand implements Command {
     this.light.turnOff();
   }
 }
-
-class LightOffCommand implements Command {
-  private light: Light;
-  
-  constructor(light: Light) {
-    this.light = light;
-  }
-  
-  execute() {
-    this.light.turnOff();
-  }
-  
-  undo() {
-    this.light.turnOn();
-  }
-}
-
-// 4. Invoker (명령을 실행하는 객체)
-class RemoteControl {
-  private command: Command | null = null;
-  
-  setCommand(command: Command) {
-    this.command = command;
-  }
-  
-  pressButton() {
-    if (this.command) {
-      this.command.execute();
-    }
-  }
-  
-  pressUndo() {
-    if (this.command) {
-      this.command.undo();
-    }
-  }
-}
-
-// 5. Client (사용)
-const light = new Light();
-const lightOn = new LightOnCommand(light);
-const remote = new RemoteControl();
-
-remote.setCommand(lightOn);
-remote.pressButton();  // 불이 켜졌습니다
-remote.pressUndo();    // 불이 꺼졌습니다
 ```
 
-## 실행 취소 기능 구현
+  이처럼 요청을 객체로 만들면, 요청을 처리하는 시점을 미루거나, 다른 객체로 전달하거나, **실행 취소**를 구현하기가 매우 쉬워집니다.
+</Section>
 
-Command Pattern의 가장 강력한 기능 중 하나는 실행 취소(Undo) 기능입니다. 아래 컴포넌트를 통해 명령 히스토리가 어떻게 관리되는지 직접 확인해보세요:
+## 실행 취소 기능과 히스토리
 
-<CommandHistory />
+<Section>
+  <StickyWrapper>
+    <CommandPatternProvider>
+      <CommandHistory />
+    </CommandPatternProvider>
+  </StickyWrapper>
 
-</CommandPatternProvider>
-
-이제 코드로 명령 히스토리를 관리하는 Invoker를 만들어보겠습니다:
+  Command Pattern의 가장 강력한 기능 중 하나는 **실행 취소(Undo)** 및 **히스토리 관리**입니다.
+  
+  위의 인터랙티브 컴포넌트는 명령이 실행될 때마다 스택에 쌓이는 모습을 보여줍니다.
+  
+  ### 히스토리 관리의 원리
+  
+  1. 명령을 실행(`execute`)하기 전에, 해당 명령 객체를 **히스토리 스택**에 저장합니다.
+  2. 실행 취소(`undo`) 요청이 오면, 스택에서 가장 최근 명령을 꺼냅니다.
+  3. 그 명령 객체의 `undo()` 메서드를 호출합니다.
+  
+  **직접 체험해보세요:**
+  - "불 켜기 명령 추가" 버튼을 여러 번 눌러보세요. 리스트에 명령이 쌓입니다.
+  - 리스트의 특정 항목을 클릭해보세요. 해당 시점의 상태로 **시간 여행**을 할 수 있습니다.
+  - "히스토리 초기화"를 누르면 모든 기록이 사라집니다.
+  
+  이를 코드로 구현하면 다음과 같습니다:
 
 ```typescript
 class RemoteControlWithHistory {
@@ -178,25 +164,11 @@ class RemoteControlWithHistory {
       this.currentPosition--;
     }
   }
-  
-  redo() {
-    if (this.currentPosition < this.history.length - 1) {
-      this.currentPosition++;
-      const command = this.history[this.currentPosition];
-      command.execute();
-    }
-  }
 }
-
-// 사용 예제
-const light = new Light();
-const remote = new RemoteControlWithHistory();
-
-remote.executeCommand(new LightOnCommand(light));   // 불이 켜졌습니다
-remote.executeCommand(new LightOffCommand(light));  // 불이 꺼졌습니다
-remote.undo();  // 불이 켜졌습니다 (다시 켜짐)
-remote.redo();  // 불이 꺼졌습니다 (다시 꺼짐)
 ```
+
+  이 방식은 포토샵의 "히스토리" 기능이나 텍스트 에디터의 `Ctrl+Z` 기능과 동일한 원리입니다. 모든 변경 사항을 Command 객체로 저장해두면, 언제든지 과거의 상태로 돌아갈 수 있습니다.
+</Section>
 
 ## 매크로 명령 (Macro Command)
 
@@ -221,166 +193,28 @@ class MacroCommand implements Command {
     }
   }
 }
-
-// 사용 예제
-const light = new Light();
-const tv = new TV();  // TV 클래스도 있다고 가정
-
-const partyMode = new MacroCommand([
-  new LightOnCommand(light),
-  new TVOnCommand(tv),
-  new MusicOnCommand()  // 음악 켜기 명령도 있다고 가정
-]);
-
-partyMode.execute();  // 모든 명령이 순차적으로 실행됨
-partyMode.undo();     // 모든 명령이 역순으로 실행 취소됨
 ```
 
 ## 실제 활용 사례
 
-### 1. 텍스트 에디터의 실행 취소/다시 실행
+### 1. 텍스트 에디터
 
-```typescript
-interface TextCommand extends Command {
-  execute(): void;
-  undo(): void;
-}
-
-class InsertTextCommand implements TextCommand {
-  private editor: TextEditor;
-  private text: string;
-  private position: number;
-  
-  constructor(editor: TextEditor, text: string, position: number) {
-    this.editor = editor;
-    this.text = text;
-    this.position = position;
-  }
-  
-  execute() {
-    this.editor.insert(this.text, this.position);
-  }
-  
-  undo() {
-    this.editor.delete(this.position, this.text.length);
-  }
-}
-
-class DeleteTextCommand implements TextCommand {
-  private editor: TextEditor;
-  private deletedText: string;
-  private position: number;
-  
-  constructor(editor: TextEditor, position: number, length: number) {
-    this.editor = editor;
-    this.position = position;
-    this.deletedText = editor.getText(position, length);
-  }
-  
-  execute() {
-    this.editor.delete(this.position, this.deletedText.length);
-  }
-  
-  undo() {
-    this.editor.insert(this.deletedText, this.position);
-  }
-}
-```
+텍스트 입력, 삭제, 스타일 변경 등을 모두 Command로 구현하여 실행 취소/다시 실행을 지원합니다.
 
 ### 2. 작업 큐 (Job Queue)
 
-명령을 큐에 넣어 나중에 실행할 수 있습니다:
+비동기 작업을 Command 객체로 만들어 큐에 넣고, 순차적으로 처리하거나 실패 시 재시도할 수 있습니다.
 
-```typescript
-class CommandQueue {
-  private queue: Command[] = [];
-  private isProcessing: boolean = false;
-  
-  enqueue(command: Command) {
-    this.queue.push(command);
-    this.process();
-  }
-  
-  private async process() {
-    if (this.isProcessing || this.queue.length === 0) {
-      return;
-    }
-    
-    this.isProcessing = true;
-    
-    while (this.queue.length > 0) {
-      const command = this.queue.shift();
-      if (command) {
-        await command.execute();
-      }
-    }
-    
-    this.isProcessing = false;
-  }
-}
-```
+### 3. GUI 버튼 및 메뉴
 
-### 3. 로깅 및 감사 (Audit)
-
-모든 명령을 로그에 기록할 수 있습니다:
-
-```typescript
-class LoggingCommand implements Command {
-  private command: Command;
-  private logger: Logger;
-  
-  constructor(command: Command, logger: Logger) {
-    this.command = command;
-    this.logger = logger;
-  }
-  
-  execute() {
-    this.logger.log(`Executing: ${this.command.constructor.name}`);
-    this.command.execute();
-  }
-  
-  undo() {
-    this.logger.log(`Undoing: ${this.command.constructor.name}`);
-    this.command.undo();
-  }
-}
-```
-
-## 장점과 단점
-
-### 장점
-
-- **실행 취소/다시 실행 기능**: 명령 히스토리를 관리하여 쉽게 구현 가능
-- **요청의 매개변수화**: 명령을 객체로 만들어 전달 가능
-- **큐에 넣기**: 명령을 큐에 넣어 나중에 실행 가능
-- **로깅**: 모든 명령을 로그에 기록 가능
-- **매크로 명령**: 여러 명령을 하나로 묶어 실행 가능
-- **느슨한 결합**: Invoker와 Receiver가 직접 결합되지 않음
-
-### 단점
-
-- **복잡도 증가**: 간단한 작업에도 많은 클래스가 필요할 수 있음
-- **메모리 사용**: 명령 히스토리를 저장하기 위해 메모리가 필요
-
-## 언제 사용해야 할까?
-
-Command Pattern은 다음과 같은 상황에서 유용합니다:
-
-- ✅ 실행 취소/다시 실행 기능이 필요할 때
-- ✅ 요청을 큐에 넣어 나중에 실행하고 싶을 때
-- ✅ 요청을 로그에 기록하고 싶을 때
-- ✅ 요청을 매개변수화하여 전달하고 싶을 때
-- ✅ 여러 명령을 하나로 묶어 실행하고 싶을 때
+버튼 클릭 시 수행할 동작을 Command 객체로 주입하여, 버튼 클래스를 수정하지 않고도 동작을 변경할 수 있습니다.
 
 ## 요약
 
-Command Pattern은 요청을 객체로 캡슐화하여 다음과 같은 기능을 제공합니다:
+Command Pattern은 요청을 객체로 캡슐화하여 다음과 같은 이점을 제공합니다:
 
-1. **실행 취소/다시 실행**: 명령 히스토리를 관리하여 구현
-2. **요청의 매개변수화**: 명령을 객체로 만들어 전달
-3. **큐에 넣기**: 명령을 큐에 넣어 나중에 실행
-4. **로깅**: 모든 명령을 로그에 기록
-5. **매크로 명령**: 여러 명령을 하나로 묶어 실행
+1. **실행 취소/다시 실행**: 명령 히스토리를 통해 쉽게 구현 가능
+2. **단일 책임 원칙**: 작업을 수행하는 객체와 작업을 요청하는 객체를 분리
+3. **개방-폐쇄 원칙**: 기존 코드를 수정하지 않고 새로운 명령을 추가 가능
 
-이 패턴은 특히 사용자 인터페이스, 텍스트 에디터, 게임 개발 등에서 널리 사용됩니다.
-
+이 패턴을 통해 유연하고 확장 가능한 애플리케이션을 설계해보세요.

@@ -9,4 +9,5 @@ export { QuickSortProvider } from './components/QuickSortContext';
 export { CommandExecutor } from './components/CommandExecutor';
 export { CommandHistory } from './components/CommandHistory';
 export { CommandPatternProvider } from './components/CommandPatternContext';
+export { Section, StickyWrapper } from './components/StickyWrapper';
 

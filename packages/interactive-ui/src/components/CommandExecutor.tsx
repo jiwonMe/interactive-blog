@@ -151,37 +151,6 @@ const Button = styled(motion.button, {
   },
 });
 
-// 히스토리 영역
-const HistoryArea = styled('div', {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '$2',
-  padding: '$4',
-  backgroundColor: '$gray100',
-  borderRadius: '$2',
-  maxHeight: '200px',
-  overflowY: 'auto',
-});
-
-// 히스토리 제목
-const HistoryTitle = styled('div', {
-  fontSize: '$3',
-  fontWeight: 600,
-  color: '$text',
-  marginBottom: '$2',
-});
-
-// 히스토리 아이템
-const HistoryItem = styled(motion.div, {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '$2',
-  padding: '$2 $3',
-  backgroundColor: '$background',
-  borderRadius: '$1',
-  fontSize: '$2',
-  color: '$textSecondary',
-});
 
 export const CommandExecutor = () => {
   const {
@@ -276,35 +245,6 @@ export const CommandExecutor = () => {
         </Button>
       </ButtonGroup>
 
-      {history.length > 0 && (
-        <HistoryArea>
-          <HistoryTitle>명령 히스토리</HistoryTitle>
-          <AnimatePresence>
-            {history.map((cmd, index) => (
-              <HistoryItem
-                key={cmd.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ 
-                  opacity: index <= historyIndex ? 1 : 0.4,
-                  x: 0,
-                }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.2 }}
-                style={{
-                  backgroundColor: index === historyIndex ? 'var(--colors-primary)' : 'var(--colors-background)',
-                  color: index === historyIndex ? 'white' : 'var(--colors-textSecondary)',
-                }}
-              >
-                <span>{index + 1}.</span>
-                <span>{cmd.name}</span>
-                <span style={{ marginLeft: 'auto', fontSize: '0.75rem' }}>
-                  {cmd.timestamp.toLocaleTimeString()}
-                </span>
-              </HistoryItem>
-            ))}
-          </AnimatePresence>
-        </HistoryArea>
-      )}
     </Container>
   );
 };

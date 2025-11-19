@@ -1,5 +1,5 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { InteractivePanel, Playground, YouTube, QuickSortVisualizer, PivotSelector, PartitionVisualizer, QuickSortProvider, CommandExecutor, CommandHistory, CommandPatternProvider } from '@repo/interactive-ui';
+import { InteractivePanel, Playground, YouTube, QuickSortVisualizer, PivotSelector, PartitionVisualizer, QuickSortProvider, CommandExecutor, CommandHistory, CommandPatternProvider, Section, StickyWrapper } from '@repo/interactive-ui';
 import { cn } from '../lib/utils';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
@@ -156,6 +156,12 @@ const components = {
     <div className="my-8">
       <CommandHistory />
     </div>
+  ),
+  Section: ({ children, ...props }: any) => (
+    <Section {...props}>{children}</Section>
+  ),
+  StickyWrapper: ({ children, ...props }: any) => (
+    <StickyWrapper {...props}>{children}</StickyWrapper>
   ),
   YouTube,
   Image: (props: any) => (
