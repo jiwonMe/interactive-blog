@@ -15,7 +15,8 @@
     "react-dom": "^19.0.0"
   },
   "dependencies": {
-    "@stitches/react": "^1.2.8"
+    "@stitches/react": "^1.2.8",
+    "framer-motion": "^12.23.24"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

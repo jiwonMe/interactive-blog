@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getExperimentBySlug, experiments } from "../registry";
+import { ExperimentViewer } from "../experiment-viewer";
 
 export async function generateStaticParams() {
   return experiments.map((exp) => ({
@@ -21,14 +22,14 @@ export default async function ExperimentPage({
 
   return (
     <div className="w-full max-w-3xl">
-      <div className="mb-8 text-center">
+      <div className="mb-12 text-center">
         <h1 className="text-3xl font-bold mb-2">{experiment.title}</h1>
         <p className="text-gray-500">{experiment.description}</p>
       </div>
       
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 flex items-center justify-center min-h-[400px]">
+      <ExperimentViewer>
         {experiment.component}
-      </div>
+      </ExperimentViewer>
     </div>
   );
 }

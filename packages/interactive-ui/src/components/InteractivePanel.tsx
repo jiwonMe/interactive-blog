@@ -2,27 +2,13 @@
 
 import React, { useState } from 'react';
 import { styled } from '../stitches.config';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const PanelRoot = styled('div', {
+const PanelRoot = styled(motion.div, {
   backgroundColor: '$background',
   borderRadius: '$3',
   border: '1px solid $border',
   overflow: 'hidden',
-  transition: 'all 0.3s ease',
-  
-  variants: {
-    active: {
-      true: {
-        borderColor: '$primary',
-        boxShadow: '0 4px 12px rgba(37, 99, 235, 0.1)',
-      },
-      false: {
-        '&:hover': {
-          borderColor: '$gray300',
-        }
-      }
-    },
-  },
 });
 
 const Header = styled('button', {
@@ -48,31 +34,15 @@ const Title = styled('span', {
   fontWeight: 600,
 });
 
-const IconWrapper = styled('div', {
+const IconWrapper = styled(motion.div, {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   color: '$textSecondary',
-  transition: 'transform 0.3s cubic-bezier(0.87, 0, 0.13, 1)',
-  
-  variants: {
-    open: {
-      true: { transform: 'rotate(180deg)', color: '$primary' },
-      false: { transform: 'rotate(0deg)' },
-    },
-  },
 });
 
-const ContentWrapper = styled('div', {
-  height: 0,
+const ContentWrapper = styled(motion.div, {
   overflow: 'hidden',
-  transition: 'height 0.3s cubic-bezier(0.87, 0, 0.13, 1)',
-  
-  variants: {
-    open: {
-      true: { height: 'auto' },
-    },
-  },
 });
 
 const Content = styled('div', {
@@ -93,16 +63,34 @@ export const InteractivePanel = ({ title, children }: { title: string; children:
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <PanelRoot active={isOpen}>
+    <PanelRoot
+      animate={{
+        borderColor: isOpen ? 'var(--colors-primary)' : 'var(--colors-border)',
+        boxShadow: isOpen ? '0 4px 12px rgba(37, 99, 235, 0.1)' : '0 0 0 rgba(0,0,0,0)',
+      }}
+      transition={{ duration: 0.2 }}
+    >
       <Header onClick={() => setIsOpen(!isOpen)}>
         <Title>{title}</Title>
-        <IconWrapper open={isOpen}>
+        <IconWrapper
+          animate={{ rotate: isOpen ? 180 : 0, color: isOpen ? 'var(--colors-primary)' : 'var(--colors-textSecondary)' }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        >
           <ChevronIcon />
         </IconWrapper>
       </Header>
-      <ContentWrapper open={isOpen}>
-        <Content>{children}</Content>
-      </ContentWrapper>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <ContentWrapper
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          >
+            <Content>{children}</Content>
+          </ContentWrapper>
+        )}
+      </AnimatePresence>
     </PanelRoot>
   );
 };
