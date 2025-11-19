@@ -1,12 +1,119 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { InteractivePanel, Playground, YouTube } from '@repo/interactive-ui';
+import { InteractivePanel, Playground, YouTube, QuickSortVisualizer, PivotSelector, PartitionVisualizer, QuickSortProvider } from '@repo/interactive-ui';
 import { cn } from '../lib/utils';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import remarkMath from 'remark-math';
+import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import Image from 'next/image';
+import { visit } from 'unist-util-visit';
+import type { Plugin } from 'unified';
+import type { Text, Paragraph } from 'mdast';
+
+// 한글-영문/기호가 섞인 bold 파싱을 위한 커스텀 플러그인
+const remarkBoldFix: Plugin = () => {
+  return (tree: any) => {
+    visit(tree, 'paragraph', (node: Paragraph) => {
+      if (node.children.length === 1 && node.children[0].type === 'text') {
+        const textNode = node.children[0] as Text;
+        const text = textNode.value;
+        
+        // **로 감싸진 텍스트를 찾아서 파싱
+        const boldRegex = /\*\*([^*]+?)\*\*/g;
+        const matches = Array.from(text.matchAll(boldRegex)) as RegExpMatchArray[];
+        
+        if (matches.length > 0) {
+          const newChildren: any[] = [];
+          let lastIndex = 0;
+          
+          matches.forEach((match: RegExpMatchArray) => {
+            const beforeText = text.slice(lastIndex, match.index);
+            if (beforeText) {
+              newChildren.push({
+                type: 'text',
+                value: beforeText,
+              });
+            }
+            
+            newChildren.push({
+              type: 'strong',
+              children: [{ type: 'text', value: match[1] }],
+            });
+            
+            lastIndex = (match.index || 0) + match[0].length;
+          });
+          
+          const afterText = text.slice(lastIndex);
+          if (afterText) {
+            newChildren.push({
+              type: 'text',
+              value: afterText,
+            });
+          }
+          
+          if (newChildren.length > 0) {
+            node.children = newChildren;
+          }
+        }
+      } else {
+        // 여러 자식 노드가 있는 경우, 각 텍스트 노드를 재귀적으로 처리
+        const processTextNodes = (children: any[]): any[] => {
+          return children.flatMap((child) => {
+            if (child.type === 'text') {
+              const text = child.value;
+              const boldRegex = /\*\*([^*]+?)\*\*/g;
+              const matches = Array.from(text.matchAll(boldRegex)) as RegExpMatchArray[];
+              
+              if (matches.length === 0) {
+                return [child];
+              }
+              
+              const newChildren: any[] = [];
+              let lastIndex = 0;
+              
+              matches.forEach((match: RegExpMatchArray) => {
+                const beforeText = text.slice(lastIndex, match.index);
+                if (beforeText) {
+                  newChildren.push({
+                    type: 'text',
+                    value: beforeText,
+                  });
+                }
+                
+                newChildren.push({
+                  type: 'strong',
+                  children: [{ type: 'text', value: match[1] }],
+                });
+                
+                lastIndex = (match.index || 0) + match[0].length;
+              });
+              
+              const afterText = text.slice(lastIndex);
+              if (afterText) {
+                newChildren.push({
+                  type: 'text',
+                  value: afterText,
+                });
+              }
+              
+              return newChildren;
+            } else if (child.children) {
+              return [{
+                ...child,
+                children: processTextNodes(child.children),
+              }];
+            }
+            return [child];
+          });
+        };
+        
+        node.children = processTextNodes(node.children);
+      }
+    });
+  };
+};
 
 const components = {
   InteractivePanel: (props: any) => (
@@ -17,6 +124,24 @@ const components = {
   Playground: () => (
     <div className="my-8">
       <Playground />
+    </div>
+  ),
+  QuickSortProvider: (props: any) => (
+    <QuickSortProvider {...props} />
+  ),
+  QuickSortVisualizer: () => (
+    <div className="my-8">
+      <QuickSortVisualizer />
+    </div>
+  ),
+  PivotSelector: (props: any) => (
+    <div className="my-8">
+      <PivotSelector {...props} />
+    </div>
+  ),
+  PartitionVisualizer: () => (
+    <div className="my-8">
+      <PartitionVisualizer />
     </div>
   ),
   YouTube,
@@ -73,6 +198,12 @@ const components = {
   blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
     <blockquote className="border-l-4 border-gray-200 pl-4 italic text-gray-600 my-6" {...props} />
   ),
+  strong: (props: React.HTMLAttributes<HTMLElement>) => (
+    <strong className="font-bold text-gray-900" {...props} />
+  ),
+  em: (props: React.HTMLAttributes<HTMLElement>) => (
+    <em className="italic" {...props} />
+  ),
 };
 
 export function CustomMDX({ source }: { source: string }) {
@@ -82,7 +213,7 @@ export function CustomMDX({ source }: { source: string }) {
       components={components}
       options={{
         mdxOptions: {
-          remarkPlugins: [remarkMath],
+          remarkPlugins: [remarkGfm, remarkBoldFix, remarkMath],
           rehypePlugins: [
             rehypeSlug,
             [rehypeAutolinkHeadings, { behavior: 'wrap' }],
