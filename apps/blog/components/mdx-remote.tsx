@@ -3,6 +3,7 @@ import { InteractivePanel, Playground } from '@repo/interactive-ui';
 import { cn } from '../lib/utils';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import Image from 'next/image';
 
 const components = {
   InteractivePanel: (props: any) => (
@@ -14,6 +15,29 @@ const components = {
     <div className="my-8">
       <Playground />
     </div>
+  ),
+  Image: (props: any) => (
+    <div className="my-8">
+      <Image
+        className="rounded-xl border border-gray-200 shadow-sm"
+        alt={props.alt || "Blog post image"}
+        {...props}
+      />
+      {props.caption && (
+        <p className="mt-2 text-center text-sm text-gray-500 italic">
+          {props.caption}
+        </p>
+      )}
+    </div>
+  ),
+  img: (props: any) => (
+    // Fallback for standard markdown image syntax if not using <Image /> component
+    // Note: Next.js Image requires width/height for remote images unless fill is used.
+    // For simplicity in standard markdown, we'll style it as a responsive img tag.
+    <img 
+      className="rounded-xl border border-gray-200 shadow-sm my-8 max-w-full h-auto" 
+      {...props} 
+    />
   ),
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1 className="text-3xl font-bold mt-12 mb-6 tracking-tight scroll-mt-24" {...props} />

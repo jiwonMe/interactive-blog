@@ -1,0 +1,57 @@
+# 이미지와 미디어 예시
+
+블로그 포스트에서 이미지를 활용하는 다양한 방법을 소개합니다. MDX를 사용하면 Next.js의 최적화된 `Image` 컴포넌트를 직접 사용할 수도 있고, 표준 Markdown 문법을 사용할 수도 있습니다.
+
+## 표준 Markdown 이미지
+
+가장 기본적인 Markdown 이미지 문법을 사용한 예시입니다. 외부 URL의 이미지를 불러옵니다.
+
+![Unsplash의 멋진 풍경](https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&q=80&w=1000)
+
+## Next.js Image 컴포넌트
+
+`<Image />` 컴포넌트를 직접 사용하여 더 많은 제어를 할 수 있습니다. `width`와 `height`를 지정하여 레이아웃 시프트를 방지할 수 있습니다.
+
+<Image 
+  src="https://images.unsplash.com/photo-1501854140884-074cf2724343?auto=format&fit=crop&q=80&w=1000"
+  width={1000}
+  height={600}
+  alt="산 정상의 풍경"
+  caption="Next.js Image 컴포넌트로 렌더링된 이미지"
+/>
+
+## 갤러리 구성하기
+
+여러 이미지를 나란히 배치하고 싶다면 HTML/JSX 구조를 활용할 수 있습니다.
+
+<div className="grid grid-cols-2 gap-4 my-8">
+  <img 
+    src="https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&q=80&w=500" 
+    className="rounded-lg w-full h-48 object-cover"
+    alt="자연 1"
+  />
+  <img 
+    src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=500" 
+    className="rounded-lg w-full h-48 object-cover"
+    alt="자연 2"
+  />
+</div>
+
+## 인터랙티브 컴포넌트와 함께 사용
+
+이미지와 인터랙티브 컴포넌트를 함께 배치하여 풍부한 경험을 제공할 수 있습니다.
+
+<InteractivePanel title="이미지 상세보기">
+  <div className="flex flex-col items-center gap-4">
+    <img 
+      src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=800" 
+      className="rounded w-full"
+      alt="상세 이미지"
+    />
+    <div className="text-sm text-gray-600">
+      패널 내부에 이미지를 넣어서, 필요할 때만 펼쳐서 볼 수 있게 만들 수 있습니다.
+      복잡한 도표나 스크린샷을 설명할 때 유용합니다.
+    </div>
+  </div>
+</InteractivePanel>
+
