@@ -1,5 +1,12 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { InteractivePanel, Playground, YouTube, QuickSortVisualizer, PivotSelector, PartitionVisualizer, QuickSortProvider, CommandExecutor, CommandHistory, CommandPatternProvider, Section, StickyWrapper } from '@repo/interactive-ui';
+import { InteractivePanel, Playground, YouTube, Section, StickyWrapper } from '@repo/interactive-ui';
+import { QuickSortVisualizer } from './quick-sort/quick-sort-visualizer';
+import { PivotSelector } from './quick-sort/pivot-selector';
+import { PartitionVisualizer } from './quick-sort/partition-visualizer';
+import { QuickSortProvider } from './quick-sort/context';
+import { CommandExecutor } from './command-pattern/command-executor';
+import { CommandHistory } from './command-pattern/command-history';
+import { CommandPatternProvider } from './command-pattern/context';
 import { cn } from '../lib/utils';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
