@@ -1,6 +1,7 @@
 import React from 'react';
-import { InteractivePanel, Playground, LinkCard } from "@repo/interactive-ui";
+import { InteractivePanel, Playground, LinkCard, YouTube } from "@repo/interactive-ui";
 import { CodeHighlightingDemo } from './code-highlighting-demo';
+import { cn } from "../../lib/utils";
 
 export type ControlType =
   | { type: 'text'; label: string; defaultValue: string }
@@ -50,12 +51,32 @@ export const experiments: ExperimentItem[] = [
           <div className="space-y-4">
             <p className="dark:text-gray-300">{props.description}</p>
             {props.showImage && (
-              <div className="h-32 bg-blue-50 dark:bg-blue-900/20 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-lg flex items-center justify-center text-blue-500 dark:text-blue-400 font-medium">
+              <div 
+                className={cn(
+                  /* 레이아웃 */
+                  "h-32 flex items-center justify-center",
+                  /* 배경 및 테두리 */
+                  "bg-blue-50 dark:bg-blue-900/20 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-lg",
+                  /* 텍스트 */
+                  "text-blue-500 dark:text-blue-400 font-medium"
+                )}
+              >
                 이미지 영역
               </div>
             )}
             {props.showButton && (
-              <button className="w-full py-2.5 bg-gray-900 dark:bg-zinc-800 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-zinc-700 transition-colors font-medium text-sm">
+              <button 
+                className={cn(
+                  /* 레이아웃 */
+                  "w-full py-2.5 rounded-lg",
+                  /* 배경 */
+                  "bg-gray-900 dark:bg-zinc-800 text-white",
+                  /* 인터랙션 */
+                  "hover:bg-gray-800 dark:hover:bg-zinc-700 transition-colors",
+                  /* 텍스트 */
+                  "font-medium text-sm"
+                )}
+              >
                 {props.buttonText}
               </button>
             )}
@@ -148,6 +169,23 @@ export const experiments: ExperimentItem[] = [
         label: '크기',
         defaultValue: 'medium',
         options: ['small', 'medium', 'large'],
+      },
+    },
+  },
+  {
+    slug: "youtube-component",
+    title: "유튜브 임베드",
+    description: "유튜브 영상을 임베드하는 컴포넌트입니다. 영상 ID를 입력하여 테스트해보세요.",
+    render: (props) => (
+      <div style={{ width: '100%', maxWidth: '800px' }}>
+        <YouTube id={props.id} />
+      </div>
+    ),
+    controls: {
+      id: {
+        type: 'text',
+        label: '유튜브 영상 ID',
+        defaultValue: 'dQw4w9WgXcQ',
       },
     },
   },
