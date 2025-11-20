@@ -25,7 +25,7 @@ const Header = styled('button', {
   outline: 'none',
   
   '&:focus-visible': {
-    backgroundColor: '$gray100',
+    backgroundColor: '$zinc100',
   },
 });
 

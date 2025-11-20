@@ -26,9 +26,13 @@ type AlgorithmType = 'standard' | 'median-of-three' | 'dual-pivot';
 
 interface QuickSortVisualizerProps {
     initialAlgorithm?: AlgorithmType;
+    showAlgorithmSelect?: boolean;
 }
 
-export function QuickSortVisualizer({ initialAlgorithm = 'standard' }: QuickSortVisualizerProps) {
+export function QuickSortVisualizer({ 
+    initialAlgorithm = 'standard',
+    showAlgorithmSelect = false 
+}: QuickSortVisualizerProps) {
   const [steps, setSteps] = useState<SortStep[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -334,7 +338,7 @@ export function QuickSortVisualizer({ initialAlgorithm = 'standard' }: QuickSort
       swap: isDark ? '#F87171' : '#EF4444', // Red 400 / 500
       compare: isDark ? '#60A5FA' : '#3B82F6', // Blue 400 / 500
       partition: isDark ? '#A78BFA' : '#DDD6FE', // Violet 400 / 200
-      default: isDark ? '#3F3F46' : '#E4E4E7', // Zinc 700 / 200
+      default: isDark ? '#52525B' : '#E4E4E7', // Zinc 600 / 200 (Dark mode adjusted for better contrast)
       text: isDark ? '#A1A1AA' : '#71717A', // Zinc 400 / 500
       textLight: isDark ? '#71717A' : '#A1A1AA', // Zinc 500 / 400
     };
@@ -452,24 +456,19 @@ export function QuickSortVisualizer({ initialAlgorithm = 'standard' }: QuickSort
   return (
     <div className="w-full max-w-2xl mx-auto p-4 bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 my-8 transition-colors duration-200">
       <div className="mb-4 flex flex-col items-center">
-        <div className="flex w-full justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">퀵 정렬 시각화</h3>
-            <div className="text-sm text-zinc-500 dark:text-zinc-400">
-            Step {currentStep + 1} / {steps.length}
-            </div>
-        </div>
-        
-        <Controls.Select
-            label="알고리즘 선택"
-            options={[
-                { value: 'standard', label: '기본 (Last Pivot)' },
-                { value: 'median-of-three', label: '세 값의 중앙값 (Median of 3)' },
-                { value: 'dual-pivot', label: '듀얼 피벗 (Dual Pivot)' },
-            ]}
-            value={algorithm}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setAlgorithm(e.target.value as AlgorithmType)}
-            css={{ marginBottom: '1rem' }}
-        />
+        {showAlgorithmSelect && (
+            <Controls.Select
+                label="알고리즘 선택"
+                options={[
+                    { value: 'standard', label: '기본 (Last Pivot)' },
+                    { value: 'median-of-three', label: '세 값의 중앙값 (Median of 3)' },
+                    { value: 'dual-pivot', label: '듀얼 피벗 (Dual Pivot)' },
+                ]}
+                value={algorithm}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setAlgorithm(e.target.value as AlgorithmType)}
+                css={{ marginBottom: '1rem' }}
+            />
+        )}
       </div>
 
       <div className="w-full mb-6 overflow-x-auto pb-2">
@@ -478,10 +477,13 @@ export function QuickSortVisualizer({ initialAlgorithm = 'standard' }: QuickSort
         </div>
       </div>
 
-      <div className="bg-zinc-50 dark:bg-zinc-800 p-4 rounded-lg mb-6 min-h-[60px] flex items-center justify-center text-center transition-colors duration-200">
+      <div className="bg-zinc-50 dark:bg-zinc-800 p-4 rounded-lg mb-6 flex flex-col items-center justify-center text-center transition-colors duration-200 gap-2 min-h-[80px]">
         <p className="text-zinc-700 dark:text-zinc-200 font-medium">
           {steps[currentStep]?.message}
         </p>
+        <div className="text-xs text-zinc-400 dark:text-zinc-400 font-mono">
+            Step {currentStep + 1} / {steps.length}
+        </div>
       </div>
 
       <Controls.Root>

@@ -53,13 +53,13 @@ const ResetButton = styled(motion.button, {
   
   // Colors
   color: "$textSecondary",
-  backgroundColor: "$gray100", // zinc-100
+  backgroundColor: "$zinc100", // zinc-100
   
   transition: "color 0.2s, background-color 0.2s",
   
   "&:hover": {
     color: "$text",
-    backgroundColor: "$gray200",
+    backgroundColor: "$zinc200",
   },
 });
 
@@ -217,7 +217,7 @@ export function Counter() {
       ? "rgba(59, 130, 246, 0.03)" // Blue tint
       : count < 0 
         ? "rgba(244, 63, 94, 0.03)" // Rose tint
-        : "rgba(113, 113, 122, 0.03)", // Zinc tint
+        : "rgba(113, 113, 122, 0.03)", // zinc tint
     borderColor: count > 0 
       ? "rgba(59, 130, 246, 0.2)" 
       : count < 0 

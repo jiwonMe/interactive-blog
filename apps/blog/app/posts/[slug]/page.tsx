@@ -138,7 +138,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             // Header bottom border and spacing
             "mb-12 border-b pb-8",
             // Border colors
-            "border-gray-100 dark:border-gray-800"
+            "border-zinc-100 dark:border-zinc-800"
           )}
         >
           {post.series && (
@@ -157,7 +157,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
               // Title typography
               "text-4xl md:text-5xl font-extrabold mb-4 tracking-tight leading-tight",
               // Text colors
-              "text-gray-900 dark:text-gray-50",
+              "text-zinc-900 dark:text-zinc-50",
             )}
           >
             {post.title || post.slug.replace(/-/g, ' ')}
@@ -167,7 +167,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             // Meta info container
             className={cn(
               "flex flex-wrap items-center gap-4 text-sm",
-              "text-gray-500 dark:text-gray-400"
+              "text-zinc-500 dark:text-zinc-400"
             )}
           >
             {post.date && (
@@ -185,8 +185,8 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                     className={cn(
                       "px-2 py-1 rounded-md text-xs font-medium",
                       // Tag colors
-                      "bg-gray-100 text-gray-700",
-                      "dark:bg-gray-800 dark:text-gray-300"
+                      "bg-zinc-100 text-zinc-700",
+                      "dark:bg-zinc-800 dark:text-zinc-300"
                     )}
                   >
                     #{tag}
@@ -203,14 +203,14 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             className={cn(
               "mb-12 p-6 rounded-xl border",
               // Colors
-              "bg-gray-50 dark:bg-gray-900/50",
-              "border-gray-200 dark:border-gray-800"
+              "bg-zinc-50 dark:bg-zinc-900/50",
+              "border-zinc-200 dark:border-zinc-800"
             )}
           >
             <h3 
               className={cn(
                 "font-bold mb-4 text-lg flex items-center gap-2",
-                "text-gray-900 dark:text-gray-100"
+                "text-zinc-900 dark:text-zinc-100"
               )}
             >
               📚 {post.series} 시리즈
@@ -220,14 +220,14 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                 <li key={p.slug} className="flex items-start gap-2 text-sm">
                   <span 
                      className={cn(
-                       "font-mono text-gray-400 w-6 text-right",
+                       "font-mono text-zinc-400 w-6 text-right",
                        p.slug === post.slug && "text-blue-500 font-bold"
                      )}
                   >
                     {index + 1}.
                   </span>
                   {p.slug === post.slug ? (
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                    <span className="font-medium text-zinc-900 dark:text-zinc-100">
                       {p.title || p.slug} (현재 글)
                     </span>
                   ) : (
@@ -235,7 +235,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                       href={`/posts/${p.slug}`}
                       className={cn(
                         "hover:underline decoration-blue-500/30 underline-offset-4",
-                        "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                        "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
                       )}
                     >
                       {p.title || p.slug}
@@ -254,7 +254,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
              // Bottom Series Navigation (Previous/Next)
              className={cn(
                "mt-16 pt-8 border-t grid grid-cols-1 md:grid-cols-2 gap-4",
-               "border-gray-100 dark:border-gray-800"
+               "border-zinc-100 dark:border-zinc-800"
              )}
            >
              {(() => {
@@ -269,11 +269,11 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                        href={`/posts/${prevPost.slug}`}
                        className={cn(
                          "group p-4 rounded-lg border transition-all",
-                         "border-gray-200 dark:border-gray-800",
+                         "border-zinc-200 dark:border-zinc-800",
                          "hover:border-blue-500 dark:hover:border-blue-500"
                        )}
                      >
-                       <div className="text-xs text-gray-500 mb-1">← 이전 글</div>
+                       <div className="text-xs text-zinc-500 mb-1">← 이전 글</div>
                        <div className="font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                          {prevPost.title}
                        </div>
@@ -285,11 +285,11 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                        href={`/posts/${nextPost.slug}`}
                        className={cn(
                          "group p-4 rounded-lg border transition-all text-right",
-                         "border-gray-200 dark:border-gray-800",
+                         "border-zinc-200 dark:border-zinc-800",
                          "hover:border-blue-500 dark:hover:border-blue-500"
                        )}
                      >
-                       <div className="text-xs text-gray-500 mb-1">다음 글 →</div>
+                       <div className="text-xs text-zinc-500 mb-1">다음 글 →</div>
                        <div className="font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                          {nextPost.title}
                        </div>

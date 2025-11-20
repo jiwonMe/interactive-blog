@@ -15,7 +15,7 @@ export default function ExperimentLayout({
       <div 
         className={cn(
           "flex-1 relative",
-          "bg-gray-50 dark:bg-zinc-900"
+          "bg-zinc-50 dark:bg-zinc-900"
         )}
       >
         {/* CSS Grid Pattern Background */}
@@ -28,7 +28,7 @@ export default function ExperimentLayout({
         />
         
         {/* Content Area */}
-        <div className="relative z-1 flex flex-col items-center justify-center min-h-[calc(100vh-65px)] p-8 text-gray-900 dark:text-gray-100">
+        <div className="relative z-1 flex flex-col items-center justify-center min-h-[calc(100vh-65px)] p-8 text-zinc-900 dark:text-zinc-100">
           {children}
         </div>
       </div>

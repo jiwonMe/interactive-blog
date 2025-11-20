@@ -29,14 +29,14 @@ export function ExperimentClient({ slug }: { slug: string }) {
         <h1 
           className={cn(
             "text-3xl font-bold mb-2",
-            "text-gray-900 dark:text-gray-50"
+            "text-zinc-900 dark:text-zinc-50"
           )}
         >
           {experiment.title}
         </h1>
         <p 
           className={cn(
-            "text-gray-500 dark:text-gray-400"
+            "text-zinc-500 dark:text-zinc-400"
           )}
         >
           {experiment.description}

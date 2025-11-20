@@ -264,14 +264,14 @@ export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
           <Image
             className={cn(
               "rounded-xl border shadow-sm",
-              "border-gray-200 dark:border-zinc-800"
+              "border-zinc-200 dark:border-zinc-800"
             )}
             alt={props.alt || "Blog post image"}
             {...props}
             src={src}
           />
           {props.caption && (
-            <p className="mt-2 text-center text-sm text-gray-500 italic dark:text-gray-400">
+            <p className="mt-2 text-center text-sm text-zinc-500 italic dark:text-zinc-400">
               {props.caption}
             </p>
           )}
@@ -285,7 +285,7 @@ export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
       <img 
         className={cn(
           "rounded-xl border shadow-sm my-8 max-w-full h-auto",
-          "border-gray-200 dark:border-zinc-800"
+          "border-zinc-200 dark:border-zinc-800"
         )}
         {...props} 
       />
@@ -298,9 +298,9 @@ export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
           // typography
           "text-3xl font-bold tracking-tight",
           // light
-          "text-gray-900",
+          "text-zinc-900",
           // dark
-          "dark:text-gray-50"
+          "dark:text-zinc-50"
         )} 
         {...props} 
       />
@@ -313,9 +313,9 @@ export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
           // typography
           "text-2xl font-bold tracking-tight border-b",
           // light
-          "text-gray-900 border-gray-200",
+          "text-zinc-900 border-zinc-200",
           // dark
-          "dark:text-gray-50 dark:border-gray-800"
+          "dark:text-zinc-50 dark:border-zinc-800"
         )} 
         {...props} 
       />
@@ -328,9 +328,9 @@ export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
           // typography
           "text-xl font-semibold",
           // light
-          "text-gray-900",
+          "text-zinc-900",
           // dark
-          "dark:text-gray-100"
+          "dark:text-zinc-100"
         )} 
         {...props} 
       />
@@ -343,9 +343,9 @@ export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
           // typography
           "leading-8",
           // light
-          "text-gray-800",
+          "text-zinc-800",
           // dark
-          "dark:text-gray-300"
+          "dark:text-zinc-300"
         )} 
         {...props} 
       />
@@ -358,9 +358,9 @@ export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
           // style
           "list-disc",
           // light
-          "text-gray-800",
+          "text-zinc-800",
           // dark
-          "dark:text-gray-300"
+          "dark:text-zinc-300"
         )} 
         {...props} 
       />
@@ -373,9 +373,9 @@ export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
           // style
           "list-decimal",
           // light
-          "text-gray-800",
+          "text-zinc-800",
           // dark
-          "dark:text-gray-300"
+          "dark:text-zinc-300"
         )} 
         {...props} 
       />
@@ -395,9 +395,9 @@ export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
           // typography
           "italic",
           // light
-          "border-gray-200 text-gray-600",
+          "border-zinc-200 text-zinc-600",
           // dark
-          "dark:border-zinc-700 dark:text-gray-400"
+          "dark:border-zinc-700 dark:text-zinc-400"
         )} 
         {...props} 
       />
@@ -408,9 +408,9 @@ export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
           // typography
           "font-bold",
           // light
-          "text-gray-900",
+          "text-zinc-900",
           // dark
-          "dark:text-gray-100"
+          "dark:text-zinc-100"
         )} 
         {...props} 
       />

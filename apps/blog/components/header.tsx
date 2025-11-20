@@ -43,8 +43,8 @@ export function Header() {
         "transition-all duration-300",
         /* Scroll State Styles */
         isScrolled
-          ? "border-t sm:border-b sm:border-t-0 bg-gray-50/80 backdrop-blur-md border-gray-200 dark:bg-zinc-950/80 dark:border-gray-800"
-          : "bg-white dark:bg-zinc-950 border-dashed border-t sm:border-b sm:border-t-0 border-gray-200 dark:border-gray-800"
+          ? "border-t sm:border-b sm:border-t-0 bg-zinc-50/80 backdrop-blur-md border-zinc-200 dark:bg-zinc-950/80 dark:border-zinc-800"
+          : "bg-white dark:bg-zinc-950 border-dashed border-t sm:border-b sm:border-t-0 border-zinc-200 dark:border-zinc-800"
       )}
     >
       <div
@@ -64,7 +64,7 @@ export function Header() {
             /* Typography */
             "font-bold text-xl tracking-tight",
             /* Colors & Transition */
-            "text-gray-900 transition-colors dark:text-gray-100",
+            "text-zinc-900 transition-colors dark:text-zinc-100",
             /* Hover States */
             "hover:text-blue-600 dark:hover:text-blue-400",
           )}
@@ -100,7 +100,7 @@ export function Header() {
                     /* Active/Inactive Colors */
                     isActive
                       ? "text-blue-600 dark:text-blue-400"
-                      : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+                      : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
                   )}
                 >
                   {item.name}
@@ -134,7 +134,7 @@ export function Header() {
               /* Spacing */
               "pl-6",
               /* Borders */
-              "border-l border-gray-200 dark:border-gray-800"
+              "border-l border-zinc-200 dark:border-zinc-800"
             )}
           >
             <a
@@ -143,9 +143,9 @@ export function Header() {
               rel="noopener noreferrer"
               className={cn(
                 /* Colors */
-                "text-gray-500 dark:text-gray-400",
+                "text-zinc-500 dark:text-zinc-400",
                 /* Hover Colors */
-                "hover:text-gray-900 dark:hover:text-gray-200",
+                "hover:text-zinc-900 dark:hover:text-zinc-200",
                 /* Transition */
                 "transition-colors"
               )}

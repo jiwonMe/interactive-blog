@@ -15,13 +15,13 @@ export const {
       primary: '#2563eb', // tailwind blue-600 match
       primaryHover: '#1d4ed8', // tailwind blue-700 match
       background: '#ffffff',
-      text: '#111827', // tailwind gray-900 match
-      textSecondary: '#4b5563', // tailwind gray-600 match
-      gray100: '#f3f4f6',
-      gray200: '#e5e7eb',
-      gray300: '#d1d5db',
+      text: '#111827', // tailwind zinc-900 match
+      textSecondary: '#4b5563', // tailwind zinc-600 match
+      zinc100: '#f3f4f6',
+      zinc200: '#e5e7eb',
+      zinc300: '#d1d5db',
       border: '#e5e7eb',
-      codeBackground: '#f9fafb', // tailwind gray-50 match
+      codeBackground: '#f9fafb', // tailwind zinc-50 match
     },
     fonts: {
       system: '"Pretendard Variable", Pretendard, system-ui, sans-serif',
@@ -75,9 +75,9 @@ export const darkTheme = createTheme('dark-theme', {
     background: '#18181b', // zinc-900
     text: '#fafafa', // zinc-50
     textSecondary: '#a1a1aa', // zinc-400
-    gray100: '#27272a', // zinc-800
-    gray200: '#3f3f46', // zinc-700
-    gray300: '#52525b', // zinc-600
+    zinc100: '#27272a', // zinc-800
+    zinc200: '#3f3f46', // zinc-700
+    zinc300: '#52525b', // zinc-600
     border: '#27272a', // zinc-800
     codeBackground: '#09090b', // zinc-950
   },
@@ -91,9 +91,9 @@ export const globalStyles = globalCss({
     '--colors-background': '#ffffff',
     '--colors-text': '#111827',
     '--colors-textSecondary': '#4b5563',
-    '--colors-gray100': '#f3f4f6',
-    '--colors-gray200': '#e5e7eb',
-    '--colors-gray300': '#d1d5db',
+    '--colors-zinc100': '#f3f4f6',
+    '--colors-zinc200': '#e5e7eb',
+    '--colors-zinc300': '#d1d5db',
     '--colors-border': '#e5e7eb',
     '--colors-codeBackground': '#f9fafb',
   },
@@ -103,9 +103,9 @@ export const globalStyles = globalCss({
     '--colors-background': '#18181b',
     '--colors-text': '#fafafa',
     '--colors-textSecondary': '#a1a1aa',
-    '--colors-gray100': '#27272a',
-    '--colors-gray200': '#3f3f46',
-    '--colors-gray300': '#52525b',
+    '--colors-zinc100': '#27272a',
+    '--colors-zinc200': '#3f3f46',
+    '--colors-zinc300': '#52525b',
     '--colors-border': '#27272a',
     '--colors-codeBackground': '#09090b',
   },

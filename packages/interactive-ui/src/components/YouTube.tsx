@@ -2,7 +2,7 @@
 
 export function YouTube({ id }: { id: string }) {
   return (
-    <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-sm my-8 bg-gray-100">
+    <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-sm my-8 bg-zinc-100">
       <iframe
         src={`https://www.youtube.com/embed/${id}`}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

@@ -141,7 +141,7 @@ console.log(message);`;
       )}
       
       {!mounted || isLoading ? (
-        <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+        <div className="p-4 text-center text-zinc-500 dark:text-zinc-400">
           하이라이팅 중...
         </div>
       ) : (
@@ -151,11 +151,11 @@ console.log(message);`;
                 // 기본 스타일
                 "[&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:border [&_pre]:my-6 [&_pre]:text-sm [&_pre]:leading-relaxed",
                 // shiki가 생성한 pre 요소는 자체 배경색을 사용하므로 Tailwind 배경색 제거
-                "[&_pre.shiki]:bg-transparent [&_pre.shiki]:border-gray-200 dark:[&_pre.shiki]:border-zinc-800",
+                "[&_pre.shiki]:bg-transparent [&_pre.shiki]:border-zinc-200 dark:[&_pre.shiki]:border-zinc-800",
                 // shiki 다크모드 배경색 오버라이드
                 "dark:[&_pre.shiki]:!bg-[#09090b]",
                 // 일반 pre 요소는 Tailwind 배경색 사용
-                "[&_pre:not(.shiki)]:bg-gray-50 [&_pre:not(.shiki)]:border-gray-200",
+                "[&_pre:not(.shiki)]:bg-zinc-50 [&_pre:not(.shiki)]:border-zinc-200",
                 "dark:[&_pre:not(.shiki)]:bg-zinc-900 dark:[&_pre:not(.shiki)]:border-zinc-800",
                 // shiki가 생성한 구조에 대한 스타일
                 "[&_pre_code]:bg-transparent [&_pre_code]:grid [&_pre_code]:min-w-full [&_pre_code]:w-max [&_pre_code]:p-4",
@@ -168,14 +168,14 @@ console.log(message);`;
         </figure>
       )}
       
-      <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+      <div className="mt-4 text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
         <p>
           <strong>언어:</strong> {language}
         </p>
         <p>
           <strong>줄 번호:</strong> {showLineNumbers ? '표시됨' : '숨김'}
         </p>
-        <p className="text-xs mt-2 text-gray-500 dark:text-gray-500">
+        <p className="text-xs mt-2 text-zinc-500 dark:text-zinc-500">
           💡 CodeBlock 컴포넌트를 테스트하고 있습니다. 코드를 입력하고 언어를 변경해보세요.
         </p>
       </div>

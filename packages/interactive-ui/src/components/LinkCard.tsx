@@ -50,7 +50,7 @@ const CardRoot = styled('a', {
 // 썸네일 이미지 컨테이너
 const ImageContainer = styled('div', {
   width: '100%',
-  backgroundColor: '$gray100',
+  backgroundColor: '$zinc100',
   overflow: 'hidden',
   position: 'relative',
   flexShrink: 0,

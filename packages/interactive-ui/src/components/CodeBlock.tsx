@@ -47,7 +47,7 @@ const CopyButton = styled('button', {
   color: '$textSecondary',
   
   '&:hover': {
-    backgroundColor: '$gray100',
+    backgroundColor: '$zinc100',
     color: '$text',
     opacity: 1,
   },
@@ -64,12 +64,12 @@ const CopyButton = styled('button', {
   
   // dark theme
   '.dark-theme &': {
-    backgroundColor: '$gray100',
-    borderColor: '$gray200',
+    backgroundColor: '$zinc100',
+    borderColor: '$zinc200',
     color: '$textSecondary',
     
     '&:hover': {
-      backgroundColor: '$gray200',
+      backgroundColor: '$zinc200',
       color: '$text',
     },
   },

@@ -54,7 +54,7 @@ const StyledButton = styled('button', {
         backgroundColor: 'transparent',
         color: '$text',
         '&:hover': {
-          backgroundColor: '$hover',
+          backgroundColor: '$zinc100',
         },
       },
     },
@@ -160,13 +160,15 @@ const SelectInput = styled('select', {
     fontSize: '0.875rem',
     cursor: 'pointer',
     outline: 'none',
-    transition: 'border-color 0.2s',
+    transition: 'border-color 0.2s, background-color 0.2s',
     
     '&:hover': {
         borderColor: '$text',
+        backgroundColor: '$zinc100',
     },
     '&:focus': {
         borderColor: '$text',
+        backgroundColor: '$zinc100',
     },
 });
 

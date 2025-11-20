@@ -54,7 +54,7 @@ export const experiments: ExperimentItem[] = [
       <div style={{ width: '100%', maxWidth: '400px' }}>
         <InteractivePanel title={props.title}>
           <div className="space-y-4">
-            <p className="dark:text-gray-300">{props.description}</p>
+            <p className="dark:text-zinc-300">{props.description}</p>
             {props.showImage && (
               <div 
                 className={cn(
@@ -75,9 +75,9 @@ export const experiments: ExperimentItem[] = [
                   /* 레이아웃 */
                   "w-full py-2.5 rounded-lg",
                   /* 배경 */
-                  "bg-gray-900 dark:bg-zinc-800 text-white",
+                  "bg-zinc-900 dark:bg-zinc-800 text-white",
                   /* 인터랙션 */
-                  "hover:bg-gray-800 dark:hover:bg-zinc-700 transition-colors",
+                  "hover:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors",
                   /* 텍스트 */
                   "font-medium text-sm"
                 )}

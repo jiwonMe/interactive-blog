@@ -64,7 +64,7 @@ const Button = styled(motion.button, {
   minWidth: '48px',
   height: '48px',
   padding: '0 $4',
-  backgroundColor: '$gray100',
+  backgroundColor: '$zinc100',
   color: '$text',
   border: '1px solid transparent',
   borderRadius: '$2',
@@ -86,7 +86,7 @@ const Button = styled(motion.button, {
         fontSize: '$2',
       },
       default: {
-        backgroundColor: '$gray100',
+        backgroundColor: '$zinc100',
       }
     }
   },
@@ -149,7 +149,7 @@ export const Playground = () => {
         <Button
           variant="default"
           onClick={() => handleCount(-1)}
-          whileHover={{ scale: 1.05, backgroundColor: 'var(--colors-gray200)' }}
+          whileHover={{ scale: 1.05, backgroundColor: 'var(--colors-zinc200)' }}
           whileTap={{ scale: 0.95 }}
           aria-label="Decrease"
         >
@@ -169,7 +169,7 @@ export const Playground = () => {
       <Button
         variant="ghost"
         onClick={handleReset}
-        whileHover={{ backgroundColor: 'var(--colors-gray100)', color: 'var(--colors-text)' }}
+        whileHover={{ backgroundColor: 'var(--colors-zinc100)', color: 'var(--colors-text)' }}
         whileTap={{ scale: 0.95 }}
       >
         Reset

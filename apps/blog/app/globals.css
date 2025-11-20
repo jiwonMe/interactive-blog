@@ -6,28 +6,28 @@
 
 @layer base {
   body {
-    @apply text-gray-900 bg-white antialiased;
+    @apply text-zinc-900 bg-white antialiased;
     font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
     /* Improve readability */
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -moz-osx-font-smoothing: zincscale;
   }
 
   /* Typography defaults */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold tracking-tight text-gray-900;
+    @apply font-bold tracking-tight text-zinc-900;
   }
 
   p {
-    @apply leading-7 text-gray-700;
+    @apply leading-7 text-zinc-700;
   }
 }
 
 @layer components {
   /* Inline code style - applied to code elements NOT inside pre */
   :not(pre) > code {
-    @apply px-1.5 py-0.5 rounded text-sm font-medium font-mono bg-gray-100 text-gray-900 dark:bg-zinc-800 dark:text-gray-200;
+    @apply px-1.5 py-0.5 rounded text-sm font-medium font-mono bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200;
   }
 
   /* Code block styles - rehype-pretty-code가 생성한 구조 */
@@ -39,7 +39,7 @@
 
   /* rehype-pretty-code가 생성한 코드 블록은 shiki의 배경색 사용 */
   [data-rehype-pretty-code-figure] pre {
-    @apply border-gray-200 dark:border-zinc-800;
+    @apply border-zinc-200 dark:border-zinc-800;
     /* 배경색은 shiki가 생성한 CSS 변수 사용 */
     background-color: var(--shiki-light-bg, #fff);
   }
@@ -50,7 +50,7 @@
 
   /* 일반 pre 요소 (rehype-pretty-code가 아닌 경우) */
   pre:not([data-theme]):not([data-rehype-pretty-code-figure] *) {
-    @apply bg-gray-50 border-gray-200;
+    @apply bg-zinc-50 border-zinc-200;
   }
 
   /* Dark mode overrides for pre */
@@ -87,7 +87,7 @@
 
   /* rehype-pretty-code가 생성한 구조 스타일링 */
   pre[data-theme] {
-    @apply bg-gray-50 dark:bg-zinc-900 border-gray-200 dark:border-zinc-800;
+    @apply bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800;
   }
 
   /* Shiki가 생성한 라인 구조 */
@@ -169,7 +169,7 @@
     width: 2.5rem;
     padding-right: 1rem;
     text-align: right;
-    color: rgb(156 163 175); /* gray-400 */
+    color: rgb(156 163 175); /* zinc-400 */
     user-select: none;
     pointer-events: none;
   }
@@ -178,7 +178,7 @@
   .dark code[data-line-numbers] [data-line]::before,
   .dark pre[data-line-numbers] code .line::before,
   .dark code[data-line-numbers] .line::before {
-    color: rgb(75 85 99); /* gray-600 */
+    color: rgb(75 85 99); /* zinc-600 */
   }
 
   /* Highlighted lines */

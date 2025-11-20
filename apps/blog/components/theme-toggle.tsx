@@ -22,11 +22,11 @@ export function ThemeToggle({ className }: { className?: string }) {
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
       className={cn(
         // layout
-        "relative inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-transparent p-0",
+        "relative inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-200 bg-transparent p-0",
         // interaction
-        "hover:bg-gray-100 dark:hover:bg-zinc-800",
+        "hover:bg-zinc-100 dark:hover:bg-zinc-800",
         // dark mode
-        "dark:border-gray-800",
+        "dark:border-zinc-800",
         className
       )}
       aria-label="Toggle theme"

@@ -54,7 +54,7 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
         <motion.div 
           className={cn(
             "fixed top-24 right-6 z-50 rounded-lg border shadow-lg overflow-hidden max-h-[calc(100vh-120px)] flex flex-col",
-            "bg-white/90 backdrop-blur-md border-gray-200",
+            "bg-white/90 backdrop-blur-md border-zinc-200",
             "dark:bg-zinc-900/90 dark:border-zinc-700"
           )}
           initial={false}
@@ -67,7 +67,7 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
           <div 
             className={cn(
               "p-2 flex items-center justify-between border-b",
-              "border-gray-100 bg-gray-50/80",
+              "border-zinc-100 bg-zinc-50/80",
               "dark:border-zinc-800 dark:bg-zinc-800/80"
             )}
           >
@@ -75,7 +75,7 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
               <span 
                 className={cn(
                   "text-xs font-bold uppercase tracking-wider ml-2",
-                  "text-gray-500 dark:text-gray-400"
+                  "text-zinc-500 dark:text-zinc-400"
                 )}
               >
                 Controls
@@ -85,8 +85,8 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
               onClick={() => setIsControlsOpen(!isControlsOpen)}
               className={cn(
                 "p-1.5 rounded-md transition-colors ml-auto",
-                "hover:bg-white text-gray-500",
-                "dark:hover:bg-zinc-700 dark:text-gray-400"
+                "hover:bg-white text-zinc-500",
+                "dark:hover:bg-zinc-700 dark:text-zinc-400"
               )}
               title={isControlsOpen ? "Collapse" : "Expand controls"}
             >
@@ -109,7 +109,7 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
                       htmlFor={key} 
                       className={cn(
                         "text-xs font-semibold",
-                        "text-gray-600 dark:text-gray-300"
+                        "text-zinc-600 dark:text-zinc-300"
                       )}
                     >
                       {control.label}
@@ -118,8 +118,8 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
                       <span 
                         className={cn(
                           "text-[10px] font-mono px-1 rounded",
-                          "text-gray-400 bg-gray-100",
-                          "dark:text-gray-500 dark:bg-zinc-800"
+                          "text-zinc-400 bg-zinc-100",
+                          "dark:text-zinc-500 dark:bg-zinc-800"
                         )}
                       >
                         {values[key]}
@@ -136,8 +136,8 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
                       rows={key === 'code' ? 10 : 1}
                       className={cn(
                         "w-full px-2 py-1.5 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all font-mono",
-                        "bg-white border-gray-200",
-                        "dark:bg-zinc-800 dark:border-zinc-700 dark:text-gray-200",
+                        "bg-white border-zinc-200",
+                        "dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-200",
                         key === 'code' && "resize-y"
                       )}
                       placeholder={key === 'code' ? '코드를 입력하세요...' : ''}
@@ -156,7 +156,7 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
                       onChange={(e) => handleChange(key, Number(e.target.value))}
                       className={cn(
                         "w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-blue-600 block mt-2",
-                        "bg-gray-200 dark:bg-zinc-700"
+                        "bg-zinc-200 dark:bg-zinc-700"
                       )}
                     />
                   )}
@@ -170,7 +170,7 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
                           "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-offset-1",
                           values[key] 
                             ? "bg-blue-600 dark:bg-blue-500" 
-                            : "bg-gray-200 dark:bg-zinc-700",
+                            : "bg-zinc-200 dark:bg-zinc-700",
                           "focus:ring-blue-500 dark:focus:ring-blue-400 dark:focus:ring-offset-zinc-800"
                         )}
                       >
@@ -192,8 +192,8 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
                       onChange={(e) => handleChange(key, e.target.value)}
                       className={cn(
                         "w-full px-2 py-1.5 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all",
-                        "bg-white border-gray-200",
-                        "dark:bg-zinc-800 dark:border-zinc-700 dark:text-gray-200"
+                        "bg-white border-zinc-200",
+                        "dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-200"
                       )}
                     >
                       {control.options.map(opt => (
