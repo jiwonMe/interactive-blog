@@ -23,3 +23,91 @@
     @apply leading-7 text-gray-700;
   }
 }
+
+@layer components {
+  /* Inline code style - applied to code elements NOT inside pre */
+  :not(pre) > code {
+    @apply px-1.5 py-0.5 rounded text-sm font-medium font-mono bg-gray-100 text-gray-900 dark:bg-slate-800 dark:text-gray-200;
+  }
+
+  /* Code block styles - rehype-pretty-code가 생성한 구조 */
+  pre {
+    @apply overflow-x-auto rounded-lg border my-6 text-sm leading-relaxed;
+    /* Light mode default */
+    @apply bg-gray-50 border-gray-200;
+  }
+
+  /* Dark mode overrides for pre */
+  .dark pre {
+    @apply bg-slate-900 border-slate-800;
+  }
+
+  /* Rehype Pretty Code Multi-theme support */
+  
+  /* Light mode: hide dark theme elements */
+  html:not(.dark) [data-theme="dark"] {
+    display: none;
+  }
+
+  /* Dark mode: hide light theme elements */
+  html.dark [data-theme="light"] {
+    display: none;
+  }
+
+  /* Ensure code block content doesn't have extra background from inline code styles */
+  pre > code {
+    @apply bg-transparent p-0;
+    display: grid;
+    min-width: 100%;
+    width: max-content;
+    padding: 1rem;
+  }
+
+  /* rehype-pretty-code가 생성한 구조 스타일링 */
+  pre[data-theme] {
+    @apply bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-800;
+  }
+
+  /* Shiki가 생성한 라인 구조 */
+  pre code [data-line] {
+    @apply px-4;
+    display: inline-block;
+    width: 100%;
+    min-height: 1.5rem;
+  }
+
+  /* Shiki syntax tokens - 인라인 스타일이 적용되므로 기본 스타일만 설정 */
+  pre code span {
+    /* shiki가 생성한 인라인 스타일이 우선 적용됨 */
+  }
+
+  /* Shiki CSS 변수 적용 - 다크 모드 */
+  html.dark pre code span {
+    color: var(--shiki-dark);
+  }
+
+  /* Shiki CSS 변수 적용 - 라이트 모드 */
+  html:not(.dark) pre code span {
+    color: var(--shiki-light);
+  }
+
+  /* Line numbers (optional) */
+  [data-line-numbers] {
+    counter-reset: line;
+  }
+
+  [data-line-numbers] > [data-line]::before {
+    counter-increment: line;
+    content: counter(line);
+    @apply inline-block w-4 mr-4 text-right text-gray-400 dark:text-gray-600;
+  }
+
+  /* Highlighted lines */
+  pre code [data-highlighted-line] {
+    @apply bg-blue-50 dark:bg-blue-900/20;
+  }
+
+  pre code [data-highlighted-chars] {
+    @apply bg-yellow-100 dark:bg-yellow-900/30 rounded;
+  }
+}

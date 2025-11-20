@@ -13,6 +13,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
+import rehypePrettyCode from 'rehype-pretty-code';
 import 'katex/dist/katex.min.css';
 import Image from 'next/image';
 import { visit } from 'unist-util-visit';
@@ -293,36 +294,7 @@ const components = {
   li: (props: React.HTMLAttributes<HTMLLIElement>) => (
     <li className="leading-7" {...props} />
   ),
-  pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
-    <pre 
-      className={cn(
-        // layout
-        "p-5 mb-8 overflow-x-auto rounded-xl border",
-        // typography
-        "text-sm leading-relaxed",
-        // light
-        "bg-gray-50 border-gray-200 text-gray-900",
-        // dark
-        "dark:bg-slate-900 dark:border-slate-800 dark:text-gray-50"
-      )} 
-      {...props} 
-    />
-  ),
-  code: (props: React.HTMLAttributes<HTMLElement>) => (
-    <code 
-      className={cn(
-        // layout
-        "px-1.5 py-0.5 rounded",
-        // typography
-        "text-sm font-medium font-mono",
-        // light
-        "bg-gray-100 text-gray-900",
-        // dark
-        "dark:bg-slate-800 dark:text-gray-200"
-      )} 
-      {...props} 
-    />
-  ),
+  // pre와 code는 rehype-pretty-code가 처리하므로 제거
   blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
     <blockquote 
       className={cn(
@@ -366,6 +338,16 @@ export function CustomMDX({ source }: { source: string }) {
           remarkPlugins: [remarkGfm, remarkBoldFix, remarkMath],
           rehypePlugins: [
             rehypeSlug,
+            [
+              rehypePrettyCode,
+              {
+                theme: {
+                  dark: 'github-dark',
+                  light: 'github-light',
+                },
+                keepBackground: false,
+              },
+            ],
             [rehypeAutolinkHeadings, { behavior: 'wrap' }],
             rehypeKatex,
           ],
