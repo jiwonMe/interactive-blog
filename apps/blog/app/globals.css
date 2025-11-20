@@ -35,6 +35,8 @@
     @apply overflow-x-auto rounded-lg border my-6 text-sm leading-relaxed;
     /* Light mode default */
     @apply bg-gray-50 border-gray-200;
+    /* 복사 버튼을 위한 여백 */
+    @apply pr-12;
   }
 
   /* Dark mode overrides for pre */
@@ -91,15 +93,36 @@
     color: var(--shiki-light);
   }
 
-  /* Line numbers (optional) */
-  [data-line-numbers] {
+  /* Line numbers */
+  /* pre 또는 code 요소에 data-line-numbers가 있으면 줄 번호 표시 */
+  pre[data-line-numbers] code,
+  code[data-line-numbers] {
     counter-reset: line;
   }
 
-  [data-line-numbers] > [data-line]::before {
+  pre[data-line-numbers] code [data-line],
+  code[data-line-numbers] [data-line] {
     counter-increment: line;
+    position: relative;
+    padding-left: 3rem !important;
+  }
+
+  pre[data-line-numbers] code [data-line]::before,
+  code[data-line-numbers] [data-line]::before {
     content: counter(line);
-    @apply inline-block w-4 mr-4 text-right text-gray-400 dark:text-gray-600;
+    position: absolute;
+    left: 0;
+    width: 2.5rem;
+    padding-right: 1rem;
+    text-align: right;
+    color: rgb(156 163 175); /* gray-400 */
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .dark pre[data-line-numbers] code [data-line]::before,
+  .dark code[data-line-numbers] [data-line]::before {
+    color: rgb(75 85 99); /* gray-600 */
   }
 
   /* Highlighted lines */
