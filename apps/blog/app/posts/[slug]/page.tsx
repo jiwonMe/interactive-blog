@@ -42,7 +42,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
           "w-full max-w-3xl"
         )}
       >
-        <Link 
+        {/* <Link 
           href="/" 
           className={cn(
             // Back link styling
@@ -54,7 +54,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
           )}
         >
           ← Back to home
-        </Link>
+        </Link> */}
         <header 
           className={cn(
             // Header bottom border and spacing
@@ -79,7 +79,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
               // Title typography
               "text-4xl md:text-5xl font-extrabold mb-4 tracking-tight leading-tight",
               // Text colors
-              "text-gray-900 dark:text-gray-50"
+              "text-gray-900 dark:text-gray-50",
             )}
           >
             {post.title || post.slug.replace(/-/g, ' ')}
