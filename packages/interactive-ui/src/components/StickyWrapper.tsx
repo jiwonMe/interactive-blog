@@ -29,13 +29,8 @@ export const StickyWrapper = styled('div', {
   position: 'sticky',
   // 헤더 높이(64px) + 여백(16px) = 80px
   top: '80px',
-  zIndex: 100,
-  backgroundColor: 'rgba(255, 255, 255, 0.95)', // 반투명 배경
-  backdropFilter: 'blur(8px)',
-  padding: '$4 0',
-  borderBottom: '1px solid $border',
+  zIndex: 40, // header(z-50)보다 낮게 설정
   marginBottom: '$6',
-  boxShadow: '0 4px 20px -10px rgba(0,0,0,0.1)',
   transition: 'all 0.3s ease',
   
   variants: {
@@ -49,20 +44,12 @@ export const StickyWrapper = styled('div', {
         order: -1, // Content보다 왼쪽
         marginRight: 0, // flex gap으로 처리
         marginBottom: 0,
-        padding: '$4',
-        border: '1px solid $border',
-        borderBottom: '1px solid $border',
-        borderRadius: '$2',
       },
       right: {
         width: '45%',
         order: 1, // Content보다 오른쪽
         marginLeft: 0, // flex gap으로 처리
         marginBottom: 0,
-        padding: '$4',
-        border: '1px solid $border',
-        borderBottom: '1px solid $border',
-        borderRadius: '$2',
       }
     }
   },
@@ -74,14 +61,10 @@ export const StickyWrapper = styled('div', {
   // 모바일 대응
   '@media (max-width: 768px)': {
     top: '64px',
-    padding: '$3 0',
     width: '100% !important',
     order: 0, // 순서 초기화
     position: 'relative', // sticky 해제
     margin: '0 0 $6 0 !important',
-    border: 'none',
-    borderBottom: '1px solid $border',
-    borderRadius: 0,
   },
 });
 

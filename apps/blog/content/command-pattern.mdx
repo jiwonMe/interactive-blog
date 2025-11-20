@@ -48,11 +48,13 @@ Command Pattern은 다음과 같은 구성 요소로 이루어집니다:
 
 ## 간단한 예제: 조명 제어
 
+<CommandPatternProvider>
 <Section>
   <StickyWrapper side="right">
-    <CommandPatternProvider>
-      <CommandExecutor />
-    </CommandPatternProvider>
+    <CommandExecutor />
+    <div style={{ marginTop: '1.5rem' }}>
+      <CommandHistory />
+    </div>
   </StickyWrapper>
 
   <Content>
@@ -73,6 +75,7 @@ Command Pattern은 다음과 같은 구성 요소로 이루어집니다:
   - "불 켜기" 버튼을 눌러보세요. 조명이 켜집니다.
   - "불 끄기" 버튼을 눌러보세요. 조명이 꺼집니다.
   - "실행 취소(Undo)" 버튼을 누르면 가장 최근의 명령이 취소됩니다.
+  - 오른쪽 하단의 **명령 히스토리**에서 실행한 모든 명령을 확인할 수 있습니다. 히스토리 항목을 클릭하면 해당 시점의 상태로 **시간 여행**을 할 수 있습니다.
   
   코드로 보면 다음과 같습니다:
 
@@ -113,33 +116,18 @@ class LightOnCommand implements Command {
 ```
 
   이처럼 요청을 객체로 만들면, 요청을 처리하는 시점을 미루거나, 다른 객체로 전달하거나, **실행 취소**를 구현하기가 매우 쉬워집니다.
-  </Content>
-</Section>
-
-## 실행 취소 기능과 히스토리
-
-<Section>
-  <StickyWrapper side="left">
-    <CommandPatternProvider>
-      <CommandHistory />
-    </CommandPatternProvider>
-  </StickyWrapper>
-
-  <Content>
+  
+  ### 실행 취소 기능과 히스토리
+  
   Command Pattern의 가장 강력한 기능 중 하나는 **실행 취소(Undo)** 및 **히스토리 관리**입니다.
   
-  왼쪽의 인터랙티브 컴포넌트는 명령이 실행될 때마다 스택에 쌓이는 모습을 보여줍니다. 텍스트를 읽으면서 왼쪽의 상태 변화를 실시간으로 확인해보세요.
+  오른쪽의 히스토리 컴포넌트는 명령이 실행될 때마다 스택에 쌓이는 모습을 보여줍니다. "불 켜기"나 "불 끄기" 버튼을 누르면 히스토리에 명령이 추가되는 것을 실시간으로 확인할 수 있습니다.
   
   ### 히스토리 관리의 원리
   
   1. 명령을 실행(`execute`)하기 전에, 해당 명령 객체를 **히스토리 스택**에 저장합니다.
   2. 실행 취소(`undo`) 요청이 오면, 스택에서 가장 최근 명령을 꺼냅니다.
   3. 그 명령 객체의 `undo()` 메서드를 호출합니다.
-  
-  **직접 체험해보세요:**
-  - "불 켜기 명령 추가" 버튼을 여러 번 눌러보세요. 리스트에 명령이 쌓입니다.
-  - 리스트의 특정 항목을 클릭해보세요. 해당 시점의 상태로 **시간 여행**을 할 수 있습니다.
-  - "히스토리 초기화"를 누르면 모든 기록이 사라집니다.
   
   이를 코드로 구현하면 다음과 같습니다:
 
@@ -173,6 +161,7 @@ class RemoteControlWithHistory {
   이 방식은 포토샵의 "히스토리" 기능이나 텍스트 에디터의 `Ctrl+Z` 기능과 동일한 원리입니다. 모든 변경 사항을 Command 객체로 저장해두면, 언제든지 과거의 상태로 돌아갈 수 있습니다.
   </Content>
 </Section>
+</CommandPatternProvider>
 
 ## 매크로 명령 (Macro Command)
 
