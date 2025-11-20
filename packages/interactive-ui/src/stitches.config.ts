@@ -12,16 +12,17 @@ export const {
 } = createStitches({
   theme: {
     colors: {
-      primary: '#2563eb', // tailwind blue-600 match
-      primaryHover: '#1d4ed8', // tailwind blue-700 match
-      background: '#ffffff',
-      text: '#111827', // tailwind zinc-900 match
-      textSecondary: '#4b5563', // tailwind zinc-600 match
-      zinc100: '#f3f4f6',
-      zinc200: '#e5e7eb',
-      zinc300: '#d1d5db',
-      border: '#e5e7eb',
-      codeBackground: '#f9fafb', // tailwind zinc-50 match
+      // CSS 변수를 사용하여 다크 모드 자동 전환 지원
+      primary: 'var(--colors-primary)',
+      primaryHover: 'var(--colors-primaryHover)',
+      background: 'var(--colors-background)',
+      text: 'var(--colors-text)',
+      textSecondary: 'var(--colors-textSecondary)',
+      zinc100: 'var(--colors-zinc100)',
+      zinc200: 'var(--colors-zinc200)',
+      zinc300: 'var(--colors-zinc300)',
+      border: 'var(--colors-border)',
+      codeBackground: 'var(--colors-codeBackground)',
     },
     fonts: {
       system: '"Pretendard Variable", Pretendard, system-ui, sans-serif',
@@ -97,7 +98,8 @@ export const globalStyles = globalCss({
     '--colors-border': '#e5e7eb',
     '--colors-codeBackground': '#f9fafb',
   },
-  '.dark-theme': {
+  // next-themes는 'dark' 클래스를 사용하므로 이를 지원
+  '.dark, .dark-theme': {
     '--colors-primary': '#3b82f6',
     '--colors-primaryHover': '#2563eb',
     '--colors-background': '#18181b',
@@ -110,3 +112,6 @@ export const globalStyles = globalCss({
     '--colors-codeBackground': '#09090b',
   },
 });
+
+// globalStyles를 즉시 적용하여 CSS 변수가 사용 가능하도록 함
+globalStyles();
