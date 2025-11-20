@@ -41,6 +41,7 @@
     "@types/react-dom": "^19.0.0",
     "@types/unist": "^3.0.3",
     "autoprefixer": "^10.0.1",
+    "copy-webpack-plugin": "^13.0.1",
     "eslint": "^8.0.0",
     "eslint-config-next": "15.0.0",
     "postcss": "^8.0.0",

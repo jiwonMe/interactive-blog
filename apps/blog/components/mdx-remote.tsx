@@ -177,214 +177,243 @@ const remarkBoldFix: Plugin = () => {
   };
 };
 
-const components = {
-  InteractivePanel: (props: any) => (
-    <div className="my-8">
-      <InteractivePanel {...props} />
-    </div>
-  ),
-  Playground: () => (
-    <div className="my-8">
-      <Playground />
-    </div>
-  ),
-  Counter: () => (
-    <div className="my-8">
-      <Counter />
-    </div>
-  ),
-  Section: (props: React.ComponentProps<typeof Section>) => (
-    <Section {...props} />
-  ),
-  StickyWrapper: ({ children, ...props }: any) => (
-    <StickyWrapper {...props}>{children}</StickyWrapper>
-  ),
-  Content: ({ children, ...props }: any) => (
-    <Content {...props}>{children}</Content>
-  ),
-  YouTube,
-  LinkCard: (props: any) => {
-    // MDX에서 전달되는 props를 적절한 타입으로 변환
-    // 빈 문자열이나 undefined인 경우 undefined로 처리
-    // MDX에서 전달되는 모든 props는 문자열이므로 명시적으로 변환 필요
-    const linkCardProps = {
-      href: props.href,
-      title: props.title,
-      description: props.description,
-      image: props.image,
-      imageAlt: props.imageAlt,
-      // size prop만 명시적으로 변환
-      size: (props.size && props.size !== '' && ['small', 'medium', 'large'].includes(props.size)) 
-        ? (props.size as 'small' | 'medium' | 'large') 
-        : undefined,
+export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
+  
+  const rewriteSrc = (src: string | undefined) => {
+    if (!src || !slug) return src;
+    if (src.startsWith('/') || src.startsWith('http')) return src;
+    // remove ./ prefix
+    const cleanSrc = src.replace(/^\.\//, '');
+    return `/images/articles/${slug}/${cleanSrc}`;
+  };
+
+  // Rehype plugin to rewrite image src in standard markdown
+  const rehypeImageRewrite: Plugin = () => {
+    return (tree: any) => {
+      if (!slug) return;
+      visit(tree, 'element', (node: any) => {
+        if (node.tagName === 'img' && node.properties && typeof node.properties.src === 'string') {
+          const src = node.properties.src;
+          if (!src.startsWith('/') && !src.startsWith('http')) {
+            const cleanSrc = src.replace(/^\.\//, '');
+            node.properties.src = `/images/articles/${slug}/${cleanSrc}`;
+          }
+        }
+      });
     };
-    
-    return (
+  };
+
+  const components = {
+    InteractivePanel: (props: any) => (
       <div className="my-8">
-        <LinkCard {...linkCardProps} />
+        <InteractivePanel {...props} />
       </div>
-    );
-  },
-  Image: (props: any) => (
-    <div className="my-8">
-      <Image
+    ),
+    Playground: () => (
+      <div className="my-8">
+        <Playground />
+      </div>
+    ),
+    Counter: () => (
+      <div className="my-8">
+        <Counter />
+      </div>
+    ),
+    Section: (props: React.ComponentProps<typeof Section>) => (
+      <Section {...props} />
+    ),
+    StickyWrapper: ({ children, ...props }: any) => (
+      <StickyWrapper {...props}>{children}</StickyWrapper>
+    ),
+    Content: ({ children, ...props }: any) => (
+      <Content {...props}>{children}</Content>
+    ),
+    YouTube,
+    LinkCard: (props: any) => {
+      // MDX에서 전달되는 props를 적절한 타입으로 변환
+      // 빈 문자열이나 undefined인 경우 undefined로 처리
+      // MDX에서 전달되는 모든 props는 문자열이므로 명시적으로 변환 필요
+      const linkCardProps = {
+        href: props.href,
+        title: props.title,
+        description: props.description,
+        image: props.image,
+        imageAlt: props.imageAlt,
+        // size prop만 명시적으로 변환
+        size: (props.size && props.size !== '' && ['small', 'medium', 'large'].includes(props.size)) 
+          ? (props.size as 'small' | 'medium' | 'large') 
+          : undefined,
+      };
+      
+      return (
+        <div className="my-8">
+          <LinkCard {...linkCardProps} />
+        </div>
+      );
+    },
+    Image: (props: any) => {
+      const src = rewriteSrc(props.src);
+      return (
+        <div className="my-8">
+          <Image
+            className={cn(
+              "rounded-xl border shadow-sm",
+              "border-gray-200 dark:border-zinc-800"
+            )}
+            alt={props.alt || "Blog post image"}
+            {...props}
+            src={src}
+          />
+          {props.caption && (
+            <p className="mt-2 text-center text-sm text-gray-500 italic dark:text-gray-400">
+              {props.caption}
+            </p>
+          )}
+        </div>
+      );
+    },
+    img: (props: any) => (
+      // Fallback for standard markdown image syntax if not using <Image /> component
+      // Note: Next.js Image requires width/height for remote images unless fill is used.
+      // For simplicity in standard markdown, we'll style it as a responsive img tag.
+      <img 
         className={cn(
-          "rounded-xl border shadow-sm",
+          "rounded-xl border shadow-sm my-8 max-w-full h-auto",
           "border-gray-200 dark:border-zinc-800"
         )}
-        alt={props.alt || "Blog post image"}
-        {...props}
+        {...props} 
       />
-      {props.caption && (
-        <p className="mt-2 text-center text-sm text-gray-500 italic dark:text-gray-400">
-          {props.caption}
-        </p>
-      )}
-    </div>
-  ),
-  img: (props: any) => (
-    // Fallback for standard markdown image syntax if not using <Image /> component
-    // Note: Next.js Image requires width/height for remote images unless fill is used.
-    // For simplicity in standard markdown, we'll style it as a responsive img tag.
-    <img 
-      className={cn(
-        "rounded-xl border shadow-sm my-8 max-w-full h-auto",
-        "border-gray-200 dark:border-zinc-800"
-      )}
-      {...props} 
-    />
-  ),
-  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h1 
-      className={cn(
-        // layout
-        "mt-12 mb-6 pb-2 scroll-mt-24",
-        // typography
-        "text-3xl font-bold tracking-tight",
-        // light
-        "text-gray-900",
-        // dark
-        "dark:text-gray-50"
-      )} 
-      {...props} 
-    />
-  ),
-  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 
-      className={cn(
-        // layout
-        "mt-10 mb-4 pb-2 scroll-mt-24",
-        // typography
-        "text-2xl font-bold tracking-tight border-b",
-        // light
-        "text-gray-900 border-gray-200",
-        // dark
-        "dark:text-gray-50 dark:border-gray-800"
-      )} 
-      {...props} 
-    />
-  ),
-  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 
-      className={cn(
-        // layout
-        "mt-8 mb-3 scroll-mt-24",
-        // typography
-        "text-xl font-semibold",
-        // light
-        "text-gray-900",
-        // dark
-        "dark:text-gray-100"
-      )} 
-      {...props} 
-    />
-  ),
-  p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p 
-      className={cn(
-        // layout
-        "mb-6",
-        // typography
-        "leading-8",
-        // light
-        "text-gray-800",
-        // dark
-        "dark:text-gray-300"
-      )} 
-      {...props} 
-    />
-  ),
-  ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
-    <ul 
-      className={cn(
-        // layout
-        "pl-6 mb-6 space-y-2",
-        // style
-        "list-disc",
-        // light
-        "text-gray-800",
-        // dark
-        "dark:text-gray-300"
-      )} 
-      {...props} 
-    />
-  ),
-  ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
-    <ol 
-      className={cn(
-        // layout
-        "pl-6 mb-6 space-y-2",
-        // style
-        "list-decimal",
-        // light
-        "text-gray-800",
-        // dark
-        "dark:text-gray-300"
-      )} 
-      {...props} 
-    />
-  ),
-  li: (props: React.HTMLAttributes<HTMLLIElement>) => (
-    <li className="leading-7" {...props} />
-  ),
-  pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
-    <CodeBlock {...props} />
-  ),
-  // pre와 code는 rehype-pretty-code가 처리하므로 제거
-  blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
-    <blockquote 
-      className={cn(
-        // layout
-        "pl-4 my-6 border-l-4",
-        // typography
-        "italic",
-        // light
-        "border-gray-200 text-gray-600",
-        // dark
-        "dark:border-zinc-700 dark:text-gray-400"
-      )} 
-      {...props} 
-    />
-  ),
-  strong: (props: React.HTMLAttributes<HTMLElement>) => (
-    <strong 
-      className={cn(
-        // typography
-        "font-bold",
-        // light
-        "text-gray-900",
-        // dark
-        "dark:text-gray-100"
-      )} 
-      {...props} 
-    />
-  ),
-  em: (props: React.HTMLAttributes<HTMLElement>) => (
-    <em className="italic" {...props} />
-  ),
-};
+    ),
+    h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
+      <h1 
+        className={cn(
+          // layout
+          "mt-12 mb-6 pb-2 scroll-mt-24",
+          // typography
+          "text-3xl font-bold tracking-tight",
+          // light
+          "text-gray-900",
+          // dark
+          "dark:text-gray-50"
+        )} 
+        {...props} 
+      />
+    ),
+    h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
+      <h2 
+        className={cn(
+          // layout
+          "mt-10 mb-4 pb-2 scroll-mt-24",
+          // typography
+          "text-2xl font-bold tracking-tight border-b",
+          // light
+          "text-gray-900 border-gray-200",
+          // dark
+          "dark:text-gray-50 dark:border-gray-800"
+        )} 
+        {...props} 
+      />
+    ),
+    h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
+      <h3 
+        className={cn(
+          // layout
+          "mt-8 mb-3 scroll-mt-24",
+          // typography
+          "text-xl font-semibold",
+          // light
+          "text-gray-900",
+          // dark
+          "dark:text-gray-100"
+        )} 
+        {...props} 
+      />
+    ),
+    p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
+      <p 
+        className={cn(
+          // layout
+          "mb-6",
+          // typography
+          "leading-8",
+          // light
+          "text-gray-800",
+          // dark
+          "dark:text-gray-300"
+        )} 
+        {...props} 
+      />
+    ),
+    ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
+      <ul 
+        className={cn(
+          // layout
+          "pl-6 mb-6 space-y-2",
+          // style
+          "list-disc",
+          // light
+          "text-gray-800",
+          // dark
+          "dark:text-gray-300"
+        )} 
+        {...props} 
+      />
+    ),
+    ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
+      <ol 
+        className={cn(
+          // layout
+          "pl-6 mb-6 space-y-2",
+          // style
+          "list-decimal",
+          // light
+          "text-gray-800",
+          // dark
+          "dark:text-gray-300"
+        )} 
+        {...props} 
+      />
+    ),
+    li: (props: React.HTMLAttributes<HTMLLIElement>) => (
+      <li className="leading-7" {...props} />
+    ),
+    pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
+      <CodeBlock {...props} />
+    ),
+    // pre와 code는 rehype-pretty-code가 처리하므로 제거
+    blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
+      <blockquote 
+        className={cn(
+          // layout
+          "pl-4 my-6 border-l-4",
+          // typography
+          "italic",
+          // light
+          "border-gray-200 text-gray-600",
+          // dark
+          "dark:border-zinc-700 dark:text-gray-400"
+        )} 
+        {...props} 
+      />
+    ),
+    strong: (props: React.HTMLAttributes<HTMLElement>) => (
+      <strong 
+        className={cn(
+          // typography
+          "font-bold",
+          // light
+          "text-gray-900",
+          // dark
+          "dark:text-gray-100"
+        )} 
+        {...props} 
+      />
+    ),
+    em: (props: React.HTMLAttributes<HTMLElement>) => (
+      <em className="italic" {...props} />
+    ),
+  };
 
-export function CustomMDX({ source }: { source: string }) {
   return (
     <MDXRemote
       source={source}
@@ -394,6 +423,7 @@ export function CustomMDX({ source }: { source: string }) {
           remarkPlugins: [remarkGfm, remarkBoldFix, remarkMath],
           rehypePlugins: [
             rehypeSlug,
+            rehypeImageRewrite,
             // rehype-pretty-code 전에 메타데이터를 저장하는 플러그인
             (() => {
               const metaMap = new Map();

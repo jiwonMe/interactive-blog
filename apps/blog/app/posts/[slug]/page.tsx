@@ -64,15 +64,15 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
           )}
         >
           {post.series && (
-             <div 
-               // Series label styling
-               className={cn(
-                 "mb-4 text-sm font-medium tracking-wide uppercase",
-                 "text-blue-600 dark:text-blue-400"
-               )}
-             >
-               Series: {post.series}
-             </div>
+            <div 
+              // Series label styling
+              className={cn(
+                "mb-4 text-sm font-medium tracking-wide uppercase",
+                "text-blue-600 dark:text-blue-400"
+              )}
+            >
+              Series: {post.series}
+            </div>
           )}
           <h1 
             className={cn(
@@ -169,7 +169,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
           </div>
         )}
 
-        <CustomMDX source={post.content} />
+        <CustomMDX source={post.content} slug={post.slug} />
 
         {post.series && seriesPosts.length > 0 && (
            <div 
