@@ -8,6 +8,7 @@ export const {
   getCssText,
   theme,
   config,
+  createTheme,
 } = createStitches({
   theme: {
     colors: {
@@ -63,5 +64,19 @@ export const {
     ml: (value: string | number) => ({ marginLeft: value }),
     mx: (value: string | number) => ({ marginLeft: value, marginRight: value }),
     my: (value: string | number) => ({ marginTop: value, marginBottom: value }),
+  },
+});
+
+export const darkTheme = createTheme('dark-theme', {
+  colors: {
+    primary: '#3b82f6', // blue-500
+    primaryHover: '#2563eb', // blue-600
+    background: '#0f172a', // slate-900
+    text: '#f8fafc', // slate-50
+    textSecondary: '#94a3b8', // slate-400
+    gray100: '#1e293b', // slate-800
+    gray200: '#334155', // slate-700
+    gray300: '#475569', // slate-600
+    border: '#1e293b', // slate-800
   },
 });

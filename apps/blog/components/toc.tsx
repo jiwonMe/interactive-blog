@@ -41,17 +41,19 @@ export function TableOfContents({ toc }: { toc: TOCItem[] }) {
 
   return (
     <nav className="hidden lg:block sticky top-24 self-start w-64 ml-12 max-h-[calc(100vh-6rem)] overflow-auto">
-      <h4 className="font-semibold text-sm uppercase tracking-wider text-gray-500 mb-4">On this page</h4>
-      <ul className="space-y-2 text-sm border-l border-gray-100">
+      <h4 className="font-semibold text-sm uppercase tracking-wider text-gray-500 mb-4 dark:text-gray-400">On this page</h4>
+      <ul className="space-y-2 text-sm border-l border-gray-100 dark:border-gray-800">
         {toc.map((item) => (
           <li key={item.id}>
             <a
               href={`#${item.id}`}
               className={cn(
+                // base
                 "block pl-4 py-1 transition-colors border-l-2 -ml-[1px]",
+                // active state
                 activeId === item.id
-                  ? "border-blue-600 text-blue-600 font-medium"
-                  : "border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300"
+                  ? "border-blue-600 text-blue-600 font-medium dark:text-blue-400 dark:border-blue-400"
+                  : "border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600"
               )}
               style={{ paddingLeft: `${(item.level - 1) * 1 + 1}rem` }}
               onClick={(e) => {

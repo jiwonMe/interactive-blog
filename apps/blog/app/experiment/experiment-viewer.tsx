@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ControlType } from "./registry";
+import { cn } from "../../lib/utils";
 
 type ExperimentViewerProps = {
   render: (props: any) => React.ReactNode;
@@ -43,7 +44,11 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
       {/* Compact Fixed Controls Panel (Top Right) */}
       {hasControls && (
         <motion.div 
-          className="fixed top-24 right-6 z-50 bg-white/90 backdrop-blur-md rounded-lg border border-gray-200 shadow-lg overflow-hidden max-h-[calc(100vh-120px)] flex flex-col"
+          className={cn(
+            "fixed top-24 right-6 z-50 backdrop-blur-md rounded-lg border shadow-lg overflow-hidden max-h-[calc(100vh-120px)] flex flex-col",
+            "bg-white/90 border-gray-200",
+            "dark:bg-slate-900/90 dark:border-slate-800"
+          )}
           initial={false}
           animate={{ 
             width: isControlsOpen ? '280px' : '40px',
@@ -51,13 +56,30 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
           }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
-          <div className="p-2 flex items-center justify-between border-b border-gray-100 bg-gray-50/80">
+          <div 
+            className={cn(
+              "p-2 flex items-center justify-between border-b",
+              "border-gray-100 bg-gray-50/80",
+              "dark:border-slate-800 dark:bg-slate-800/80"
+            )}
+          >
             {isControlsOpen && (
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-2">Controls</span>
+              <span 
+                className={cn(
+                  "text-xs font-bold uppercase tracking-wider ml-2",
+                  "text-gray-500 dark:text-gray-400"
+                )}
+              >
+                Controls
+              </span>
             )}
             <button 
               onClick={() => setIsControlsOpen(!isControlsOpen)}
-              className="p-1.5 hover:bg-white rounded-md text-gray-500 transition-colors ml-auto"
+              className={cn(
+                "p-1.5 rounded-md transition-colors ml-auto",
+                "hover:bg-white text-gray-500",
+                "dark:hover:bg-slate-700 dark:text-gray-400"
+              )}
               title={isControlsOpen ? "Collapse" : "Expand controls"}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -75,11 +97,25 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
               {Object.entries(controls).map(([key, control]) => (
                 <div key={key} className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label htmlFor={key} className="text-xs font-semibold text-gray-600">
+                    <label 
+                      htmlFor={key} 
+                      className={cn(
+                        "text-xs font-semibold",
+                        "text-gray-600 dark:text-gray-300"
+                      )}
+                    >
                       {control.label}
                     </label>
                     {control.type === 'number' && (
-                      <span className="text-[10px] text-gray-400 font-mono bg-gray-100 px-1 rounded">{values[key]}</span>
+                      <span 
+                        className={cn(
+                          "text-[10px] font-mono px-1 rounded",
+                          "text-gray-400 bg-gray-100",
+                          "dark:text-gray-500 dark:bg-slate-800"
+                        )}
+                      >
+                        {values[key]}
+                      </span>
                     )}
                   </div>
 
@@ -90,7 +126,11 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
                       id={key}
                       value={values[key]}
                       onChange={(e) => handleChange(key, e.target.value)}
-                      className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                      className={cn(
+                        "w-full px-2 py-1.5 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all",
+                        "bg-white border-gray-200",
+                        "dark:bg-slate-800 dark:border-slate-700 dark:text-gray-200"
+                      )}
                     />
                   )}
 
@@ -104,7 +144,10 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
                       step={control.step}
                       value={values[key]}
                       onChange={(e) => handleChange(key, Number(e.target.value))}
-                      className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 block mt-2"
+                      className={cn(
+                        "w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-blue-600 block mt-2",
+                        "bg-gray-200 dark:bg-slate-700"
+                      )}
                     />
                   )}
 
@@ -113,16 +156,17 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
                     <div className="flex items-center justify-between">
                       <button
                         onClick={() => handleChange(key, !values[key])}
-                        className={`
-                          relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1
-                          ${values[key] ? 'bg-blue-600' : 'bg-gray-200'}
-                        `}
+                        className={cn(
+                          "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1",
+                          values[key] ? "bg-blue-600" : "bg-gray-200 dark:bg-slate-700",
+                          "dark:focus:ring-offset-slate-900"
+                        )}
                       >
                         <span
-                          className={`
-                            inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform duration-200 ease-in-out shadow-sm
-                            ${values[key] ? 'translate-x-4' : 'translate-x-1'}
-                          `}
+                          className={cn(
+                            "inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform duration-200 ease-in-out shadow-sm",
+                            values[key] ? "translate-x-4" : "translate-x-1"
+                          )}
                         />
                       </button>
                     </div>
@@ -134,7 +178,11 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
                       id={key}
                       value={values[key]}
                       onChange={(e) => handleChange(key, e.target.value)}
-                      className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                      className={cn(
+                        "w-full px-2 py-1.5 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all",
+                        "bg-white border-gray-200",
+                        "dark:bg-slate-800 dark:border-slate-700 dark:text-gray-200"
+                      )}
                     >
                       {control.options.map(opt => (
                         <option key={opt} value={opt}>{opt}</option>

@@ -47,14 +47,14 @@ export const experiments: ExperimentItem[] = [
       <div style={{ width: '100%', maxWidth: '400px' }}>
         <InteractivePanel title={props.title}>
           <div className="space-y-4">
-            <p>{props.description}</p>
+            <p className="dark:text-gray-300">{props.description}</p>
             {props.showImage && (
-              <div className="h-32 bg-blue-50 border-2 border-dashed border-blue-200 rounded-lg flex items-center justify-center text-blue-500 font-medium">
+              <div className="h-32 bg-blue-50 dark:bg-blue-900/20 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-lg flex items-center justify-center text-blue-500 dark:text-blue-400 font-medium">
                 이미지 영역
               </div>
             )}
             {props.showButton && (
-              <button className="w-full py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium text-sm">
+              <button className="w-full py-2.5 bg-gray-900 dark:bg-slate-800 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-slate-700 transition-colors font-medium text-sm">
                 {props.buttonText}
               </button>
             )}

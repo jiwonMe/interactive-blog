@@ -6,10 +6,12 @@ import { cn } from '../../lib/utils';
 import { useQuickSortContext } from './context';
 import { generatePartitionSteps } from './logic';
 import { PartitionStep } from './types';
+import { useTheme } from 'next-themes';
 
 export const PartitionVisualizer = () => {
   const { array: contextArray, pivotIndex: contextPivotIndex } = useQuickSortContext();
   const [step, setStep] = useState(0);
+  const { theme } = useTheme();
   
   // Context에서 배열과 피벗을 가져오거나 기본값 사용
   const array = contextArray.length > 0 ? contextArray : [50, 25, 90, 10, 35, 80, 60, 15];
@@ -35,11 +37,12 @@ export const PartitionVisualizer = () => {
     if (current.compareIndex === index) return '#3b82f6'; // 비교 중 - 파란색
     if (current.swapIndices.includes(index)) return '#ef4444'; // 교환 - 빨간색
     if (step === steps.length - 1 && index <= currentPivotPos) return '#10b981'; // 정렬된 영역 - 초록색
-    return '#e5e7eb'; // 기본 - 회색
+    return theme === 'dark' ? '#334155' : '#e5e7eb'; // 기본 - 회색
   };
 
   const getTextColor = (index: number) => {
-     return getElementColor(index) !== '#e5e7eb' ? 'white' : '#111827';
+     const color = getElementColor(index);
+     return (color !== '#e5e7eb' && color !== '#334155') ? 'white' : (theme === 'dark' ? '#f1f5f9' : '#111827');
   };
 
   return (
@@ -48,14 +51,22 @@ export const PartitionVisualizer = () => {
         /* Layout */
         "flex flex-col items-center gap-4 w-full",
         /* Appearance */
-        "p-6 bg-white border border-gray-200 rounded-lg"
+        "p-6 border rounded-lg",
+        /* Light */
+        "bg-white border-gray-200",
+        /* Dark */
+        "dark:bg-slate-900 dark:border-slate-800"
       )}
     >
       <div className="text-center mb-2">
         <p 
           className={cn(
             /* Typography */
-            "text-sm font-medium text-gray-600"
+            "text-sm font-medium",
+            /* Light */
+            "text-gray-600",
+            /* Dark */
+            "dark:text-gray-400"
           )}
         >
           {current.description}
@@ -124,11 +135,15 @@ const Button = ({ className, ...props }: React.ButtonHTMLAttributes<HTMLButtonEl
       /* Layout */
       "px-4 py-2",
       /* Appearance */
-      "bg-blue-600 text-white hover:bg-blue-700 rounded-md",
+      "rounded-md",
+      /* Light */
+      "bg-blue-600 text-white hover:bg-blue-700",
+      /* Dark */
+      "dark:bg-blue-600 dark:hover:bg-blue-500",
       /* Typography */
       "text-sm font-semibold",
       /* Disabled */
-      "disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400",
+      "disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 dark:disabled:bg-slate-700",
       className
     )}
     {...props}

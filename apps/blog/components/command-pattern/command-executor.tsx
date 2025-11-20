@@ -35,7 +35,11 @@ export const CommandExecutor = () => {
         /* Layout */
         "flex flex-col gap-4",
         /* Appearance */
-        "p-6 bg-white border border-gray-200 rounded-lg shadow-sm"
+        "p-6 border rounded-lg shadow-sm",
+        /* Light */
+        "bg-white border-gray-200",
+        /* Dark */
+        "dark:bg-slate-900 dark:border-slate-800"
       )}
     >
       <div 
@@ -43,7 +47,11 @@ export const CommandExecutor = () => {
           /* Layout */
           "flex flex-col items-center gap-4",
           /* Appearance */
-          "p-6 bg-gray-100 rounded-md"
+          "p-6 rounded-md",
+          /* Light */
+          "bg-gray-100",
+          /* Dark */
+          "dark:bg-slate-800"
         )}
       >
         <div 
@@ -55,17 +63,28 @@ export const CommandExecutor = () => {
           <motion.div
             animate={{
               scale: isLightOn ? [1, 1.1, 1] : 1,
-              backgroundColor: isLightOn ? '#fef3c7' : '#f3f4f6',
-              borderColor: isLightOn ? '#f59e0b' : '#d1d5db',
-              color: isLightOn ? '#92400e' : '#9ca3af',
+              backgroundColor: isLightOn ? '#fef3c7' : 'var(--bg-bulb-off)',
+              borderColor: isLightOn ? '#f59e0b' : 'var(--border-bulb-off)',
+              color: isLightOn ? '#92400e' : 'var(--text-bulb-off)',
               boxShadow: isLightOn ? '0 0 30px rgba(245, 158, 11, 0.6)' : 'none',
             }}
+            style={{
+              '--bg-bulb-off': '#f3f4f6', // gray-100
+              '--border-bulb-off': '#d1d5db', // gray-300
+              '--text-bulb-off': '#9ca3af', // gray-400
+            } as any}
             transition={{ duration: 0.3 }}
             className={cn(
               /* Layout */
               "w-20 h-20 flex items-center justify-center",
               /* Appearance */
-              "rounded-full border-4 text-4xl font-bold"
+              "rounded-full border-4 text-4xl font-bold",
+              /* Dark overrides via CSS variables or class if needed, but motion style handles colors */
+              /* We use CSS variables for motion animation values to support dark mode if we could, 
+                 but framer-motion interpolates colors. For simplicity, let's keep light mode colors for the bulb off state
+                 or we need to use current theme to set these values.
+                 Let's use CSS classes for the off state structure and motion for the animation.
+               */
             )}
           >
             {isLightOn ? '💡' : '⚫'}
@@ -83,7 +102,7 @@ export const CommandExecutor = () => {
               /* Typography */
               "text-lg font-semibold mt-2",
               /* Colors */
-              isLightOn ? "text-amber-800" : "text-gray-500"
+              isLightOn ? "text-amber-800 dark:text-amber-400" : "text-gray-500 dark:text-gray-400"
             )}
           >
             {isLightOn ? '켜짐' : '꺼짐'}
@@ -137,10 +156,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 const Button = ({ variant = 'secondary', className, disabled, ...props }: ButtonProps) => {
   const getVariantClasses = () => {
     switch (variant) {
-      case 'primary': return "bg-blue-600 text-white hover:bg-blue-700";
-      case 'danger': return "bg-red-500 text-white hover:bg-red-600";
-      case 'success': return "bg-emerald-500 text-white hover:bg-emerald-600";
-      default: return "bg-gray-200 text-gray-900 hover:bg-gray-300";
+      case 'primary': return "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500";
+      case 'danger': return "bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500";
+      case 'success': return "bg-emerald-500 text-white hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500";
+      default: return "bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-slate-700 dark:text-gray-100 dark:hover:bg-slate-600";
     }
   };
 

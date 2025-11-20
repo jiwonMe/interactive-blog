@@ -31,14 +31,22 @@ export const PivotSelector = ({ array: propArray }: PivotSelectorProps) => {
         /* Layout */
         "flex flex-col items-center gap-4 w-full",
         /* Appearance */
-        "p-6 bg-white border border-gray-200 rounded-lg"
+        "p-6 border rounded-lg",
+        /* Light */
+        "bg-white border-gray-200",
+        /* Dark */
+        "dark:bg-slate-900 dark:border-slate-800"
       )}
     >
       <div className="text-center mb-2">
         <p 
           className={cn(
             /* Typography */
-            "text-sm font-medium text-gray-600"
+            "text-sm font-medium",
+            /* Light */
+            "text-gray-600",
+            /* Dark */
+            "dark:text-gray-400"
           )}
         >
           배열에서 피벗을 선택해보세요
@@ -67,7 +75,7 @@ export const PivotSelector = ({ array: propArray }: PivotSelectorProps) => {
               /* State styles */
               selectedIndex === index 
                 ? "bg-amber-500 text-white border-amber-500" 
-                : "bg-gray-200 text-gray-900 border-transparent"
+                : "bg-gray-200 text-gray-900 border-transparent dark:bg-slate-800 dark:text-gray-100 dark:border-transparent"
             )}
           >
             {value}
@@ -83,16 +91,27 @@ export const PivotSelector = ({ array: propArray }: PivotSelectorProps) => {
             /* Layout */
             "mt-4 p-3 text-center",
             /* Appearance */
-            "bg-gray-100 rounded-lg",
+            "rounded-lg",
+            /* Light */
+            "bg-gray-100",
+            /* Dark */
+            "dark:bg-slate-800",
             /* Typography */
-            "text-sm text-gray-700"
+            "text-sm",
+            /* Light */
+            "text-gray-700",
+            /* Dark */
+            "dark:text-gray-300"
           )}
         >
           <strong>피벗: {array[selectedIndex]}</strong>
           <br />
           이 값을 기준으로 배열을 두 부분으로 나눕니다.
           <br />
-          <span className="text-xs text-gray-500">
+          <span className={cn(
+            "text-xs",
+            "text-gray-500 dark:text-gray-400"
+          )}>
             일반적으로 마지막 요소를 피벗으로 선택합니다.
           </span>
         </motion.div>

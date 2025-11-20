@@ -5,12 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../lib/utils';
 import { Step } from './types';
 import { generateSteps } from './logic';
+import { useTheme } from 'next-themes';
 
 export const QuickSortVisualizer = () => {
   const [array, setArray] = useState<number[]>([50, 25, 90, 10, 35, 80, 60, 15]);
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     setSteps(generateSteps(array));
@@ -50,7 +52,7 @@ export const QuickSortVisualizer = () => {
     if (index === current.pivotIndex) return '#f59e0b'; // amber-500
     if (current.swapIndices.includes(index)) return '#ef4444'; // red-500
     if (current.compareIndices.includes(index)) return '#3b82f6'; // blue-500
-    return '#e5e7eb'; // gray-200
+    return theme === 'dark' ? '#334155' : '#e5e7eb'; // slate-700 : gray-200
   };
 
   return (
@@ -59,7 +61,11 @@ export const QuickSortVisualizer = () => {
         /* Layout */
         "flex flex-col items-center gap-4 w-full",
         /* Appearance */
-        "p-8 bg-white border border-gray-200 rounded-lg"
+        "p-8 border rounded-lg",
+        /* Light */
+        "bg-white border-gray-200",
+        /* Dark */
+        "dark:bg-slate-900 dark:border-slate-800"
       )}
     >
       <div 
@@ -71,7 +77,11 @@ export const QuickSortVisualizer = () => {
         <p 
           className={cn(
             /* Typography */
-            "text-sm text-gray-600"
+            "text-sm",
+            /* Light */
+            "text-gray-600",
+            /* Dark */
+            "dark:text-gray-400"
           )}
         >
           {current.description}
@@ -109,7 +119,11 @@ export const QuickSortVisualizer = () => {
               <span 
                 className={cn(
                   /* Typography */
-                  "text-xs mt-1 text-gray-500 font-semibold"
+                  "text-xs mt-1 font-semibold",
+                  /* Light */
+                  "text-gray-500",
+                  /* Dark */
+                  "dark:text-gray-400"
                 )}
               >
                 {value}
@@ -177,7 +191,11 @@ const LegendItem = ({ color, label }: { color: string; label: string }) => (
       /* Layout */
       "flex items-center gap-2",
       /* Typography */
-      "text-xs text-gray-500"
+      "text-xs",
+      /* Light */
+      "text-gray-500",
+      /* Dark */
+      "dark:text-gray-400"
     )}
   >
     <span 
@@ -206,8 +224,8 @@ const Button = ({ variant = 'secondary', className, ...props }: ButtonProps) => 
       "text-sm font-semibold",
       /* Variants */
       variant === 'primary' 
-        ? "bg-blue-600 text-white hover:bg-blue-700" 
-        : "bg-gray-100 text-gray-900 hover:bg-gray-200",
+        ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500" 
+        : "bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-slate-700 dark:text-gray-100 dark:hover:bg-slate-600",
       /* Disabled */
       "disabled:opacity-50 disabled:cursor-not-allowed",
       className

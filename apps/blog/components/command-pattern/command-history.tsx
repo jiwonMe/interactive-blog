@@ -40,14 +40,22 @@ export const CommandHistory = () => {
         /* Layout */
         "flex flex-col gap-4",
         /* Appearance */
-        "p-6 bg-white border border-gray-200 rounded-lg shadow-sm"
+        "p-6 border rounded-lg shadow-sm",
+        /* Light */
+        "bg-white border-gray-200",
+        /* Dark */
+        "dark:bg-slate-900 dark:border-slate-800"
       )}
     >
       <div>
         <h3 
           className={cn(
             /* Typography */
-            "text-lg font-semibold text-gray-900 m-0"
+            "text-lg font-semibold m-0",
+            /* Light */
+            "text-gray-900",
+            /* Dark */
+            "dark:text-gray-100"
           )}
         >
           명령 히스토리
@@ -55,7 +63,11 @@ export const CommandHistory = () => {
         <p 
           className={cn(
             /* Typography */
-            "text-sm text-gray-500 mt-1 leading-relaxed"
+            "text-sm mt-1 leading-relaxed",
+            /* Light */
+            "text-gray-500",
+            /* Dark */
+            "dark:text-gray-400"
           )}
         >
           CommandExecutor에서 실행한 명령들이 여기에 표시됩니다. 히스토리 아이템을 클릭하여 특정 시점으로 이동할 수 있습니다.
@@ -89,7 +101,11 @@ export const CommandHistory = () => {
             /* Layout */
             "flex flex-col items-center justify-center p-8",
             /* Typography */
-            "text-gray-500 text-base"
+            "text-base",
+            /* Light */
+            "text-gray-500",
+            /* Dark */
+            "dark:text-gray-400"
           )}
         >
           <div>명령 히스토리가 비어있습니다.</div>
@@ -117,11 +133,15 @@ export const CommandHistory = () => {
                   /* Layout */
                   "flex items-center gap-3 px-4 py-3 cursor-pointer",
                   /* Appearance */
-                  "bg-gray-100 rounded-md border border-gray-200 transition-all",
-                  /* Hover */
+                  "rounded-md border transition-all",
+                  /* Light */
+                  "bg-gray-100 border-gray-200",
                   "hover:bg-gray-200 hover:border-blue-500",
+                  /* Dark */
+                  "dark:bg-slate-800 dark:border-slate-700",
+                  "dark:hover:bg-slate-700 dark:hover:border-blue-500",
                   /* Active State */
-                  index === historyIndex && "bg-blue-50 border-blue-500"
+                  index === historyIndex && "bg-blue-50 border-blue-500 dark:bg-blue-900/20 dark:border-blue-500"
                 )}
               >
                 <div 
@@ -129,18 +149,28 @@ export const CommandHistory = () => {
                     /* Layout */
                     "flex items-center justify-center min-w-[32px] h-8",
                     /* Appearance */
-                    "rounded bg-white",
+                    "rounded",
+                    /* Light */
+                    "bg-white text-gray-500",
+                    /* Dark */
+                    "dark:bg-slate-700 dark:text-gray-300",
                     /* Typography */
-                    "text-sm font-semibold text-gray-500"
+                    "text-sm font-semibold"
                   )}
                 >
                   {index + 1}
                 </div>
                 <div className="flex flex-col flex-1 gap-1">
-                  <div className="text-sm font-semibold text-gray-900">
+                  <div className={cn(
+                    "text-sm font-semibold",
+                    "text-gray-900 dark:text-gray-100"
+                  )}>
                     {cmd.name}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className={cn(
+                    "text-xs",
+                    "text-gray-500 dark:text-gray-400"
+                  )}>
                     {cmd.type === 'execute' ? '실행' : '실행 취소'} · {cmd.timestamp.toLocaleTimeString()}
                   </div>
                 </div>
@@ -150,7 +180,8 @@ export const CommandHistory = () => {
                     animate={{ scale: 1 }}
                     className={cn(
                       /* Appearance */
-                      "w-2 h-2 rounded-full bg-blue-600"
+                      "w-2 h-2 rounded-full",
+                      "bg-blue-600 dark:bg-blue-400"
                     )}
                   />
                 )}
