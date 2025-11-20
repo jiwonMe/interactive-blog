@@ -1,5 +1,5 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, CodeBlock } from '@repo/interactive-ui';
+import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock } from '@repo/interactive-ui';
 import { QuickSortVisualizer } from './quick-sort/quick-sort-visualizer';
 import { PivotSelector } from './quick-sort/pivot-selector';
 import { PartitionVisualizer } from './quick-sort/partition-visualizer';
@@ -230,6 +230,9 @@ const components = {
   ),
   StickyWrapper: ({ children, ...props }: any) => (
     <StickyWrapper {...props}>{children}</StickyWrapper>
+  ),
+  Content: ({ children, ...props }: any) => (
+    <Content {...props}>{children}</Content>
   ),
   YouTube,
   Image: (props: any) => (

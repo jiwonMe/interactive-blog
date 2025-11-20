@@ -2,6 +2,6 @@ export { styled, css, theme, getCssText, keyframes, config, darkTheme, globalSty
 export { InteractivePanel } from './components/InteractivePanel';
 export { Playground } from './components/Playground';
 export { YouTube } from './components/YouTube';
-export { Section, StickyWrapper } from './components/StickyWrapper';
+export { Section, StickyWrapper, Content } from './components/StickyWrapper';
 export { CodeBlock } from './components/CodeBlock';
 export type { CodeBlockProps } from './components/CodeBlock';

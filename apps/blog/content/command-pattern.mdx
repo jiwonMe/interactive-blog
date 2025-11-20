@@ -49,15 +49,16 @@ Command Pattern은 다음과 같은 구성 요소로 이루어집니다:
 ## 간단한 예제: 조명 제어
 
 <Section>
-  <StickyWrapper>
+  <StickyWrapper side="right">
     <CommandPatternProvider>
       <CommandExecutor />
     </CommandPatternProvider>
   </StickyWrapper>
 
+  <Content>
   가장 기본적인 Command Pattern 예제는 리모컨으로 조명을 제어하는 것입니다.
   
-  위의 인터랙티브 예제를 보세요. **화면 상단에 고정된 리모컨**을 통해 조명을 켜고 끌 수 있습니다.
+  오른쪽의 인터랙티브 예제를 보세요. **화면 상단에 고정된 리모컨**을 통해 조명을 켜고 끌 수 있습니다. 스크롤을 내려도 리모컨은 계속 따라오므로 언제든 조작할 수 있습니다.
   
   ### 어떻게 동작하나요?
   
@@ -112,20 +113,22 @@ class LightOnCommand implements Command {
 ```
 
   이처럼 요청을 객체로 만들면, 요청을 처리하는 시점을 미루거나, 다른 객체로 전달하거나, **실행 취소**를 구현하기가 매우 쉬워집니다.
+  </Content>
 </Section>
 
 ## 실행 취소 기능과 히스토리
 
 <Section>
-  <StickyWrapper>
+  <StickyWrapper side="left">
     <CommandPatternProvider>
       <CommandHistory />
     </CommandPatternProvider>
   </StickyWrapper>
 
+  <Content>
   Command Pattern의 가장 강력한 기능 중 하나는 **실행 취소(Undo)** 및 **히스토리 관리**입니다.
   
-  위의 인터랙티브 컴포넌트는 명령이 실행될 때마다 스택에 쌓이는 모습을 보여줍니다.
+  왼쪽의 인터랙티브 컴포넌트는 명령이 실행될 때마다 스택에 쌓이는 모습을 보여줍니다. 텍스트를 읽으면서 왼쪽의 상태 변화를 실시간으로 확인해보세요.
   
   ### 히스토리 관리의 원리
   
@@ -168,6 +171,7 @@ class RemoteControlWithHistory {
 ```
 
   이 방식은 포토샵의 "히스토리" 기능이나 텍스트 에디터의 `Ctrl+Z` 기능과 동일한 원리입니다. 모든 변경 사항을 Command 객체로 저장해두면, 언제든지 과거의 상태로 돌아갈 수 있습니다.
+  </Content>
 </Section>
 
 ## 매크로 명령 (Macro Command)
