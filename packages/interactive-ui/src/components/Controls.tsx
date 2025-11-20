@@ -79,7 +79,7 @@ const SliderContainer = styled('div', {
 
 const SliderLabel = styled('span', {
   fontSize: '0.875rem',
-  color: '$muted',
+  color: '$textSecondary',
   fontWeight: 500,
   minWidth: '3rem',
   textAlign: 'right',
@@ -146,7 +146,7 @@ const SelectContainer = styled('div', {
 
 const SelectLabel = styled('span', {
     fontSize: '0.875rem',
-    color: '$muted',
+    color: '$textSecondary',
     fontWeight: 500,
     marginRight: '0.5rem',
 });
