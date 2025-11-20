@@ -29,6 +29,7 @@
     "remark-math": "^6.0.0",
     "shiki": "^1.0.0",
     "tailwind-merge": "^2.2.1",
+    "unified": "^11.0.0",
     "unist-util-visit": "^5.0.0"
   },
   "devDependencies": {

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ControlType } from "./registry";
 import { cn } from "../../lib/utils";
-import { CodePreview } from "./code-preview";
 
 type ExperimentViewerProps = {
   render: (props: any) => React.ReactNode;

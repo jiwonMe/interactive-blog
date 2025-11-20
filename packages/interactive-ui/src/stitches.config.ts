@@ -81,7 +81,7 @@ export const darkTheme = createTheme('dark-theme', {
     border: '#27272a', // zinc-800
     codeBackground: '#09090b', // zinc-950
   },
-});
+}) as { className: string; selector: string };
 
 // CSS 변수를 정의하는 global styles
 export const globalStyles = globalCss({

@@ -149,11 +149,14 @@ export const CommandExecutor = () => {
   );
 };
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart' | 'onAnimationEnd' | 'onAnimationIteration'
+> {
   variant?: 'primary' | 'secondary' | 'danger' | 'success';
 }
 
-const Button = ({ variant = 'secondary', className, disabled, ...props }: ButtonProps) => {
+const Button = ({ variant = 'secondary', className, disabled, onClick, children, type, ...props }: ButtonProps) => {
   const getVariantClasses = () => {
     switch (variant) {
       case 'primary': return "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500";
@@ -168,6 +171,8 @@ const Button = ({ variant = 'secondary', className, disabled, ...props }: Button
       whileHover={{ scale: disabled ? 1 : 1.05 }}
       whileTap={{ scale: disabled ? 1 : 0.95 }}
       disabled={disabled}
+      onClick={onClick}
+      type={type}
       className={cn(
         /* Layout */
         "flex items-center justify-center gap-2 px-5 py-3",
@@ -182,7 +187,9 @@ const Button = ({ variant = 'secondary', className, disabled, ...props }: Button
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </motion.button>
   );
 };
 

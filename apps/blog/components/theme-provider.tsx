@@ -9,7 +9,9 @@ function StitchesThemeSync() {
 
   React.useEffect(() => {
     // darkTheme object might be stringified to class name or accessed via .className
-    const className = typeof darkTheme === 'string' ? darkTheme : darkTheme.className;
+    const className = typeof darkTheme === 'string' 
+      ? darkTheme 
+      : (darkTheme as { className?: string }).className || 'dark-theme';
     
     const root = document.documentElement;
     if (resolvedTheme === "dark") {
