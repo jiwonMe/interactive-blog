@@ -44,12 +44,10 @@ export default function Home() {
           // positioning
           "fixed top-4 right-4 z-50",
           // border
-          "border-none",
-          // shadow for visibility
-          "shadow-lg"
+          "border-none"
         )}
       />
-      <div className="bg-white dark:bg-zinc-950 w-full py-12 px-6 border-dashed border-b border-gray-300 dark:border-gray-700">
+      <div className="bg-white dark:bg-zinc-950 w-full py-6 sm:py-12 px-3 sm:px-6 border-dashed border-b border-gray-300 dark:border-gray-700">
         <div className="max-w-3xl mx-auto px-6">
           <MainTitle />
           <p
@@ -62,7 +60,7 @@ export default function Home() {
           </p>
         </div>
       </div>
-      <div className="bg-white dark:bg-zinc-950 w-full py-10 px-6">
+      <div className="bg-white dark:bg-zinc-950 w-full py-6 sm:py-10 px-3 sm:px-6">
         <div className="max-w-3xl mx-auto px-6">
           <section className="mb-20">
             {/* <h2

@@ -26,7 +26,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         // interaction
         "hover:bg-gray-100",
         // dark mode
-        "dark:border-gray-800 dark:hover:bg-gray-800 dark:focus:ring-gray-800",
+        "dark:border-gray-800",
         className
       )}
       aria-label="Toggle theme"
