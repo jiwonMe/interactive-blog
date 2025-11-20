@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "../lib/utils";
 import { motion } from "framer-motion";
+import { PwnzLogo } from "./pwnz-logo";
 
 export function Header() {
   const pathname = usePathname();
@@ -34,15 +35,13 @@ export function Header() {
         /* Transition */
         "transition-all duration-300",
         /* Scroll State Styles */
-        isScrolled
-          ? "border-b bg-white/80 backdrop-blur-md border-gray-200 dark:bg-zinc-950/80 dark:border-gray-800"
-          : "bg-transparent border-transparent"
+        "border-b bg-gray-50/80 backdrop-blur-md border-gray-200 dark:bg-zinc-950/80 dark:border-gray-800"
       )}
     >
       <div
         className={cn(
           /* Layout & Sizing */
-          "max-w-6xl mx-auto h-16 flex items-center justify-between",
+          "mx-auto h-16 flex items-center justify-between",
           /* Spacing */
           "px-6"
         )}
@@ -61,7 +60,7 @@ export function Header() {
             "hover:text-blue-600 dark:hover:text-blue-400"
           )}
         >
-          <span>Interactive Blog</span>
+          <PwnzLogo />
         </Link>
 
         {/* Navigation & Actions */}
