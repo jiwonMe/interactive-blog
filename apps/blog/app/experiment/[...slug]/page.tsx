@@ -3,17 +3,17 @@ import { ExperimentClient } from "../experiment-client";
 
 export async function generateStaticParams() {
   return experiments.map((exp) => ({
-    slug: exp.slug,
+    slug: exp.slug.split('/'),
   }));
 }
 
 export default async function ExperimentPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
+  const slugString = slug.join('/');
   
-  return <ExperimentClient slug={slug} />;
+  return <ExperimentClient slug={slugString} />;
 }
-

@@ -1,12 +1,6 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard } from '@repo/interactive-ui';
-import { QuickSortVisualizer } from './quick-sort/quick-sort-visualizer';
-import { PivotSelector } from './quick-sort/pivot-selector';
-import { PartitionVisualizer } from './quick-sort/partition-visualizer';
-import { QuickSortProvider } from './quick-sort/context';
-import { CommandExecutor } from './command-pattern/command-executor';
-import { CommandHistory } from './command-pattern/command-history';
-import { CommandPatternProvider } from './command-pattern/context';
+import { Counter } from '../articles/hello-world/components/counter';
 import { cn } from '../lib/utils';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
@@ -194,39 +188,13 @@ const components = {
       <Playground />
     </div>
   ),
-  QuickSortProvider: (props: any) => (
-    <QuickSortProvider {...props} />
-  ),
-  CommandPatternProvider: (props: any) => (
-    <CommandPatternProvider {...props} />
-  ),
-  QuickSortVisualizer: () => (
+  Counter: () => (
     <div className="my-8">
-      <QuickSortVisualizer />
+      <Counter />
     </div>
   ),
-  PivotSelector: (props: any) => (
-    <div className="my-8">
-      <PivotSelector {...props} />
-    </div>
-  ),
-  PartitionVisualizer: () => (
-    <div className="my-8">
-      <PartitionVisualizer />
-    </div>
-  ),
-  CommandExecutor: () => (
-    <div className="my-8">
-      <CommandExecutor />
-    </div>
-  ),
-  CommandHistory: () => (
-    <div className="my-8">
-      <CommandHistory />
-    </div>
-  ),
-  Section: ({ children, ...props }: any) => (
-    <Section {...props}>{children}</Section>
+  Section: (props: React.ComponentProps<typeof Section>) => (
+    <Section {...props} />
   ),
   StickyWrapper: ({ children, ...props }: any) => (
     <StickyWrapper {...props}>{children}</StickyWrapper>
@@ -262,7 +230,7 @@ const components = {
       <Image
         className={cn(
           "rounded-xl border shadow-sm",
-            "border-gray-200 dark:border-zinc-800"
+          "border-gray-200 dark:border-zinc-800"
         )}
         alt={props.alt || "Blog post image"}
         {...props}
@@ -281,7 +249,7 @@ const components = {
     <img 
       className={cn(
         "rounded-xl border shadow-sm my-8 max-w-full h-auto",
-            "border-gray-200 dark:border-zinc-800"
+        "border-gray-200 dark:border-zinc-800"
       )}
       {...props} 
     />
@@ -457,6 +425,7 @@ export function CustomMDX({ source }: { source: string }) {
                 theme: {
                   dark: 'github-dark',
                   light: 'github-light',
+                  showLineNumbers: true,
                 },
                 keepBackground: false,
                 onVisitLine(node: any) {

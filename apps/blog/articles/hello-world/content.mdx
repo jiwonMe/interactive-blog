@@ -1,0 +1,40 @@
+---
+title: 'Hello Interactive World'
+date: '2024-03-20'
+description: '새로운 Article 중심 구조를 테스트하는 예시 글입니다.'
+tags: ['example', 'interactive']
+---
+
+# Hello Interactive World
+
+이것은 새로운 Article 중심 구조(`apps/blog/articles/*`)를 사용하는 첫 번째 글입니다.
+
+## 구조 설명
+
+각 아티클은 독립적인 디렉토리를 가지며, 그 안에 컨텐츠(`content.mdx`)와 필요한 컴포넌트(`components/`)를 모두 포함합니다.
+
+```bash
+apps/blog/articles/
+└── hello-world/
+    ├── content.mdx
+    └── components/
+        └── counter.tsx
+```
+
+## 인터랙티브 컴포넌트 예시
+
+아래의 카운터는 이 아티클 디렉토리 내부에 정의된 컴포넌트입니다.
+
+<Counter />
+
+## 코드 블록 예시
+
+```typescript showLineNumbers
+export function Counter() {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
+}
+```
+
+이 구조는 각 글이 자신만의 리소스를 관리할 수 있게 하여, 글이 많아져도 프로젝트가 깔끔하게 유지되도록 돕습니다.
+

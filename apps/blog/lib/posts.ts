@@ -3,7 +3,38 @@ import path from 'path';
 import GithubSlugger from 'github-slugger';
 import matter from 'gray-matter';
 
-const contentDirectory = path.join(process.cwd(), 'content');
+// const contentDirectory = path.join(process.cwd(), 'content');
+const contentDirectory = path.join(process.cwd(), 'apps/blog/articles');
+
+// Check if we are in the monorepo root or in the app directory
+if (!fs.existsSync(contentDirectory)) {
+  // Fallback for when running from apps/blog directly (e.g. during build sometimes or dev)
+  // But process.cwd() usually points to project root in TurboRepo unless configured otherwise?
+  // Let's assume the user context provided shows we are in the root.
+  // User workspace path: /Users/jiwon/Workspace/jiwonme/interactive-blog
+  // If process.cwd() is root, then 'apps/blog/articles' is correct.
+  // If process.cwd() is 'apps/blog', then 'articles' is correct.
+}
+
+// Let's try to dynamically resolve it to be safe, or stick to one if we are sure.
+// Given the previous code was `path.join(process.cwd(), 'content')` and it worked,
+// and the file structure showed `apps/blog/content`.
+// If cwd was root, `path.join(root, 'content')` would be `/content` which doesn't exist.
+// So cwd must be `apps/blog`.
+// Thus, we should use 'articles' if cwd is `apps/blog`.
+
+const articlesDirectory = path.join(process.cwd(), 'articles').includes('apps/blog') 
+  ? path.join(process.cwd(), 'articles') 
+  : path.join(process.cwd(), 'apps/blog/articles'); 
+
+// Better approach: Check if 'articles' exists in cwd, if not try 'apps/blog/articles'
+const getArticlesDir = () => {
+  const local = path.join(process.cwd(), 'articles');
+  if (fs.existsSync(local)) return local;
+  return path.join(process.cwd(), 'apps/blog/articles');
+};
+
+const targetDirectory = getArticlesDir();
 
 export type TOCItem = {
   id: string;
@@ -23,15 +54,17 @@ export type PostData = {
 };
 
 export function getPostSlugs() {
-  if (!fs.existsSync(contentDirectory)) {
+  if (!fs.existsSync(targetDirectory)) {
     return [];
   }
-  return fs.readdirSync(contentDirectory).filter((file) => file.endsWith('.mdx'));
+  return fs.readdirSync(targetDirectory, { withFileTypes: true })
+    .filter((dirent) => dirent.isDirectory() && !dirent.name.startsWith('.'))
+    .map((dirent) => dirent.name);
 }
 
 export function getPostBySlug(slug: string): PostData | null {
   const realSlug = slug.replace(/\.mdx$/, '');
-  const fullPath = path.join(contentDirectory, `${realSlug}.mdx`);
+  const fullPath = path.join(targetDirectory, realSlug, 'content.mdx');
   
   if (!fs.existsSync(fullPath)) {
     return null;
@@ -43,7 +76,7 @@ export function getPostBySlug(slug: string): PostData | null {
   
   return { 
     slug: realSlug, 
-    content, // frontmatter가 제거된 순수 콘텐츠
+    content, 
     toc,
     date: data.date,
     title: data.title,

@@ -2,6 +2,7 @@ import React from 'react';
 import { InteractivePanel, Playground, LinkCard, YouTube } from "@repo/interactive-ui";
 import { CodeHighlightingDemo } from './code-highlighting-demo';
 import { cn } from "../../lib/utils";
+import { Counter } from "../../articles/hello-world/components/counter";
 
 export type ControlType =
   | { type: 'text'; label: string; defaultValue: string }
@@ -13,6 +14,7 @@ export type ExperimentItem = {
   slug: string;
   title: string;
   description: string;
+  category?: string;
   render: (props: any) => React.ReactNode;
   controls: Record<string, ControlType>;
 };
@@ -22,6 +24,7 @@ export const experiments: ExperimentItem[] = [
     slug: "playground",
     title: "인터랙티브 플레이그라운드",
     description: "로컬 상태를 가진 카운터 컴포넌트입니다.",
+    category: "General",
     render: () => <Playground />,
     controls: {},
   },
@@ -29,6 +32,7 @@ export const experiments: ExperimentItem[] = [
     slug: "panel-basic",
     title: "기본 패널",
     description: "단순한 접이식 패널입니다.",
+    category: "UI Components",
     render: (props) => (
       <div style={{ width: '300px' }}>
         <InteractivePanel title={props.title}>
@@ -45,6 +49,7 @@ export const experiments: ExperimentItem[] = [
     slug: "panel-complex",
     title: "복합 콘텐츠 패널",
     description: "다양한 요소가 포함된 패널 예시입니다.",
+    category: "UI Components",
     render: (props) => (
       <div style={{ width: '100%', maxWidth: '400px' }}>
         <InteractivePanel title={props.title}>
@@ -96,6 +101,7 @@ export const experiments: ExperimentItem[] = [
     slug: "code-highlighting",
     title: "코드 하이라이팅",
     description: "코드 블록 하이라이팅 컴포넌트를 테스트해보세요.",
+    category: "Utils",
     render: (props) => (
       <CodeHighlightingDemo 
         code={props.code || ''} 
@@ -126,6 +132,7 @@ export const experiments: ExperimentItem[] = [
     slug: "link-card",
     title: "외부 링크 카드",
     description: "외부 링크를 카드 형태로 표시하는 컴포넌트입니다.",
+    category: "UI Components",
     render: (props) => (
       <div style={{ width: '100%', maxWidth: props.size === 'large' ? '600px' : props.size === 'small' ? '280px' : '400px' }}>
         <LinkCard
@@ -176,6 +183,7 @@ export const experiments: ExperimentItem[] = [
     slug: "youtube-component",
     title: "유튜브 임베드",
     description: "유튜브 영상을 임베드하는 컴포넌트입니다. 영상 ID를 입력하여 테스트해보세요.",
+    category: "Media",
     render: (props) => (
       <div style={{ width: '100%', maxWidth: '800px' }}>
         <YouTube id={props.id} />
@@ -188,6 +196,14 @@ export const experiments: ExperimentItem[] = [
         defaultValue: 'dQw4w9WgXcQ',
       },
     },
+  },
+  {
+    slug: "hello-world/counter",
+    title: "카운터 (Hello World)",
+    description: "Hello World 아티클에 사용된 인터랙티브 카운터입니다.",
+    category: "Articles/Hello World",
+    render: () => <Counter />,
+    controls: {},
   },
 ];
 
