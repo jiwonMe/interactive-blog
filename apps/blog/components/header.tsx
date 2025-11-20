@@ -20,6 +20,11 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // main 페이지에서는 header를 숨김
+  if (pathname === "/") {
+    return null;
+  }
+
   const navItems = [
     { name: "Home", href: "/" },
     ...(process.env.NODE_ENV === "development"
@@ -35,7 +40,9 @@ export function Header() {
         /* Transition */
         "transition-all duration-300",
         /* Scroll State Styles */
-        "border-b bg-gray-50/80 backdrop-blur-md border-gray-200 dark:bg-zinc-950/80 dark:border-gray-800"
+        isScrolled
+          ? "border-b bg-gray-50/80 backdrop-blur-md border-gray-200 dark:bg-zinc-950/80 dark:border-gray-800"
+          : "bg-white dark:bg-zinc-950 border-dashed border-b border-gray-200 dark:border-gray-800"
       )}
     >
       <div

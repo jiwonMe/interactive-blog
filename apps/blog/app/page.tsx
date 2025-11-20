@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { getAllPosts } from '../lib/posts';
 import { cn } from '../lib/utils';
+import { PwnzLogo } from '../components/pwnz-logo';
+import { ThemeToggle } from '../components/theme-toggle';
 
 function formatDate(dateString?: string) {
   if (!dateString) return '';
@@ -8,22 +10,49 @@ function formatDate(dateString?: string) {
   return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
+function MainTitle() {
+  return (
+    <div>
+      <PwnzLogo
+        className="-mb-2 hidden md:block"
+        width={200}
+      />
+      <PwnzLogo
+        className="-mb-1 block md:hidden"
+        width={120}
+      />
+      <h1
+        className={cn(
+          "md:text-2xl text-md font-bold mb-2 tracking-[0.5em] pl-5 md:pl-10",
+          "text-gray-900 dark:text-gray-100"
+        )}
+      >
+        INTERACTIVES
+      </h1>
+    </div>
+  );
+}
+
 export default function Home() {
   const posts = getAllPosts();
 
   return (
     <main className="w-full flex flex-col items-center">
-      <div className="bg-gray-100 dark:bg-zinc-800 w-full py-12 px-6 border-dashed border-b border-gray-300 dark:border-gray-700">
+      {/* Theme Toggle - Fixed to top right */}
+      <ThemeToggle
+        className={cn(
+          // positioning
+          "fixed top-4 right-4 z-50",
+          // border
+          "border-none",
+          // shadow for visibility
+          "shadow-lg"
+        )}
+      />
+      <div className="bg-white dark:bg-zinc-950 w-full py-12 px-6 border-dashed border-b border-gray-300 dark:border-gray-700">
         <div className="max-w-3xl mx-auto px-6">
-          <h1 
-            className={cn(
-              "text-2xl font-bold mb-2 tracking-[0.5em]",
-              "text-gray-900 dark:text-gray-100"
-            )}
-          >
-            INTERACTIVES
-          </h1>
-          <p 
+          <MainTitle />
+          <p
             className={cn(
               "text-md leading-relaxed",
               "text-gray-600 dark:text-gray-300"
@@ -33,29 +62,25 @@ export default function Home() {
           </p>
         </div>
       </div>
-      <div className="bg-gray-50 dark:bg-zinc-900 w-full py-20 px-6 border-dashed border-b border-gray-200 dark:border-gray-800">
+      <div className="bg-white dark:bg-zinc-950 w-full py-10 px-6">
         <div className="max-w-3xl mx-auto px-6">
           <section className="mb-20">
-            <h2 
+            {/* <h2
               className={cn(
                 "text-2xl font-bold mb-8 flex items-center gap-2",
-                "text-gray-900 dark:text-gray-100"
+                "text-gray-900 dark:text-gray-100",
+                "border-dashed border border-zinc-400 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-950",
+                "py-2 px-4"
               )}
             >
-              <span 
-                className={cn(
-                  "w-1 h-8 block",
-                  "bg-blue-600 dark:bg-blue-500"
-                )}
-              ></span>
               Recent Posts
-            </h2>
+            </h2> */}
             <ul className="space-y-6">
               {posts.map(post => (
                 post && (
                   <li key={post.slug}>
                     <Link href={`/posts/${post.slug}`} className="group block">
-                      <h3 
+                      <h3
                         className={cn(
                           "text-xl font-semibold mb-2 transition-colors",
                           "group-hover:text-blue-600 dark:group-hover:text-blue-400",
@@ -64,7 +89,7 @@ export default function Home() {
                       >
                         {post.title || post.slug.replace(/-/g, ' ')}
                       </h3>
-                      <div 
+                      <div
                         className={cn(
                           "flex items-center gap-3 text-sm",
                           "text-gray-500 dark:text-gray-400"
@@ -83,13 +108,13 @@ export default function Home() {
           </section>
 
           {process.env.NODE_ENV === 'development' && (
-            <section 
+            <section
               className={cn(
                 "border-t pt-12",
                 "border-gray-100 dark:border-gray-800"
               )}
             >
-              <h2 
+              <h2
                 className={cn(
                   "text-2xl font-bold mb-4",
                   "text-gray-900 dark:text-gray-100"
@@ -97,7 +122,7 @@ export default function Home() {
               >
                 Experiments
               </h2>
-              <p 
+              <p
                 className={cn(
                   "mb-4",
                   "text-gray-700 dark:text-gray-300"
