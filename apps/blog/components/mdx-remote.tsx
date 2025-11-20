@@ -220,9 +220,9 @@ export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
         <Counter />
       </div>
     ),
-    QuickSortVisualizer: () => (
+    QuickSortVisualizer: (props: any) => (
       <div className="my-8">
-        <QuickSortVisualizer />
+        <QuickSortVisualizer {...props} />
       </div>
     ),
     Section: (props: React.ComponentProps<typeof Section>) => (
