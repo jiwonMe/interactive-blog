@@ -1,5 +1,5 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock } from '@repo/interactive-ui';
+import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard } from '@repo/interactive-ui';
 import { QuickSortVisualizer } from './quick-sort/quick-sort-visualizer';
 import { PivotSelector } from './quick-sort/pivot-selector';
 import { PartitionVisualizer } from './quick-sort/partition-visualizer';
@@ -235,6 +235,28 @@ const components = {
     <Content {...props}>{children}</Content>
   ),
   YouTube,
+  LinkCard: (props: any) => {
+    // MDX에서 전달되는 props를 적절한 타입으로 변환
+    // 빈 문자열이나 undefined인 경우 undefined로 처리
+    // MDX에서 전달되는 모든 props는 문자열이므로 명시적으로 변환 필요
+    const linkCardProps = {
+      href: props.href,
+      title: props.title,
+      description: props.description,
+      image: props.image,
+      imageAlt: props.imageAlt,
+      // size prop만 명시적으로 변환
+      size: (props.size && props.size !== '' && ['small', 'medium', 'large'].includes(props.size)) 
+        ? (props.size as 'small' | 'medium' | 'large') 
+        : undefined,
+    };
+    
+    return (
+      <div className="my-8">
+        <LinkCard {...linkCardProps} />
+      </div>
+    );
+  },
   Image: (props: any) => (
     <div className="my-8">
       <Image

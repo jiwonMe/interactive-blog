@@ -1,5 +1,5 @@
 import React from 'react';
-import { InteractivePanel, Playground } from "@repo/interactive-ui";
+import { InteractivePanel, Playground, LinkCard } from "@repo/interactive-ui";
 import { CodeHighlightingDemo } from './code-highlighting-demo';
 
 export type ControlType =
@@ -98,6 +98,56 @@ export const experiments: ExperimentItem[] = [
         type: 'boolean',
         label: '줄 번호 표시',
         defaultValue: false,
+      },
+    },
+  },
+  {
+    slug: "link-card",
+    title: "외부 링크 카드",
+    description: "외부 링크를 카드 형태로 표시하는 컴포넌트입니다.",
+    render: (props) => (
+      <div style={{ width: '100%', maxWidth: props.size === 'large' ? '600px' : props.size === 'small' ? '280px' : '400px' }}>
+        <LinkCard
+          href={props.href}
+          title={props.title}
+          description={props.description || undefined}
+          image={props.image || undefined}
+          imageAlt={props.imageAlt || undefined}
+          size={props.size}
+        />
+      </div>
+    ),
+    controls: {
+      href: {
+        type: 'text',
+        label: '링크 URL',
+        defaultValue: 'https://example.com',
+      },
+      title: {
+        type: 'text',
+        label: '제목',
+        defaultValue: '예시 웹사이트',
+      },
+      description: {
+        type: 'text',
+        label: '설명',
+        defaultValue: '이것은 외부 링크 카드의 예시입니다. 호버 효과를 확인해보세요.',
+      },
+      image: {
+        type: 'text',
+        label: '이미지 URL',
+        defaultValue: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=400&fit=crop',
+      },
+      imageAlt: {
+        type: 'text',
+        label: '이미지 대체 텍스트',
+        defaultValue: '예시 이미지',
+      },
+      size: {
+        type: 'select',
+        label: '크기',
+        defaultValue: 'medium',
+        options: ['small', 'medium', 'large'],
       },
     },
   },

@@ -32,7 +32,15 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
   return (
     <div className="relative w-full min-h-[600px]">
       {/* Main Preview Area */}
-      <div className="w-full flex flex-col items-center justify-center py-10">
+      <div className={cn(
+        "w-full flex flex-col justify-center py-10 transition-all duration-300",
+        // CONTROL Panel이 열려있을 때 약간 왼쪽으로 조정
+        hasControls && isControlsOpen 
+          ? "items-center pl-4 pr-[320px]" 
+          : "items-center px-4",
+        // 반응형: 모바일에서는 중앙 정렬
+        "max-md:items-center max-md:px-4 max-md:pr-4"
+      )}>
         <motion.div 
           className="w-full max-w-3xl flex items-center justify-center relative bg-transparent p-4 min-h-[300px]"
           layout
