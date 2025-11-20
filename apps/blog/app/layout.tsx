@@ -36,7 +36,14 @@ export default function RootLayout({
           >
             <Header />
             
-            <div className="flex-1">
+            <div
+              className={cn(
+                /* Layout */
+                "flex-1",
+                /* Mobile padding for fixed bottom header */
+                "pb-16 sm:pb-0"
+              )}
+            >
               {children}
             </div>
             

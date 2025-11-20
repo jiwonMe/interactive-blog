@@ -35,14 +35,16 @@ export function Header() {
   return (
     <header
       className={cn(
-        /* Layout & Position */
-        "sticky top-0 z-50 w-full",
+        /* Layout & Position - Mobile: fixed bottom, Desktop: sticky top */
+        "fixed bottom-0 left-0 right-0",
+        "sm:sticky sm:top-0 sm:bottom-auto",
+        "z-50 w-full",
         /* Transition */
         "transition-all duration-300",
         /* Scroll State Styles */
         isScrolled
-          ? "border-b bg-gray-50/80 backdrop-blur-md border-gray-200 dark:bg-zinc-950/80 dark:border-gray-800"
-          : "bg-white dark:bg-zinc-950 border-dashed border-b border-gray-200 dark:border-gray-800"
+          ? "border-t sm:border-b sm:border-t-0 bg-gray-50/80 backdrop-blur-md border-gray-200 dark:bg-zinc-950/80 dark:border-gray-800"
+          : "bg-white dark:bg-zinc-950 border-dashed border-t sm:border-b sm:border-t-0 border-gray-200 dark:border-gray-800"
       )}
     >
       <div
@@ -64,7 +66,7 @@ export function Header() {
             /* Colors & Transition */
             "text-gray-900 transition-colors dark:text-gray-100",
             /* Hover States */
-            "hover:text-blue-600 dark:hover:text-blue-400"
+            "hover:text-blue-600 dark:hover:text-blue-400",
           )}
         >
           <PwnzLogo />
