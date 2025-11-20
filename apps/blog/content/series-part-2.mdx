@@ -1,0 +1,22 @@
+---
+title: 'React Hooks Deep Dive: useEffect'
+date: '2023-11-02'
+series: 'React Hooks Deep Dive'
+seriesOrder: 2
+tags: ['React', 'Hooks', 'Effect']
+---
+
+# useEffect 완전 정복
+
+React Hooks 시리즈의 두 번째 글입니다. `useEffect`에 대해 알아봅니다.
+
+## 기본 사용법
+
+```javascript
+useEffect(() => {
+  document.title = `You clicked ${count} times`;
+}, [count]);
+```
+
+useEffect는 컴포넌트가 렌더링된 이후에 어떤 일을 수행해야 하는지를 React에게 알려줍니다.
+

@@ -17,6 +17,9 @@ export type PostData = {
   toc: TOCItem[];
   date?: string;
   title?: string;
+  series?: string;
+  seriesOrder?: number;
+  tags?: string[];
 };
 
 export function getPostSlugs() {
@@ -44,6 +47,9 @@ export function getPostBySlug(slug: string): PostData | null {
     toc,
     date: data.date,
     title: data.title,
+    series: data.series,
+    seriesOrder: data.seriesOrder,
+    tags: data.tags,
   };
 }
 
@@ -58,6 +64,29 @@ export function getAllPosts(): (PostData | null)[] {
     if (!b.date) return -1;
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
+}
+
+export function getSeriesPosts(seriesName: string): PostData[] {
+  const allPosts = getAllPosts().filter((post): post is PostData => post !== null);
+  const seriesPosts = allPosts.filter(post => post.series === seriesName);
+  
+  return seriesPosts.sort((a, b) => {
+    return (a.seriesOrder || 0) - (b.seriesOrder || 0);
+  });
+}
+
+export function getPostsByTag(tag: string): PostData[] {
+  const allPosts = getAllPosts().filter((post): post is PostData => post !== null);
+  return allPosts.filter(post => post.tags?.includes(tag));
+}
+
+export function getAllTags(): string[] {
+  const allPosts = getAllPosts().filter((post): post is PostData => post !== null);
+  const tags = new Set<string>();
+  allPosts.forEach(post => {
+    post.tags?.forEach(tag => tags.add(tag));
+  });
+  return Array.from(tags).sort();
 }
 
 function extractTOC(content: string): TOCItem[] {
