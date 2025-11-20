@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { cn } from "../../lib/utils";
 
 export default function ExperimentLayout({
@@ -13,33 +12,6 @@ export default function ExperimentLayout({
         "bg-white dark:bg-slate-950"
       )}
     >
-      <header 
-        className={cn(
-          "border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10",
-          "bg-white border-gray-200",
-          "dark:bg-slate-950 dark:border-slate-800"
-        )}
-      >
-        <Link 
-          href="/experiment" 
-          className={cn(
-            "font-bold text-xl",
-            "text-gray-900 dark:text-gray-100"
-          )}
-        >
-          🧪 Experiments
-        </Link>
-        <Link 
-          href="/" 
-          className={cn(
-            "text-sm",
-            "text-gray-500 hover:text-black",
-            "dark:text-gray-400 dark:hover:text-white"
-          )}
-        >
-          ← Back to Blog
-        </Link>
-      </header>
       <div 
         className={cn(
           "flex-1 relative",

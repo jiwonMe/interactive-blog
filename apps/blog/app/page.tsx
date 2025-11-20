@@ -39,7 +39,7 @@ export default function Home() {
         >
           <span 
             className={cn(
-              "w-1.5 h-8 rounded-full block",
+              "w-1 h-8 block",
               "bg-blue-600 dark:bg-blue-500"
             )}
           ></span>

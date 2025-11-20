@@ -3,6 +3,7 @@ import { getPostBySlug, getPostSlugs } from '../../../lib/posts';
 import { CustomMDX } from '../../../components/mdx-remote';
 import { TableOfContents } from '../../../components/toc';
 import { notFound } from 'next/navigation';
+import { cn } from '../../../lib/utils';
 
 export async function generateStaticParams() {
   const posts = getPostSlugs();
@@ -29,15 +30,38 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 flex justify-center relative">
       <article className="w-full max-w-3xl">
-        <Link href="/" className="text-blue-600 hover:underline mb-8 inline-block text-sm font-medium">
+        <Link 
+          href="/" 
+          className={cn(
+            "mb-8 inline-block text-sm font-medium hover:underline transition-colors",
+            "text-blue-600 hover:text-blue-800",
+            "dark:text-blue-400 dark:hover:text-blue-300"
+          )}
+        >
           ← Back to home
         </Link>
-        <header className="mb-12 border-b border-gray-100 pb-8">
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight leading-tight">
+        <header 
+          className={cn(
+            "mb-12 border-b pb-8",
+            "border-gray-100 dark:border-gray-800"
+          )}
+        >
+          <h1 
+            className={cn(
+              "text-4xl md:text-5xl font-extrabold mb-4 tracking-tight leading-tight",
+              "text-gray-900 dark:text-gray-50"
+            )}
+          >
             {post.title || post.slug.replace(/-/g, ' ')}
           </h1>
           {post.date && (
-            <time dateTime={post.date} className="text-gray-500 text-sm">
+            <time 
+              dateTime={post.date} 
+              className={cn(
+                "text-sm",
+                "text-gray-500 dark:text-gray-400"
+              )}
+            >
               {formatDate(post.date)}
             </time>
           )}
