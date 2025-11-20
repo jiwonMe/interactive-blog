@@ -6,8 +6,75 @@ import StitchesRegistry from "../components/stitches-registry";
 import { cn } from "../lib/utils";
 
 export const metadata: Metadata = {
-  title: "Interactive Tech Blog",
-  description: "A blog with interactive components",
+  // 기본 메타데이터
+  title: {
+    // 기본 제목
+    default: "JIWON's Interactive Blog",
+    // 템플릿: 각 페이지 제목 | 사이트 이름
+    template: "%s | JIWON's Blog",
+  },
+  description: "인터랙티브 컴포넌트와 함께하는 기술 블로그",
+  authors: [{ name: "JIWON", url: "https://jiwon.me" }],
+  
+  // Open Graph 기본 설정
+  openGraph: {
+    // 사이트 타입
+    type: "website",
+    // 사이트 URL
+    url: "https://jiwon.me",
+    // 사이트 이름
+    siteName: "JIWON's Interactive Blog",
+    // 기본 제목
+    title: "JIWON's Interactive Blog",
+    // 기본 설명
+    description: "인터랙티브 컴포넌트와 함께하는 기술 블로그",
+    // 기본 이미지
+    images: [
+      {
+        url: "https://jiwon.me/og-default.png",
+        width: 1200,
+        height: 630,
+        alt: "JIWON's Interactive Blog",
+      },
+    ],
+    // 로케일
+    locale: "ko_KR",
+  },
+  
+  // Twitter Card 기본 설정
+  twitter: {
+    // Card 타입
+    card: "summary_large_image",
+    // 사이트 핸들
+    site: "@jiwonme",
+    // 작성자 핸들
+    creator: "@jiwonme",
+    // 기본 제목
+    title: "JIWON's Interactive Blog",
+    // 기본 설명
+    description: "인터랙티브 컴포넌트와 함께하는 기술 블로그",
+    // 기본 이미지
+    images: ["https://jiwon.me/og-default.png"],
+  },
+  
+  // 메타 viewport
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+  },
+  
+  // 로봇 설정
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({

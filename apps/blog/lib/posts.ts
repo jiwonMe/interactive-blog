@@ -48,6 +48,9 @@ export type PostData = {
   toc: TOCItem[];
   date?: string;
   title?: string;
+  description?: string;
+  author?: string;
+  image?: string;
   series?: string;
   seriesOrder?: number;
   tags?: string[];
@@ -80,6 +83,9 @@ export function getPostBySlug(slug: string): PostData | null {
     toc,
     date: data.date,
     title: data.title,
+    description: data.description,
+    author: data.author,
+    image: data.image,
     series: data.series,
     seriesOrder: data.seriesOrder,
     tags: data.tags,

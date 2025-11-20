@@ -4,12 +4,90 @@ import { CustomMDX } from '../../../components/mdx-remote';
 import { TableOfContents } from '../../../components/toc';
 import { notFound } from 'next/navigation';
 import { cn } from '../../../lib/utils';
+import { Metadata } from 'next';
 
 export async function generateStaticParams() {
   const posts = getPostSlugs();
   return posts.map((slug) => ({
     slug: slug.replace(/\.mdx$/, ''),
   }));
+}
+
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: Promise<{ slug: string }> 
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
+
+  if (!post) {
+    return {
+      title: 'Post Not Found',
+    };
+  }
+
+  const title = post.title || post.slug.replace(/-/g, ' ');
+  const description = post.description || '블로그 포스트';
+  const author = post.author || 'JIWON';
+  
+  // 이미지 URL 처리: 절대 경로인 경우 그대로 사용, 상대 경로인 경우 도메인 추가
+  const imageUrl = post.image 
+    ? (post.image.startsWith('http') ? post.image : `https://jiwon.me${post.image}`)
+    : 'https://jiwon.me/og-default.png'; // 기본 OG 이미지
+
+  return {
+    // 기본 메타데이터
+    title,
+    description,
+    authors: [{ name: author }],
+    
+    // Open Graph
+    openGraph: {
+      // 페이지 제목
+      title,
+      // 페이지 설명
+      description,
+      // 페이지 타입 (article로 설정)
+      type: 'article',
+      // 페이지 URL
+      url: `https://jiwon.me/posts/${slug}`,
+      // OG 이미지
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+      // 작성자
+      authors: [author],
+      // 발행일
+      publishedTime: post.date,
+      // 태그
+      tags: post.tags,
+      // 사이트 이름
+      siteName: 'JIWON Blog',
+    },
+    
+    // Twitter Card
+    twitter: {
+      // Card 타입 (큰 이미지)
+      card: 'summary_large_image',
+      // 제목
+      title,
+      // 설명
+      description,
+      // 이미지
+      images: [imageUrl],
+      // 작성자 트위터 핸들 (있는 경우)
+      creator: '@jiwonme',
+    },
+    
+    // 추가 메타 태그
+    keywords: post.tags,
+  };
 }
 
 function formatDate(dateString?: string) {

@@ -18,7 +18,9 @@ mkdir apps/blog/articles/my-new-post
 ---
 title: '글 제목'
 date: '2024-03-21'
-description: '글에 대한 짧은 설명'
+description: '글에 대한 짧은 설명 (SEO 및 Open Graph에 사용됨)'
+author: 'JIWON' (선택, 기본값: JIWON)
+image: '/images/my-post-og.png' (선택, Open Graph 이미지 경로)
 tags: ['tag1', 'tag2']
 series: '시리즈 이름 (선택)'
 seriesOrder: 1 (선택)
@@ -27,6 +29,22 @@ seriesOrder: 1 (선택)
 # 글 제목
 
 여기에 내용을 작성합니다.
+```
+
+### 메타데이터 필드 설명
+
+- **title** (필수): 글의 제목
+- **date** (필수): 발행일 (YYYY-MM-DD 형식)
+- **description** (권장): 글에 대한 짧은 설명. SEO와 Open Graph 카드에 표시됩니다.
+- **author** (선택): 작성자 이름. 기본값은 'JIWON'입니다.
+- **image** (선택): Open Graph 이미지 경로. SNS 공유 시 표시되는 이미지입니다.
+  - 절대 경로: `/images/og-image.png` (public 폴더 기준)
+  - 외부 URL: `https://example.com/image.png`
+  - 미지정 시: 기본 이미지(`/og-default.png`) 사용
+  - 권장 크기: 1200x630px
+- **tags** (선택): 태그 배열
+- **series** (선택): 시리즈명. 동일한 값으로 여러 글을 묶을 수 있습니다.
+- **seriesOrder** (선택): 시리즈 내 순서
 
 ## 이미지 추가 (로컬 이미지)
 

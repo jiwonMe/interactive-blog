@@ -3,6 +3,26 @@ import { getAllPosts } from '../lib/posts';
 import { cn } from '../lib/utils';
 import { PwnzLogo } from '../components/pwnz-logo';
 import { ThemeToggle } from '../components/theme-toggle';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  // 메인 페이지 제목
+  title: "Home",
+  // 메인 페이지 설명
+  description: "인터랙티브 컴포넌트와 함께 컴퓨터 과학을 경험하세요. 실습 가능한 예제와 함께하는 기술 블로그입니다.",
+  
+  // Open Graph
+  openGraph: {
+    title: "JIWON's Interactive Blog - Home",
+    description: "인터랙티브 컴포넌트와 함께 컴퓨터 과학을 경험하세요. 실습 가능한 예제와 함께하는 기술 블로그입니다.",
+  },
+  
+  // Twitter Card
+  twitter: {
+    title: "JIWON's Interactive Blog - Home",
+    description: "인터랙티브 컴포넌트와 함께 컴퓨터 과학을 경험하세요. 실습 가능한 예제와 함께하는 기술 블로그입니다.",
+  },
+};
 
 function formatDate(dateString?: string) {
   if (!dateString) return '';
