@@ -1,5 +1,6 @@
 import React from 'react';
 import { InteractivePanel, Playground } from "@repo/interactive-ui";
+import { CodeHighlightingDemo } from './code-highlighting-demo';
 
 export type ControlType =
   | { type: 'text'; label: string; defaultValue: string }
@@ -54,7 +55,7 @@ export const experiments: ExperimentItem[] = [
               </div>
             )}
             {props.showButton && (
-              <button className="w-full py-2.5 bg-gray-900 dark:bg-slate-800 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-slate-700 transition-colors font-medium text-sm">
+              <button className="w-full py-2.5 bg-gray-900 dark:bg-zinc-800 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-zinc-700 transition-colors font-medium text-sm">
                 {props.buttonText}
               </button>
             )}
@@ -68,6 +69,36 @@ export const experiments: ExperimentItem[] = [
       showImage: { type: 'boolean', label: '이미지 표시', defaultValue: true },
       showButton: { type: 'boolean', label: '버튼 표시', defaultValue: true },
       buttonText: { type: 'text', label: '버튼 텍스트', defaultValue: '동작 실행' },
+    },
+  },
+  {
+    slug: "code-highlighting",
+    title: "코드 하이라이팅",
+    description: "코드 블록 하이라이팅 컴포넌트를 테스트해보세요.",
+    render: (props) => (
+      <CodeHighlightingDemo 
+        code={props.code || ''} 
+        language={props.language || 'typescript'} 
+        showLineNumbers={props.showLineNumbers || false} 
+      />
+    ),
+    controls: {
+      code: {
+        type: 'text',
+        label: '코드 입력',
+        defaultValue: '',
+      },
+      language: {
+        type: 'select',
+        label: '언어',
+        defaultValue: 'typescript',
+        options: ['typescript', 'javascript', 'python', 'css', 'html', 'json', 'bash', 'go', 'rust', 'java', 'cpp'],
+      },
+      showLineNumbers: {
+        type: 'boolean',
+        label: '줄 번호 표시',
+        defaultValue: false,
+      },
     },
   },
 ];

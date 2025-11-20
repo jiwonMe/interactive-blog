@@ -21,6 +21,7 @@ export const {
       gray200: '#e5e7eb',
       gray300: '#d1d5db',
       border: '#e5e7eb',
+      codeBackground: '#f9fafb', // tailwind gray-50 match
     },
     fonts: {
       system: '"Pretendard Variable", Pretendard, system-ui, sans-serif',
@@ -71,12 +72,41 @@ export const darkTheme = createTheme('dark-theme', {
   colors: {
     primary: '#3b82f6', // blue-500
     primaryHover: '#2563eb', // blue-600
-    background: '#0f172a', // slate-900
-    text: '#f8fafc', // slate-50
-    textSecondary: '#94a3b8', // slate-400
-    gray100: '#1e293b', // slate-800
-    gray200: '#334155', // slate-700
-    gray300: '#475569', // slate-600
-    border: '#1e293b', // slate-800
+    background: '#18181b', // zinc-900
+    text: '#fafafa', // zinc-50
+    textSecondary: '#a1a1aa', // zinc-400
+    gray100: '#27272a', // zinc-800
+    gray200: '#3f3f46', // zinc-700
+    gray300: '#52525b', // zinc-600
+    border: '#27272a', // zinc-800
+    codeBackground: '#09090b', // zinc-950
+  },
+});
+
+// CSS 변수를 정의하는 global styles
+export const globalStyles = globalCss({
+  ':root': {
+    '--colors-primary': '#2563eb',
+    '--colors-primaryHover': '#1d4ed8',
+    '--colors-background': '#ffffff',
+    '--colors-text': '#111827',
+    '--colors-textSecondary': '#4b5563',
+    '--colors-gray100': '#f3f4f6',
+    '--colors-gray200': '#e5e7eb',
+    '--colors-gray300': '#d1d5db',
+    '--colors-border': '#e5e7eb',
+    '--colors-codeBackground': '#f9fafb',
+  },
+  '.dark-theme': {
+    '--colors-primary': '#3b82f6',
+    '--colors-primaryHover': '#2563eb',
+    '--colors-background': '#18181b',
+    '--colors-text': '#fafafa',
+    '--colors-textSecondary': '#a1a1aa',
+    '--colors-gray100': '#27272a',
+    '--colors-gray200': '#3f3f46',
+    '--colors-gray300': '#52525b',
+    '--colors-border': '#27272a',
+    '--colors-codeBackground': '#09090b',
   },
 });

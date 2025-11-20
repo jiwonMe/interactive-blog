@@ -9,13 +9,13 @@ export default function ExperimentLayout({
     <div 
       className={cn(
         "min-h-screen flex flex-col",
-        "bg-white dark:bg-slate-950"
+        "bg-white dark:bg-zinc-950"
       )}
     >
       <div 
         className={cn(
           "flex-1 relative",
-          "bg-gray-50 dark:bg-slate-900"
+          "bg-gray-50 dark:bg-zinc-900"
         )}
       >
         {/* CSS Grid Pattern Background */}

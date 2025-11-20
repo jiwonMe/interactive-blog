@@ -39,7 +39,7 @@ export const CommandExecutor = () => {
         /* Light */
         "bg-white border-gray-200",
         /* Dark */
-        "dark:bg-slate-900 dark:border-slate-800"
+        "dark:bg-zinc-900 dark:border-zinc-800"
       )}
     >
       <div 
@@ -51,7 +51,7 @@ export const CommandExecutor = () => {
           /* Light */
           "bg-gray-100",
           /* Dark */
-          "dark:bg-slate-800"
+          "dark:bg-zinc-800"
         )}
       >
         <div 
@@ -159,7 +159,7 @@ const Button = ({ variant = 'secondary', className, disabled, ...props }: Button
       case 'primary': return "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500";
       case 'danger': return "bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500";
       case 'success': return "bg-emerald-500 text-white hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500";
-      default: return "bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-slate-700 dark:text-gray-100 dark:hover:bg-slate-600";
+      default: return "bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-zinc-700 dark:text-gray-100 dark:hover:bg-zinc-600";
     }
   };
 

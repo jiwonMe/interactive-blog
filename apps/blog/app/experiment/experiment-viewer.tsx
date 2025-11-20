@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ControlType } from "./registry";
 import { cn } from "../../lib/utils";
+import { CodePreview } from "./code-preview";
 
 type ExperimentViewerProps = {
   render: (props: any) => React.ReactNode;
@@ -45,9 +46,9 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
       {hasControls && (
         <motion.div 
           className={cn(
-            "fixed top-24 right-6 z-50 backdrop-blur-md rounded-lg border shadow-lg overflow-hidden max-h-[calc(100vh-120px)] flex flex-col",
-            "bg-white/90 border-gray-200",
-            "dark:bg-slate-900/90 dark:border-slate-800"
+            "fixed top-24 right-6 z-50 rounded-lg border shadow-lg overflow-hidden max-h-[calc(100vh-120px)] flex flex-col",
+            "bg-white/90 backdrop-blur-md border-gray-200",
+            "dark:bg-zinc-900/90 dark:border-zinc-700"
           )}
           initial={false}
           animate={{ 
@@ -60,7 +61,7 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
             className={cn(
               "p-2 flex items-center justify-between border-b",
               "border-gray-100 bg-gray-50/80",
-              "dark:border-slate-800 dark:bg-slate-800/80"
+              "dark:border-zinc-800 dark:bg-zinc-800/80"
             )}
           >
             {isControlsOpen && (
@@ -78,15 +79,15 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
               className={cn(
                 "p-1.5 rounded-md transition-colors ml-auto",
                 "hover:bg-white text-gray-500",
-                "dark:hover:bg-slate-700 dark:text-gray-400"
+                "dark:hover:bg-zinc-700 dark:text-gray-400"
               )}
               title={isControlsOpen ? "Collapse" : "Expand controls"}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 {isControlsOpen ? (
-                  <path d="M18 6L6 18M6 6l12 12" /> // X icon
+                  <path d="M18 6L6 18M6 6l12 12" />
                 ) : (
-                  <path d="M10.5 6h9.75M10.5 12h9.75M10.5 18h9.75M3 6h1.5M3 12h1.5M3 18h1.5" /> // List icon
+                  <path d="M10.5 6h9.75M10.5 12h9.75M10.5 18h9.75M3 6h1.5M3 12h1.5M3 18h1.5" />
                 )}
               </svg>
             </button>
@@ -111,7 +112,7 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
                         className={cn(
                           "text-[10px] font-mono px-1 rounded",
                           "text-gray-400 bg-gray-100",
-                          "dark:text-gray-500 dark:bg-slate-800"
+                          "dark:text-gray-500 dark:bg-zinc-800"
                         )}
                       >
                         {values[key]}
@@ -121,16 +122,18 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
 
                   {/* Text Input */}
                   {control.type === 'text' && (
-                    <input
-                      type="text"
+                    <textarea
                       id={key}
                       value={values[key]}
                       onChange={(e) => handleChange(key, e.target.value)}
+                      rows={key === 'code' ? 10 : 1}
                       className={cn(
-                        "w-full px-2 py-1.5 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all",
+                        "w-full px-2 py-1.5 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all font-mono",
                         "bg-white border-gray-200",
-                        "dark:bg-slate-800 dark:border-slate-700 dark:text-gray-200"
+                        "dark:bg-zinc-800 dark:border-zinc-700 dark:text-gray-200",
+                        key === 'code' && "resize-y"
                       )}
+                      placeholder={key === 'code' ? '코드를 입력하세요...' : ''}
                     />
                   )}
 
@@ -146,7 +149,7 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
                       onChange={(e) => handleChange(key, Number(e.target.value))}
                       className={cn(
                         "w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-blue-600 block mt-2",
-                        "bg-gray-200 dark:bg-slate-700"
+                        "bg-gray-200 dark:bg-zinc-700"
                       )}
                     />
                   )}
@@ -157,15 +160,17 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
                       <button
                         onClick={() => handleChange(key, !values[key])}
                         className={cn(
-                          "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1",
-                          values[key] ? "bg-blue-600" : "bg-gray-200 dark:bg-slate-700",
-                          "dark:focus:ring-offset-slate-900"
+                          "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-offset-1",
+                          values[key] 
+                            ? "bg-blue-600 dark:bg-blue-500" 
+                            : "bg-gray-200 dark:bg-zinc-700",
+                          "focus:ring-blue-500 dark:focus:ring-blue-400 dark:focus:ring-offset-zinc-800"
                         )}
                       >
                         <span
                           className={cn(
                             "inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform duration-200 ease-in-out shadow-sm",
-                            values[key] ? "translate-x-4" : "translate-x-1"
+                            values[key] ? 'translate-x-4' : 'translate-x-1'
                           )}
                         />
                       </button>
@@ -181,7 +186,7 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
                       className={cn(
                         "w-full px-2 py-1.5 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all",
                         "bg-white border-gray-200",
-                        "dark:bg-slate-800 dark:border-slate-700 dark:text-gray-200"
+                        "dark:bg-zinc-800 dark:border-zinc-700 dark:text-gray-200"
                       )}
                     >
                       {control.options.map(opt => (

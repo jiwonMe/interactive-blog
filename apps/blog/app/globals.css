@@ -27,34 +27,54 @@
 @layer components {
   /* Inline code style - applied to code elements NOT inside pre */
   :not(pre) > code {
-    @apply px-1.5 py-0.5 rounded text-sm font-medium font-mono bg-gray-100 text-gray-900 dark:bg-slate-800 dark:text-gray-200;
+    @apply px-1.5 py-0.5 rounded text-sm font-medium font-mono bg-gray-100 text-gray-900 dark:bg-zinc-800 dark:text-gray-200;
   }
 
   /* Code block styles - rehype-pretty-code가 생성한 구조 */
   pre {
     @apply overflow-x-auto rounded-lg border my-6 text-sm leading-relaxed;
-    /* Light mode default */
-    @apply bg-gray-50 border-gray-200;
     /* 복사 버튼을 위한 여백 */
     @apply pr-12;
   }
 
+  /* rehype-pretty-code가 생성한 코드 블록은 shiki의 배경색 사용 */
+  [data-rehype-pretty-code-figure] pre {
+    @apply border-gray-200 dark:border-zinc-800;
+    /* 배경색은 shiki가 생성한 CSS 변수 사용 */
+    background-color: var(--shiki-light-bg, #fff);
+  }
+
+  .dark [data-rehype-pretty-code-figure] pre {
+    background-color: var(--shiki-dark-bg, #09090b) !important;
+  }
+
+  /* 일반 pre 요소 (rehype-pretty-code가 아닌 경우) */
+  pre:not([data-theme]):not([data-rehype-pretty-code-figure] *) {
+    @apply bg-gray-50 border-gray-200;
+  }
+
   /* Dark mode overrides for pre */
-  .dark pre {
-    @apply bg-slate-900 border-slate-800;
+  .dark pre:not([data-theme]):not([data-rehype-pretty-code-figure] *) {
+    @apply bg-zinc-900 border-zinc-800;
   }
 
   /* Rehype Pretty Code Multi-theme support */
   
   /* Light mode: hide dark theme elements */
-  html:not(.dark) [data-theme="dark"] {
+  html:not(.dark) [data-theme="dark"],
+  html:not(.dark) [data-theme*="dark"]:not([data-theme*="light"]) {
     display: none;
   }
 
   /* Dark mode: hide light theme elements */
-  html.dark [data-theme="light"] {
+  html.dark [data-theme="light"],
+  html.dark [data-theme*="light"]:not([data-theme*="dark"]) {
     display: none;
   }
+  
+  /* Shiki가 생성한 코드 블록의 다크모드/라이트모드 전환 */
+  /* shiki는 CSS 변수를 사용하므로 data-theme 기반 숨김은 적용하지 않음 */
+  /* 대신 CSS 변수를 사용하여 색상 전환 */
 
   /* Ensure code block content doesn't have extra background from inline code styles */
   pre > code {
@@ -67,11 +87,12 @@
 
   /* rehype-pretty-code가 생성한 구조 스타일링 */
   pre[data-theme] {
-    @apply bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-800;
+    @apply bg-gray-50 dark:bg-zinc-900 border-gray-200 dark:border-zinc-800;
   }
 
   /* Shiki가 생성한 라인 구조 */
-  pre code [data-line] {
+  pre code [data-line],
+  pre code .line {
     @apply px-4;
     display: inline-block;
     width: 100%;
@@ -84,13 +105,42 @@
   }
 
   /* Shiki CSS 변수 적용 - 다크 모드 */
-  html.dark pre code span {
-    color: var(--shiki-dark);
+  /* rehype-pretty-code가 생성한 코드 블록 (figure > pre > code) */
+  html.dark pre code span,
+  html.dark [data-rehype-pretty-code-figure] pre code span {
+    color: var(--shiki-dark) !important;
   }
 
   /* Shiki CSS 변수 적용 - 라이트 모드 */
-  html:not(.dark) pre code span {
-    color: var(--shiki-light);
+  html:not(.dark) pre code span,
+  html:not(.dark) [data-rehype-pretty-code-figure] pre code span {
+    color: var(--shiki-light) !important;
+  }
+
+  /* Shiki가 생성한 pre 요소의 배경색도 다크모드에 맞게 조정 */
+  html.dark pre.shiki,
+  html.dark [data-rehype-pretty-code-figure] pre {
+    background-color: var(--shiki-dark-bg, #09090b) !important;
+    color: var(--shiki-dark, #e1e4e8) !important;
+  }
+
+  html:not(.dark) pre.shiki,
+  html:not(.dark) [data-rehype-pretty-code-figure] pre {
+    background-color: var(--shiki-light-bg, #fff) !important;
+    color: var(--shiki-light, #24292e) !important;
+  }
+  
+  /* rehype-pretty-code가 생성한 코드 블록의 배경색 제거 (shiki가 자체 배경색 사용) */
+  [data-rehype-pretty-code-figure] pre {
+    background-color: transparent !important;
+  }
+  
+  html  .dark [data-rehype-pretty-code-figure] pre {
+    background-color: var(--shiki-dark-bg, #09090b) !important;
+  }
+  
+  html:not(.dark) [data-rehype-pretty-code-figure] pre {
+    background-color: var(--shiki-light-bg, #fff) !important;
   }
 
   /* Line numbers */
@@ -101,14 +151,18 @@
   }
 
   pre[data-line-numbers] code [data-line],
-  code[data-line-numbers] [data-line] {
+  code[data-line-numbers] [data-line],
+  pre[data-line-numbers] code .line,
+  code[data-line-numbers] .line {
     counter-increment: line;
     position: relative;
     padding-left: 3rem !important;
   }
 
   pre[data-line-numbers] code [data-line]::before,
-  code[data-line-numbers] [data-line]::before {
+  code[data-line-numbers] [data-line]::before,
+  pre[data-line-numbers] code .line::before,
+  code[data-line-numbers] .line::before {
     content: counter(line);
     position: absolute;
     left: 0;
@@ -121,7 +175,9 @@
   }
 
   .dark pre[data-line-numbers] code [data-line]::before,
-  .dark code[data-line-numbers] [data-line]::before {
+  .dark code[data-line-numbers] [data-line]::before,
+  .dark pre[data-line-numbers] code .line::before,
+  .dark code[data-line-numbers] .line::before {
     color: rgb(75 85 99); /* gray-600 */
   }
 

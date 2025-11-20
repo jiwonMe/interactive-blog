@@ -52,7 +52,7 @@ export const QuickSortVisualizer = () => {
     if (index === current.pivotIndex) return '#f59e0b'; // amber-500
     if (current.swapIndices.includes(index)) return '#ef4444'; // red-500
     if (current.compareIndices.includes(index)) return '#3b82f6'; // blue-500
-    return theme === 'dark' ? '#334155' : '#e5e7eb'; // slate-700 : gray-200
+    return theme === 'dark' ? '#3f3f46' : '#e5e7eb'; // zinc-700 : gray-200
   };
 
   return (
@@ -65,7 +65,7 @@ export const QuickSortVisualizer = () => {
         /* Light */
         "bg-white border-gray-200",
         /* Dark */
-        "dark:bg-slate-900 dark:border-slate-800"
+        "dark:bg-zinc-900 dark:border-zinc-800"
       )}
     >
       <div 
@@ -225,7 +225,7 @@ const Button = ({ variant = 'secondary', className, ...props }: ButtonProps) => 
       /* Variants */
       variant === 'primary' 
         ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500" 
-        : "bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-slate-700 dark:text-gray-100 dark:hover:bg-slate-600",
+        : "bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-zinc-700 dark:text-gray-100 dark:hover:bg-zinc-600",
       /* Disabled */
       "disabled:opacity-50 disabled:cursor-not-allowed",
       className

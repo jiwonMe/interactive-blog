@@ -29,7 +29,7 @@ export function Header() {
       className={cn(
         "sticky top-0 z-50 w-full transition-all duration-300",
         isScrolled
-          ? "border-b bg-white/80 backdrop-blur-md dark:bg-slate-950/80 border-gray-200 dark:border-gray-800"
+              ? "border-b bg-white/80 backdrop-blur-md dark:bg-zinc-950/80 border-gray-200 dark:border-gray-800"
           : "bg-transparent border-transparent"
       )}
     >

@@ -55,7 +55,7 @@ export const PartitionVisualizer = () => {
         /* Light */
         "bg-white border-gray-200",
         /* Dark */
-        "dark:bg-slate-900 dark:border-slate-800"
+        "dark:bg-zinc-900 dark:border-zinc-800"
       )}
     >
       <div className="text-center mb-2">
@@ -143,7 +143,7 @@ const Button = ({ className, ...props }: React.ButtonHTMLAttributes<HTMLButtonEl
       /* Typography */
       "text-sm font-semibold",
       /* Disabled */
-      "disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 dark:disabled:bg-slate-700",
+      "disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 dark:disabled:bg-zinc-700",
       className
     )}
     {...props}

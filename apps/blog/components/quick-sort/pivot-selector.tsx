@@ -35,7 +35,7 @@ export const PivotSelector = ({ array: propArray }: PivotSelectorProps) => {
         /* Light */
         "bg-white border-gray-200",
         /* Dark */
-        "dark:bg-slate-900 dark:border-slate-800"
+        "dark:bg-zinc-900 dark:border-zinc-800"
       )}
     >
       <div className="text-center mb-2">
@@ -75,7 +75,7 @@ export const PivotSelector = ({ array: propArray }: PivotSelectorProps) => {
               /* State styles */
               selectedIndex === index 
                 ? "bg-amber-500 text-white border-amber-500" 
-                : "bg-gray-200 text-gray-900 border-transparent dark:bg-slate-800 dark:text-gray-100 dark:border-transparent"
+                : "bg-gray-200 text-gray-900 border-transparent dark:bg-zinc-800 dark:text-gray-100 dark:border-transparent"
             )}
           >
             {value}
@@ -95,7 +95,7 @@ export const PivotSelector = ({ array: propArray }: PivotSelectorProps) => {
             /* Light */
             "bg-gray-100",
             /* Dark */
-            "dark:bg-slate-800",
+            "dark:bg-zinc-800",
             /* Typography */
             "text-sm",
             /* Light */

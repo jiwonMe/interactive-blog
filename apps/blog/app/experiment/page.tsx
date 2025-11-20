@@ -32,7 +32,7 @@ export default function ExperimentsIndex() {
             className={cn(
               "group block p-6 rounded-xl shadow-sm border transition-all",
               "bg-white border-gray-200 hover:shadow-md hover:border-blue-500",
-              "dark:bg-slate-900 dark:border-slate-800 dark:hover:border-blue-400"
+              "dark:bg-zinc-900 dark:border-zinc-800 dark:hover:border-blue-400"
             )}
           >
             <h2 

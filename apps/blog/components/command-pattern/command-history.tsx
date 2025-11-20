@@ -44,7 +44,7 @@ export const CommandHistory = () => {
         /* Light */
         "bg-white border-gray-200",
         /* Dark */
-        "dark:bg-slate-900 dark:border-slate-800"
+        "dark:bg-zinc-900 dark:border-zinc-800"
       )}
     >
       <div>
@@ -138,8 +138,8 @@ export const CommandHistory = () => {
                   "bg-gray-100 border-gray-200",
                   "hover:bg-gray-200 hover:border-blue-500",
                   /* Dark */
-                  "dark:bg-slate-800 dark:border-slate-700",
-                  "dark:hover:bg-slate-700 dark:hover:border-blue-500",
+                  "dark:bg-zinc-800 dark:border-zinc-700",
+                  "dark:hover:bg-zinc-700 dark:hover:border-blue-500",
                   /* Active State */
                   index === historyIndex && "bg-blue-50 border-blue-500 dark:bg-blue-900/20 dark:border-blue-500"
                 )}
@@ -153,7 +153,7 @@ export const CommandHistory = () => {
                     /* Light */
                     "bg-white text-gray-500",
                     /* Dark */
-                    "dark:bg-slate-700 dark:text-gray-300",
+                    "dark:bg-zinc-700 dark:text-gray-300",
                     /* Typography */
                     "text-sm font-semibold"
                   )}

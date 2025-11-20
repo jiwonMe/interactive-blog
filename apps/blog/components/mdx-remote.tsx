@@ -1,5 +1,5 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { InteractivePanel, Playground, YouTube, Section, StickyWrapper } from '@repo/interactive-ui';
+import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, CodeBlock } from '@repo/interactive-ui';
 import { QuickSortVisualizer } from './quick-sort/quick-sort-visualizer';
 import { PivotSelector } from './quick-sort/pivot-selector';
 import { PartitionVisualizer } from './quick-sort/partition-visualizer';
@@ -7,7 +7,6 @@ import { QuickSortProvider } from './quick-sort/context';
 import { CommandExecutor } from './command-pattern/command-executor';
 import { CommandHistory } from './command-pattern/command-history';
 import { CommandPatternProvider } from './command-pattern/context';
-import { CodeBlock } from './code-block';
 import { cn } from '../lib/utils';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
@@ -238,7 +237,7 @@ const components = {
       <Image
         className={cn(
           "rounded-xl border shadow-sm",
-          "border-gray-200 dark:border-slate-800"
+            "border-gray-200 dark:border-zinc-800"
         )}
         alt={props.alt || "Blog post image"}
         {...props}
@@ -257,7 +256,7 @@ const components = {
     <img 
       className={cn(
         "rounded-xl border shadow-sm my-8 max-w-full h-auto",
-        "border-gray-200 dark:border-slate-800"
+            "border-gray-200 dark:border-zinc-800"
       )}
       {...props} 
     />
@@ -369,7 +368,7 @@ const components = {
         // light
         "border-gray-200 text-gray-600",
         // dark
-        "dark:border-slate-700 dark:text-gray-400"
+        "dark:border-zinc-700 dark:text-gray-400"
       )} 
       {...props} 
     />

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "../components/theme-provider";
 import { Header } from "../components/header";
+import { StitchesStyles } from "../components/stitches-styles";
 import { cn } from "../lib/utils";
 
 export const metadata: Metadata = {
@@ -23,9 +24,10 @@ export default function RootLayout({
           // selection
           "selection:bg-blue-100 selection:text-blue-900",
           // dark mode
-          "dark:bg-slate-950 dark:text-slate-50 dark:selection:bg-blue-900 dark:selection:text-blue-100"
+          "dark:bg-zinc-950 dark:text-zinc-50 dark:selection:bg-blue-900 dark:selection:text-blue-100"
         )}
       >
+        <StitchesStyles />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
