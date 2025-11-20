@@ -24,7 +24,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         // layout
         "relative inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-transparent p-0",
         // interaction
-        "hover:bg-gray-100",
+        "hover:bg-gray-100 dark:hover:bg-zinc-800",
         // dark mode
         "dark:border-gray-800",
         className

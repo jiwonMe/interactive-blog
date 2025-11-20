@@ -1,6 +1,7 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard } from '@repo/interactive-ui';
 import { Counter } from '../articles/hello-world/components/counter';
+import { QuickSortVisualizer } from '../articles/quick-sort/components/QuickSortVisualizer';
 import { cn } from '../lib/utils';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
@@ -217,6 +218,11 @@ export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
     Counter: () => (
       <div className="my-8">
         <Counter />
+      </div>
+    ),
+    QuickSortVisualizer: () => (
+      <div className="my-8">
+        <QuickSortVisualizer />
       </div>
     ),
     Section: (props: React.ComponentProps<typeof Section>) => (

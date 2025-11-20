@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@stitches/react": "^1.2.8",
-    "framer-motion": "^12.23.24"
+    "framer-motion": "^12.23.24",
+    "lucide-react": "0.554.0"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

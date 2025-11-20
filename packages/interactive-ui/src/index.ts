@@ -7,3 +7,4 @@ export { CodeBlock } from './components/CodeBlock';
 export type { CodeBlockProps } from './components/CodeBlock';
 export { LinkCard } from './components/LinkCard';
 export type { LinkCardProps } from './components/LinkCard';
+export { Controls } from './components/Controls';
