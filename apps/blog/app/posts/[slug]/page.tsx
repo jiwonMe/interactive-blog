@@ -158,6 +158,10 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
               "text-4xl md:text-5xl font-extrabold mb-4 tracking-tight leading-tight",
               // Text colors
               "text-zinc-900 dark:text-zinc-50",
+              // Balanced text wrapping
+              "text-balance",
+              // Keep CJK words together (word-break: keep-all)
+              "break-keep"
             )}
           >
             {post.title || post.slug.replace(/-/g, ' ')}
@@ -177,13 +181,18 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             )}
             
             {post.tags && post.tags.length > 0 && (
-              <div className="flex gap-2">
+              <div 
+                className={cn(
+                  // Flex layout with wrapping
+                  "flex flex-wrap gap-2"
+                )}
+              >
                 {post.tags.map(tag => (
                   <span 
                     key={tag}
                     // Tag styling
                     className={cn(
-                      "px-2 py-1 rounded-md text-xs font-medium",
+                      "px-2 py-1 rounded-md text-xs font-medium whitespace-nowrap",
                       // Tag colors
                       "bg-zinc-100 text-zinc-700",
                       "dark:bg-zinc-800 dark:text-zinc-300"

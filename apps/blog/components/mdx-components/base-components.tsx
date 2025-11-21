@@ -157,7 +157,7 @@ export function createBaseComponents(slug?: string) {
           // layout
           "mb-6",
           // typography
-          "leading-8",
+          "leading-7",
           // color
           "text-zinc-800 dark:text-zinc-300"
         )} 

@@ -179,8 +179,8 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
           role="tooltip"
           className="
             absolute z-50
-            left-0 bottom-full mb-2
-            w-64 max-w-xs
+            left-1/2 -translate-x-1/2 bottom-full mb-2
+            w-64 max-w-[calc(100vw-2rem)]
             px-3 py-2
             text-sm leading-relaxed
             rounded-lg shadow-lg
@@ -188,12 +188,14 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
             bg-zinc-900 text-zinc-100
             dark:bg-zinc-100 dark:text-zinc-900
             border border-zinc-700 dark:border-zinc-300
+            whitespace-normal
+            break-words
           "
         >
           {/* Tooltip 화살표 */}
           <span
             className="
-              absolute top-full left-2
+              absolute top-full left-1/2 -translate-x-1/2
               w-0 h-0
               border-l-4 border-l-transparent
               border-r-4 border-r-transparent
@@ -232,7 +234,14 @@ function FootnoteItem({ footnote }: { footnote: FootnoteData }) {
       </span>
       
       {/* 각주 내용 */}
-      <div className="flex-1">
+      <div 
+        className="
+          flex-1
+          min-w-0
+          whitespace-normal
+          break-words
+        "
+      >
         {footnote.content}
         {/* 본문으로 돌아가기 링크 */}
         <a
@@ -280,6 +289,8 @@ export function Footnotes() {
           mb-6
           text-xl font-bold
           text-zinc-900 dark:text-zinc-50
+          text-balance
+          break-keep
         "
       >
         참고 및 주석
