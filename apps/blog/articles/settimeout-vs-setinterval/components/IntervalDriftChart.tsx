@@ -178,6 +178,7 @@ export function IntervalDriftChart() {
 
   React.useEffect(() => {
     render();
+    if (typeof window === 'undefined') return;
     const onResize = () => render();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);

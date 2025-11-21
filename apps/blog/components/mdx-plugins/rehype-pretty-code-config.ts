@@ -3,7 +3,7 @@ import rehypePrettyCode from 'rehype-pretty-code';
 import type { Plugin } from 'unified';
 
 // rehype-pretty-code 전에 메타데이터를 저장하는 플러그인
-const createRehypePrettyCodeMeta: Plugin = () => {
+const createRehypePrettyCodeMeta = (): Plugin => {
   const metaMap = new Map();
   return () => {
     return (tree: any) => {
@@ -29,7 +29,7 @@ const createRehypePrettyCodeMeta: Plugin = () => {
 };
 
 // rehype-pretty-code 설정
-export const rehypePrettyCodeConfig: Plugin[] = [
+export const rehypePrettyCodeConfig: any[] = [
   createRehypePrettyCodeMeta(),
   [
     rehypePrettyCode,
