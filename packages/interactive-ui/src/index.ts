@@ -8,3 +8,4 @@ export type { CodeBlockProps } from './components/CodeBlock';
 export { LinkCard } from './components/LinkCard';
 export type { LinkCardProps } from './components/LinkCard';
 export { Controls } from './components/Controls';
+export { FootnoteProvider, Footnote, Footnotes } from './components/Footnote';

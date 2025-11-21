@@ -1,4 +1,4 @@
-import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard } from '@repo/interactive-ui';
+import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard, Footnote, Footnotes } from '@repo/interactive-ui';
 import { cn } from '../../lib/utils';
 import Image from 'next/image';
 import React from 'react';
@@ -41,6 +41,9 @@ export function createBaseComponents(slug?: string) {
       <Content {...props}>{children}</Content>
     ),
     YouTube,
+    // 각주 컴포넌트
+    Footnote,
+    Footnotes,
     LinkCard: (props: any) => {
       // MDX에서 전달되는 props를 적절한 타입으로 변환
       // 빈 문자열이나 undefined인 경우 undefined로 처리

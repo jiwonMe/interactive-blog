@@ -4,6 +4,7 @@ import { remarkBoldFix } from './mdx-plugins/remark-bold-fix';
 import { rehypeLineNumbers } from './mdx-plugins/rehype-line-numbers';
 import { createRehypeImageRewrite } from './mdx-plugins/rehype-image-rewrite';
 import { rehypePrettyCodeConfig } from './mdx-plugins/rehype-pretty-code-config';
+import { FootnoteProvider } from '@repo/interactive-ui';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import remarkMath from 'remark-math';
@@ -21,22 +22,24 @@ export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
   };
 
   return (
-    <MDXRemote
-      source={source}
-      components={components}
-      options={{
-        mdxOptions: {
-          remarkPlugins: [remarkGfm, remarkBoldFix, remarkMath],
-          rehypePlugins: [
-            rehypeSlug,
-            createRehypeImageRewrite(slug),
-            ...rehypePrettyCodeConfig,
-            rehypeLineNumbers,
-            [rehypeAutolinkHeadings, { behavior: 'wrap' }],
-            rehypeKatex,
-          ],
-        },
-      }}
-    />
+    <FootnoteProvider>
+      <MDXRemote
+        source={source}
+        components={components}
+        options={{
+          mdxOptions: {
+            remarkPlugins: [remarkGfm, remarkBoldFix, remarkMath],
+            rehypePlugins: [
+              rehypeSlug,
+              createRehypeImageRewrite(slug),
+              ...rehypePrettyCodeConfig,
+              rehypeLineNumbers,
+              [rehypeAutolinkHeadings, { behavior: 'wrap' }],
+              rehypeKatex,
+            ],
+          },
+        }}
+      />
+    </FootnoteProvider>
   );
 }
