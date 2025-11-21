@@ -87,7 +87,7 @@ export default function RootLayout({
       <body
         className={cn(
           // base
-          "bg-zinc-50 text-zinc-900 antialiased min-h-screen flex flex-col",
+          "bg-zinc-100 text-zinc-800 antialiased min-h-screen flex flex-col",
           // selection
           "selection:bg-blue-100 selection:text-blue-900",
           // dark mode
@@ -117,19 +117,18 @@ export default function RootLayout({
             <footer className="border-t border-zinc-100 py-12 mt-20 dark:border-zinc-800">
               <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-zinc-500 dark:text-zinc-400">
                 <div className="flex flex-col gap-1">
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">Interactive Tech Blog</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">PWNZ INTERACTIVES</span>
                   <span>© {new Date().getFullYear()} All rights reserved.</span>
                 </div>
                 
                 <div className="flex items-center gap-6">
-                  <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors dark:hover:text-white">
+                  <a href="https://github.com/jiwonMe" target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors dark:hover:text-white">
                     GitHub
                   </a>
-                  <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors dark:hover:text-white">
+                  {/* <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors dark:hover:text-white">
                     Twitter
-                  </a>
+                  </a> */}
                   <span className="w-px h-3 bg-zinc-200 hidden md:block dark:bg-zinc-700"></span>
-                  <span className="text-zinc-400 dark:text-zinc-500">Built with Next.js & Stitches</span>
                 </div>
               </div>
             </footer>

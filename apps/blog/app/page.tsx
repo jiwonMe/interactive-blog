@@ -44,7 +44,7 @@ function MainTitle() {
       <h1
         className={cn(
           "md:text-2xl text-md font-bold mb-2 tracking-[0.5em] pl-5 md:pl-10",
-          "text-zinc-900 dark:text-zinc-100"
+          "text-zinc-800 dark:text-zinc-100"
         )}
       >
         INTERACTIVES
@@ -67,7 +67,7 @@ export default function Home() {
           "border-none"
         )}
       />
-      <div className="bg-zinc-50 dark:bg-zinc-950 w-full py-6 sm:py-12 px-3 sm:px-6 border-dashed border-b border-zinc-300 dark:border-zinc-700">
+      <div className="dark:bg-zinc-950 w-full py-6 sm:py-12 px-3 sm:px-6 border-dashed border-b border-zinc-300 dark:border-zinc-700">
         <div className="max-w-3xl mx-auto px-6">
           <MainTitle />
           <p
@@ -80,7 +80,7 @@ export default function Home() {
           </p>
         </div>
       </div>
-      <div className="bg-zinc-50 dark:bg-zinc-950 w-full py-6 sm:py-10 px-3 sm:px-6">
+      <div className="dark:bg-zinc-950 w-full py-6 sm:py-10 px-3 sm:px-6">
         <div className="max-w-3xl mx-auto px-6">
           <section className="mb-20">
             {/* <h2
@@ -102,7 +102,7 @@ export default function Home() {
                         className={cn(
                           "text-xl font-semibold mb-2 transition-colors",
                           "group-hover:text-blue-600 dark:group-hover:text-blue-400",
-                          "text-zinc-900 dark:text-zinc-100"
+                          "text-zinc-800 dark:text-zinc-100"
                         )}
                       >
                         {post.title || post.slug.replace(/-/g, ' ')}
@@ -135,7 +135,7 @@ export default function Home() {
               <h2
                 className={cn(
                   "text-2xl font-bold mb-4",
-                  "text-zinc-900 dark:text-zinc-100"
+                  "text-zinc-800 dark:text-zinc-100"
                 )}
               >
                 Experiments
