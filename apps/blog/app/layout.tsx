@@ -87,7 +87,7 @@ export default function RootLayout({
       <body
         className={cn(
           // base
-          "bg-white text-zinc-900 antialiased min-h-screen flex flex-col",
+          "bg-zinc-50 text-zinc-900 antialiased min-h-screen flex flex-col",
           // selection
           "selection:bg-blue-100 selection:text-blue-900",
           // dark mode

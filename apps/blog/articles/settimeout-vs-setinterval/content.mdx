@@ -100,6 +100,10 @@ JavaScript는 기본적으로 단일 스레드 언어이므로, 비동기 작업
 
 위 그래프는 각 틱에서의 드리프트(실제 시각 - 기대 시각, ms)를 선으로 보여줍니다. 환경(Chromium/Firefox/Safari/Node), 간격(ms), 틱 수를 조절해보세요.
 
+<TimerAccuracyTester />
+
+위 도구를 사용하여 현재 브라우저에서 타이머의 실제 정확도를 직접 측정해볼 수 있습니다. 요청한 지연 시간과 실제 측정된 시간의 차이를 확인하고, 특히 4ms 미만의 매우 짧은 지연 시간에서 브라우저의 최소 지연 시간 클램핑이 어떻게 작동하는지 관찰해보세요.
+
 ## 5. 드리프트 최소화를 위한 실전 활용 패턴 및 해결 전략
 
 타이밍 드리프트는 많은 애플리케이션에서 예측 불가능한 동작이나 성능 저하를 초래할 수 있으므로, 이를 최소화하기 위한 실전 패턴과 보정 알고리즘을 적용하는 것이 중요합니다<Footnote>Avoiding Fake Boundaries in Set Interval Computing - Semantic Scholar, https://www.semanticscholar.org/paper/7eea6444e27d27479ba40dacc882cb0e591a9dc0</Footnote>.
@@ -162,6 +166,10 @@ Node.js는 이벤트 루프를 기반으로 비동기 작업을 처리하므로,
 
 *   **타이머 ID 관리 부재로 인한 메모리 누수**: `setTimeout` 또는 `setInterval`을 호출한 후 반환된 타이머 ID를 저장하지 않거나, 타이머가 더 이상 필요 없을 때 `clearTimeout()` 또는 `clearInterval()`을 호출하지 않으면, 콜백 함수가 계속해서 실행되거나 참조를 유지하여 메모리 누수를 유발할 수 있습니다. 특히 싱글 페이지 애플리케이션(SPA)에서 컴포넌트가 언마운트될 때 타이머를 정리하지 않으면 문제가 발생하기 쉽습니다.
 
+<MemoryLeakVisualizer />
+
+위 시뮬레이터는 타이머를 정리하지 않았을 때의 메모리 누수를 시각적으로 보여줍니다. "자동 생성" 버튼을 눌러 계속해서 타이머를 생성하면서 정리하지 않으면 어떤 일이 벌어지는지 확인해보세요. 실제 애플리케이션에서는 이러한 누수가 성능 저하와 메모리 부족으로 이어질 수 있습니다.
+
 *   **문자열 인자 사용**: `setTimeout('someCode()', delay)`와 같이 첫 번째 인자로 문자열 형태의 코드를 전달하는 것은 `eval()`과 유사하게 동작하여 코드 인젝션(code injection) 공격에 취약할 수 있습니다<Footnote>Securing timeout instructions in web applications - IEEE Xplore, https://ieeexplore.ieee.org/abstract/document/5230485/</Footnote>. 항상 함수 참조를 사용하는 것이 권장됩니다.
 
 *   **DoS 공격 및 타이밍 공격**: 악의적인 사용자는 `setTimeout`과 `setInterval`을 남용하여 과도한 작업을 예약하거나, 매우 짧은 간격으로 타이머를 반복 호출하여 이벤트 루프를 블로킹시키고 CPU를 소모시켜 DoS(서비스 거부) 공격을 수행할 수 있습니다<Footnote>ConScript: Specifying and enforcing fine-grained security policies for JavaScript in the browser - IEEE Xplore, https://ieeexplore.ieee.org/abstract/document/5504806/</Footnote>. 또한, 타이머의 미세한 시간 차이를 측정하여 민감한 정보를 유추하는 타이밍 측면 채널 공격에 활용될 수 있으며, 브라우저는 이에 대응하여 타이머 해상도를 제한하는 등의 조치를 취하고 있습니다<Footnote>GUARDIA: specification and enforcement of javascript security policies without VM modifications - ACM Digital Library, https://dl.acm.org/doi/abs/10.1145/3237009.3237025</Footnote>.
@@ -179,6 +187,10 @@ Node.js는 이벤트 루프를 기반으로 비동기 작업을 처리하므로,
 *   **타이머 라이브러리**: `lodash.debounce`, `rxjs`의 스케줄러 등 JavaScript 생태계에는 `setTimeout`과 `setInterval`의 기능을 확장하고 개선한 다양한 라이브러리들이 존재합니다. 이들은 더 높은 수준의 추상화, 드리프트 보정, 일시 중지/재개, 오류 처리 등의 고급 기능을 제공하여 복잡한 타이밍 로직을 더 쉽게 구현할 수 있도록 돕습니다.
 
 *   **Web Audio API**: 오디오 관련 작업에서는 매우 정밀한 타이밍이 필요하며, `setTimeout`과 `setInterval`의 부정확성으로는 감당하기 어렵습니다. `Web Audio API`는 고해상도 타이밍을 제공하여 정확한 오디오 스케줄링을 가능하게 합니다<Footnote>Alternatives to Lookahead Audio Scheduling - Semantic Scholar, https://www.semanticscholar.org/paper/4760eee36caba54d3e0a5027ffd7d21550b157e4</Footnote>.
+
+<TimerComparisonPlayground />
+
+위 플레이그라운드에서는 `setTimeout`, `setInterval`, `requestAnimationFrame`의 실제 실행 간격을 실시간으로 비교할 수 있습니다. 각 메서드를 활성화하고 목표 간격을 조절하면서 실제로 어떻게 동작하는지 직접 확인해보세요. 특히 `requestAnimationFrame`은 브라우저의 리페인트 주기(보통 60fps, 16.67ms)에 맞춰 실행되므로 애니메이션에 가장 적합합니다.
 
 ### 7.2. 표준화 논의 및 미래 동향
 

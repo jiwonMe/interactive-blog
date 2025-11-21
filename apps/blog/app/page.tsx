@@ -67,7 +67,7 @@ export default function Home() {
           "border-none"
         )}
       />
-      <div className="bg-white dark:bg-zinc-950 w-full py-6 sm:py-12 px-3 sm:px-6 border-dashed border-b border-zinc-300 dark:border-zinc-700">
+      <div className="bg-zinc-50 dark:bg-zinc-950 w-full py-6 sm:py-12 px-3 sm:px-6 border-dashed border-b border-zinc-300 dark:border-zinc-700">
         <div className="max-w-3xl mx-auto px-6">
           <MainTitle />
           <p
@@ -80,7 +80,7 @@ export default function Home() {
           </p>
         </div>
       </div>
-      <div className="bg-white dark:bg-zinc-950 w-full py-6 sm:py-10 px-3 sm:px-6">
+      <div className="bg-zinc-50 dark:bg-zinc-950 w-full py-6 sm:py-10 px-3 sm:px-6">
         <div className="max-w-3xl mx-auto px-6">
           <section className="mb-20">
             {/* <h2

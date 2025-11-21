@@ -5,6 +5,9 @@ import { Counter } from '../../articles/hello-world/components/counter';
 import { QuickSortVisualizer } from '../../articles/quick-sort/components/QuickSortVisualizer';
 import { IntervalDriftChartWrapper as IntervalDriftChart } from '../../articles/settimeout-vs-setinterval/components/IntervalDriftChartWrapper';
 import { EventLoopSimulatorWrapper as EventLoopSimulator } from '../../articles/settimeout-vs-setinterval/components/EventLoopSimulatorWrapper';
+import { TimerAccuracyTesterWrapper as TimerAccuracyTester } from '../../articles/settimeout-vs-setinterval/components/TimerAccuracyTesterWrapper';
+import { MemoryLeakVisualizerWrapper as MemoryLeakVisualizer } from '../../articles/settimeout-vs-setinterval/components/MemoryLeakVisualizerWrapper';
+import { TimerComparisonPlaygroundWrapper as TimerComparisonPlayground } from '../../articles/settimeout-vs-setinterval/components/TimerComparisonPlaygroundWrapper';
 
 // 컴포넌트 이름과 컴포넌트를 매핑하는 레지스트리
 export const articleComponentsRegistry: Record<string, React.ComponentType<any>> = {
@@ -12,6 +15,9 @@ export const articleComponentsRegistry: Record<string, React.ComponentType<any>>
   QuickSortVisualizer,
   IntervalDriftChart,
   EventLoopSimulator,
+  TimerAccuracyTester,
+  MemoryLeakVisualizer,
+  TimerComparisonPlayground,
 };
 
 // 컴포넌트를 동적으로 가져오는 함수
