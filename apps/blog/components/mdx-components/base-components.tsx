@@ -226,6 +226,74 @@ export function createBaseComponents(slug?: string) {
     em: (props: React.HTMLAttributes<HTMLElement>) => (
       <em className="italic" {...props} />
     ),
+    // 테이블 컴포넌트들
+    table: (props: React.HTMLAttributes<HTMLTableElement>) => (
+      <div className={cn(
+        // layout
+        "my-8 overflow-x-auto"
+      )}>
+        <table 
+          className={cn(
+            // layout
+            "w-full border-collapse",
+            // typography
+            "text-sm",
+            // color
+            "text-zinc-800 dark:text-zinc-300"
+          )} 
+          {...props} 
+        />
+      </div>
+    ),
+    thead: (props: React.HTMLAttributes<HTMLTableSectionElement>) => (
+      <thead 
+        className={cn(
+          // border
+          "border-b-2",
+          // color
+          "border-zinc-200 dark:border-zinc-700"
+        )} 
+        {...props} 
+      />
+    ),
+    tbody: (props: React.HTMLAttributes<HTMLTableSectionElement>) => (
+      <tbody {...props} />
+    ),
+    tr: (props: React.HTMLAttributes<HTMLTableRowElement>) => (
+      <tr 
+        className={cn(
+          // border
+          "border-b",
+          // color
+          "border-zinc-200 dark:border-zinc-800"
+        )} 
+        {...props} 
+      />
+    ),
+    th: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
+      <th 
+        className={cn(
+          // layout
+          "px-4 py-3 text-left",
+          // typography
+          "font-semibold",
+          // color
+          "text-zinc-900 dark:text-zinc-100"
+        )} 
+        {...props} 
+      />
+    ),
+    td: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
+      <td 
+        className={cn(
+          // layout
+          "px-4 py-3",
+          // color
+          "text-zinc-800 dark:text-zinc-300"
+        )} 
+        {...props} 
+      />
+    ),
   };
 }
 
