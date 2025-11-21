@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@repo/interactive-ui": "workspace:*",
     "@types/p5": "^1.7.7",
     "clsx": "^2.1.0",

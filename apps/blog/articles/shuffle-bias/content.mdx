@@ -1,0 +1,87 @@
+---
+title: 'Shuffle Algorithm Bias 시각화하기'
+date: '2025-11-21'
+description: '랜덤 셔플 알고리즘의 편향성을 매트릭스 다이어그램으로 시각화하고 비교합니다.'
+author: 'JIWON'
+tags: ['algorithm', 'visualization', 'd3', 'random']
+---
+
+# Shuffle Algorithm Bias 시각화하기
+
+Mike Bostock의 Will It Shuffle?<Footnote>https://bost.ocks.org/mike/shuffle/compare.html</Footnote> 글은 셔플 알고리즘의 편향성을 시각적으로 아주 잘 설명한 명작입니다. 오늘은 D3.js와 React를 사용하여 이 시각화를 직접 구현해보고, 왜 잘못된 셔플 알고리즘이 문제가 되는지, 그리고 Fisher-Yates 알고리즘이 왜 공정한지 직접 눈으로 확인해보겠습니다.
+
+## 셔플의 공정성 (Fairness)
+
+완벽한 셔플 알고리즘이라면, 원본 배열의 모든 요소가 셔플 후의 모든 위치에 갈 확률이 동일해야 합니다. 즉, $N$개의 요소가 있다면 특정 요소가 특정 위치에 있을 확률은 정확히 $1/N$이어야 합니다.
+
+만약 이 확률이 균일하지 않다면, 그 알고리즘은 **편향(Bias)**되어 있다고 말합니다.
+
+## 시각화: Matrix Diagram
+
+아래의 인터랙티브 시각화 도구는 수천 번의 셔플을 수행하고 그 결과를 집계하여 보여줍니다.
+
+- **행 (Row, $i$)**: 셔플 전 원래 위치
+- **열 (Column, $j$)**: 셔플 후 이동한 위치
+- **색상**:
+  - <span style={{color: "#e66101", fontWeight: "bold"}}>주황색</span>: 기대값보다 더 자주 등장 (Positive Bias)
+  - <span style={{color: "#f7f7f7", backgroundColor: "#333", padding: "0 4px"}}>흰색</span>: 기대값만큼 등장 (Unbiased)
+  - <span style={{color: "#5e3c99", fontWeight: "bold"}}>보라색</span>: 기대값보다 덜 등장 (Negative Bias)
+
+<ShuffleVisualizer />
+
+### 1. Random Comparator (나쁜 예)
+
+흔히 저지르는 실수 중 하나는 `array.sort(() => Math.random() - 0.5)`와 같은 코드를 사용하는 것입니다.
+
+```javascript
+// ❌ 절대로 사용하지 마세요!
+function randomComparatorShuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
+```
+
+위의 시각화에서 **Random Comparator**를 선택하고 시뮬레이션을 돌려보세요. 대각선이나 특정 패턴이 강하게 나타나는 것을 볼 수 있습니다. 이는 요소들이 충분히 섞이지 않거나 특정 위치로 쏠린다는 것을 의미합니다.
+
+### 2. Naive Swap (나쁜 예)
+
+또 다른 실수는 "모든 요소에 대해 임의의 위치와 교환"하는 방식입니다.
+
+```javascript
+// ❌ 미묘하게 편향됩니다.
+function naiveSwapShuffle(array) {
+  const n = array.length;
+  for (let i = 0; i < n; i++) {
+    const j = Math.floor(Math.random() * n); // 0부터 n-1까지 아무거나
+    swap(array, i, j);
+  }
+}
+```
+
+언뜻 보면 공정해 보이지만, 이 방식은 $N^N$가지의 경우의 수를 만들어냅니다. 하지만 $N$개의 요소를 나열하는 방법은 $N!$가지입니다. $N^N$은 $N!$로 나누어 떨어지지 않으므로, 필연적으로 어떤 결과는 다른 결과보다 더 많이 나올 수밖에 없습니다.
+
+시각화에서 **Naive Swap**을 선택해보세요. 얼핏 보면 괜찮아 보이지만, 반복 횟수가 많아지면 미세한 편향이 드러납니다.
+
+### 3. Fisher-Yates Shuffle (좋은 예)
+
+가장 올바른 방법은 Fisher-Yates (또는 Knuth) 셔플입니다.
+
+```javascript
+// ✅ 올바른 셔플 알고리즘
+function fisherYatesShuffle(array) {
+  let m = array.length, t, i;
+  while (m) {
+    i = Math.floor(Math.random() * m--); // 남아있는 요소 중에서 선택
+    t = array[m];
+    array[m] = array[i];
+    array[i] = t;
+  }
+  return array;
+}
+```
+
+이 알고리즘은 수학적으로 완벽하게 공정한 셔플을 보장합니다. 시각화에서 **Fisher-Yates**를 선택하면 전체 매트릭스가 균일한 노이즈(회색)로 채워지는 것을 확인할 수 있습니다.
+
+## 결론
+
+알고리즘의 아주 작은 차이가 데이터의 분포에 큰 영향을 미칠 수 있습니다. 특히 무작위성이 중요한 게임이나 암호화, 데이터 샘플링에서는 반드시 검증된 알고리즘(Fisher-Yates)을 사용해야 합니다.
+
