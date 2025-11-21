@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "../components/theme-provider";
 import { Header } from "../components/header";
+import { Footer } from "../components/footer";
 import StitchesRegistry from "../components/stitches-registry";
 import { cn } from "../lib/utils";
 
@@ -88,6 +89,8 @@ export default function RootLayout({
         className={cn(
           // base
           "bg-zinc-100 text-zinc-800 antialiased min-h-screen flex flex-col",
+          // overflow
+          "overflow-x-hidden",
           // selection
           "selection:bg-blue-100 selection:text-blue-900",
           // dark mode
@@ -114,24 +117,7 @@ export default function RootLayout({
               {children}
             </div>
             
-            <footer className="border-t border-zinc-100 py-12 mt-20 dark:border-zinc-800">
-              <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-zinc-500 dark:text-zinc-400">
-                <div className="flex flex-col gap-1">
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">PWNZ INTERACTIVES</span>
-                  <span>© {new Date().getFullYear()} All rights reserved.</span>
-                </div>
-                
-                <div className="flex items-center gap-6">
-                  <a href="https://github.com/jiwonMe" target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors dark:hover:text-white">
-                    GitHub
-                  </a>
-                  {/* <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors dark:hover:text-white">
-                    Twitter
-                  </a> */}
-                  <span className="w-px h-3 bg-zinc-200 hidden md:block dark:bg-zinc-700"></span>
-                </div>
-              </div>
-            </footer>
+            <Footer />
           </ThemeProvider>
         </StitchesRegistry>
       </body>

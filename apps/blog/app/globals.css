@@ -5,6 +5,11 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    /* Prevent horizontal scroll */
+    overflow-x: hidden;
+  }
+
   body {
     @apply text-zinc-800 bg-zinc-100 antialiased;
     font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
@@ -12,6 +17,8 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: zincscale;
+    /* Prevent horizontal scroll */
+    overflow-x: hidden;
   }
 
   /* Typography defaults */
@@ -35,6 +42,8 @@
     @apply overflow-x-auto rounded-lg border my-6 text-sm leading-relaxed;
     /* 복사 버튼을 위한 여백 */
     @apply pr-12;
+    /* 최대 너비 제한으로 페이지 넘침 방지 */
+    max-width: 100%;
   }
 
   /* rehype-pretty-code가 생성한 코드 블록은 shiki의 배경색 사용 */
@@ -80,7 +89,8 @@
   pre > code {
     @apply bg-transparent p-0;
     display: grid;
-    min-width: 100%;
+    /* 코드 블록이 부모 요소를 넘지 않도록 최대 너비 제한 */
+    max-width: 100%;
     width: max-content;
     padding: 1rem;
   }

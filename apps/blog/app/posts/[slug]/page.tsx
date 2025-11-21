@@ -111,13 +111,17 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
     <div 
       // Main container layout
       className={cn(
-        "max-w-7xl mx-auto px-6 py-12 flex justify-center relative"
+        "max-w-7xl mx-auto px-6 py-12 flex justify-center relative",
+        // Prevent horizontal overflow
+        "overflow-x-hidden w-full"
       )}
     >
       <article 
         // Article content width constraint
         className={cn(
-          "w-full max-w-3xl"
+          "w-full max-w-3xl",
+          // Prevent content from overflowing
+          "overflow-x-hidden"
         )}
       >
         {/* <Link 
