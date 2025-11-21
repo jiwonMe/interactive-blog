@@ -8,13 +8,16 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
-    "turbo": "latest",
     "prettier": "latest",
+    "turbo": "latest",
     "typescript": "^5.0.0"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "@types/p5": "^1.7.7",
+    "p5": "^2.1.1"
   }
 }
-
