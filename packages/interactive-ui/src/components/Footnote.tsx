@@ -6,12 +6,15 @@ import React, { createContext, useContext, useState, useCallback, useRef, useEff
 interface FootnoteData {
   id: number;
   content: React.ReactNode;
+  customId?: string;
 }
 
 // Context 타입
 interface FootnoteContextType {
   footnotes: FootnoteData[];
-  registerFootnote: (content: React.ReactNode) => number;
+  registerFootnote: (content: React.ReactNode, customId?: string) => number;
+  getFootnoteIdByCustomId: (customId: string) => number | undefined;
+  getFootnoteById: (id: number) => FootnoteData | undefined;
 }
 
 // Context 생성
@@ -29,20 +32,45 @@ interface FootnoteProviderProps {
 export function FootnoteProvider({ children }: FootnoteProviderProps) {
   const [footnotes, setFootnotes] = useState<FootnoteData[]>([]);
   const counterRef = useRef(0);
+  const customIdMapRef = useRef<Map<string, number>>(new Map());
+  const contentMapRef = useRef<Map<number, React.ReactNode>>(new Map());
   
-  const registerFootnote = useCallback((content: React.ReactNode): number => {
+  const registerFootnote = useCallback((content: React.ReactNode, customId?: string): number => {
+    // customId가 이미 등록되어 있으면 기존 ID 반환
+    if (customId && customIdMapRef.current.has(customId)) {
+      return customIdMapRef.current.get(customId)!;
+    }
+    
     // 카운터를 증가시키고 새 ID 생성
     counterRef.current += 1;
     const id = counterRef.current;
     
+    // customId가 있으면 맵에 저장
+    if (customId) {
+      customIdMapRef.current.set(customId, id);
+    }
+    
+    // content를 맵에 저장
+    contentMapRef.current.set(id, content);
+    
     // 각주 추가
-    setFootnotes(prev => [...prev, { id, content }]);
+    setFootnotes(prev => [...prev, { id, content, customId }]);
     
     return id;
   }, []);
+  
+  const getFootnoteIdByCustomId = useCallback((customId: string): number | undefined => {
+    return customIdMapRef.current.get(customId);
+  }, []);
+  
+  const getFootnoteById = useCallback((id: number): FootnoteData | undefined => {
+    const content = contentMapRef.current.get(id);
+    if (!content) return undefined;
+    return { id, content };
+  }, []);
 
   return (
-    <FootnoteContext.Provider value={{ footnotes, registerFootnote }}>
+    <FootnoteContext.Provider value={{ footnotes, registerFootnote, getFootnoteIdByCustomId, getFootnoteById }}>
       {children}
     </FootnoteContext.Provider>
   );
@@ -59,20 +87,26 @@ function useFootnoteContext() {
 
 // Footnote Props
 interface FootnoteProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  id?: string;
+  refId?: string;
 }
 
 /**
  * Footnote: 본문에서 각주 참조를 표시하는 컴포넌트
- * 사용법: <Footnote>각주 내용</Footnote>
- * 결과: [1], [2] 등으로 표시됨
+ * 
+ * 기본 사용법: <Footnote>각주 내용</Footnote>
+ * ID 지정: <Footnote id="react-docs">React 공식 문서</Footnote>
+ * 재사용: <Footnote refId="react-docs" />
  */
-export function Footnote({ children }: FootnoteProps) {
-  const { registerFootnote } = useFootnoteContext();
+export function Footnote({ children, id: customId, refId }: FootnoteProps) {
+  const { registerFootnote, getFootnoteIdByCustomId, getFootnoteById } = useFootnoteContext();
   const idRef = useRef<number | null>(null);
-  const [id, setId] = useState<number | null>(null);
+  const [numericId, setNumericId] = useState<number | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [copied, setCopied] = useState(false);
   const hasRegistered = useRef(false);
+  const [content, setContent] = useState<React.ReactNode>(children);
 
   useEffect(() => {
     // 이미 등록된 경우 스킵 (strict mode에서 두 번 실행 방지)
@@ -82,13 +116,47 @@ export function Footnote({ children }: FootnoteProps) {
     
     hasRegistered.current = true;
     
-    // 각주 등록
-    const footnoteId = registerFootnote(children);
+    // refId로 기존 각주 참조
+    if (refId) {
+      const existingId = getFootnoteIdByCustomId(refId);
+      if (existingId) {
+        const existingFootnote = getFootnoteById(existingId);
+        if (existingFootnote) {
+          idRef.current = existingFootnote.id;
+          setNumericId(existingFootnote.id);
+          setContent(existingFootnote.content);
+          return;
+        }
+      }
+      console.warn(`Footnote with id "${refId}" not found. Make sure it's defined before referencing.`);
+      return;
+    }
+    
+    // 새 각주 등록
+    const footnoteId = registerFootnote(children, customId);
     idRef.current = footnoteId;
-    setId(footnoteId);
-  }, [registerFootnote, children]);
+    setNumericId(footnoteId);
+    setContent(children);
+  }, [registerFootnote, getFootnoteIdByCustomId, getFootnoteById, children, customId, refId]);
 
-  if (id === null) {
+  // 딥링크 복사 핸들러
+  const handleCopyLink = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (numericId === null) return;
+    
+    const url = `${window.location.origin}${window.location.pathname}#footnote-${numericId}`;
+    
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(err => {
+      console.error('Failed to copy link:', err);
+    });
+  }, [numericId]);
+
+  if (numericId === null) {
     return null;
   }
 
@@ -111,17 +179,40 @@ export function Footnote({ children }: FootnoteProps) {
         "
       >
         <a
-          href={`#footnote-${id}`}
-          id={`footnote-ref-${id}`}
-          aria-describedby={`footnote-${id}`}
+          href={`#footnote-${numericId}`}
+          id={`footnote-ref-${numericId}`}
+          aria-describedby={`footnote-${numericId}`}
           className="
             no-underline
             font-medium
           "
         >
-          [{id}]
+          [{numericId}]
         </a>
       </sup>
+      
+      {/* 딥링크 복사 버튼 */}
+      <button
+        onClick={handleCopyLink}
+        aria-label="각주 링크 복사"
+        className="
+          ml-1
+          inline-flex
+          items-center
+          justify-center
+          w-3.5 h-3.5
+          text-[10px]
+          opacity-0 hover:opacity-100
+          transition-opacity
+          text-zinc-500 dark:text-zinc-400
+          hover:text-blue-600 dark:hover:text-blue-400
+          cursor-pointer
+          align-super
+        "
+        style={{ verticalAlign: 'super' }}
+      >
+        {copied ? '✓' : '🔗'}
+      </button>
       
       {/* Tooltip */}
       {showTooltip && (
@@ -151,10 +242,128 @@ export function Footnote({ children }: FootnoteProps) {
               dark:border-t-zinc-100
             "
           />
-          {children}
+          {content}
+        </span>
+      )}
+      
+      {/* 복사 완료 피드백 */}
+      {copied && (
+        <span
+          className="
+            absolute z-50
+            left-0 -top-8
+            px-2 py-1
+            text-xs
+            rounded
+            bg-green-600 text-white
+            dark:bg-green-500 dark:text-zinc-900
+            whitespace-nowrap
+            animate-fade-in
+          "
+        >
+          링크 복사됨!
         </span>
       )}
     </span>
+  );
+}
+
+/**
+ * FootnoteItem: 개별 각주 아이템 컴포넌트
+ */
+function FootnoteItem({ footnote }: { footnote: FootnoteData }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = useCallback(() => {
+    const url = `${window.location.origin}${window.location.pathname}#footnote-${footnote.id}`;
+    
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(err => {
+      console.error('Failed to copy link:', err);
+    });
+  }, [footnote.id]);
+
+  return (
+    <li
+      id={`footnote-${footnote.id}`}
+      className="
+        flex gap-2
+        leading-relaxed
+        group
+      "
+    >
+      {/* 각주 번호 */}
+      <span
+        className="
+          flex-shrink-0
+          font-medium
+          text-blue-600 dark:text-blue-400
+        "
+      >
+        {footnote.id}.
+      </span>
+      
+      {/* 각주 내용 */}
+      <div className="flex-1">
+        {footnote.content}
+        
+        {/* 액션 버튼들 */}
+        <span className="inline-flex items-center gap-1 ml-2">
+          {/* 본문으로 돌아가기 링크 */}
+          <a
+            href={`#footnote-ref-${footnote.id}`}
+            aria-label="본문으로 돌아가기"
+            className="
+              text-blue-600 dark:text-blue-400
+              hover:text-blue-800 dark:hover:text-blue-300
+              no-underline
+              transition-colors
+            "
+          >
+            ↩
+          </a>
+          
+          {/* 딥링크 복사 버튼 */}
+          <button
+            onClick={handleCopyLink}
+            aria-label="각주 링크 복사"
+            className="
+              relative
+              inline-flex
+              items-center
+              text-xs
+              opacity-0 group-hover:opacity-100
+              transition-opacity
+              text-zinc-500 dark:text-zinc-400
+              hover:text-blue-600 dark:hover:text-blue-400
+              cursor-pointer
+            "
+          >
+            {copied ? '✓' : '🔗'}
+            
+            {/* 복사 완료 피드백 */}
+            {copied && (
+              <span
+                className="
+                  absolute
+                  left-0 -top-6
+                  px-2 py-1
+                  text-xs
+                  rounded
+                  bg-green-600 text-white
+                  dark:bg-green-500 dark:text-zinc-900
+                  whitespace-nowrap
+                "
+              >
+                링크 복사됨!
+              </span>
+            )}
+          </button>
+        </span>
+      </div>
+    </li>
   );
 }
 
@@ -199,44 +408,7 @@ export function Footnotes() {
         "
       >
         {footnotes.map((footnote) => (
-          <li
-            key={footnote.id}
-            id={`footnote-${footnote.id}`}
-            className="
-              flex gap-2
-              leading-relaxed
-            "
-          >
-            {/* 각주 번호 */}
-            <span
-              className="
-                flex-shrink-0
-                font-medium
-                text-blue-600 dark:text-blue-400
-              "
-            >
-              {footnote.id}.
-            </span>
-            
-            {/* 각주 내용 */}
-            <div className="flex-1">
-              {footnote.content}
-              {/* 본문으로 돌아가기 링크 */}
-              <a
-                href={`#footnote-ref-${footnote.id}`}
-                aria-label="본문으로 돌아가기"
-                className="
-                  ml-2
-                  text-blue-600 dark:text-blue-400
-                  hover:text-blue-800 dark:hover:text-blue-300
-                  no-underline
-                  transition-colors
-                "
-              >
-                ↩
-              </a>
-            </div>
-          </li>
+          <FootnoteItem key={footnote.id} footnote={footnote} />
         ))}
       </ol>
     </div>

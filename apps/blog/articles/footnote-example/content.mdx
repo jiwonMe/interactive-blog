@@ -4,17 +4,27 @@
 
 ## 기본 사용법
 
-각주는 본문에 추가적인 설명이나 출처를 표시할 때 유용합니다<Footnote>각주는 본문의 흐름을 방해하지 않으면서 추가 정보를 제공할 수 있습니다.</Footnote>. 
+각주는 본문에 추가적인 설명이나 출처를 표시할 때 유용합니다<Footnote>각주는 본문의 흐름을 방해하지 않으면서 추가 정보를 제공할 수 있습니다. 마우스를 올리면 tooltip으로 내용을 미리볼 수 있습니다.</Footnote>. 
 
 JavaScript의 `setTimeout`과 `setInterval`은 비동기 작업을 다루는 기본적인 도구입니다<Footnote>MDN Web Docs: https://developer.mozilla.org/ko/docs/Web/API/setTimeout</Footnote>.
 
 ## 여러 각주 사용하기
 
-React는 사용자 인터페이스를 구축하기 위한 JavaScript 라이브러리입니다<Footnote>React 공식 문서: https://react.dev</Footnote>. 
+React는 사용자 인터페이스를 구축하기 위한 JavaScript 라이브러리입니다<Footnote id="react-docs">React 공식 문서: https://react.dev - React는 Meta(구 Facebook)에서 개발하고 유지보수하는 오픈소스 라이브러리입니다.</Footnote>. 
 
 TypeScript는 JavaScript에 정적 타입을 추가한 언어입니다<Footnote>TypeScript는 Microsoft에서 개발하고 유지보수하고 있습니다.</Footnote>.
 
 Next.js는 React 기반의 풀스택 웹 애플리케이션 프레임워크입니다<Footnote>Next.js 공식 문서: https://nextjs.org</Footnote>.
+
+## 각주 재사용 기능
+
+React를 사용하면 컴포넌트 기반 개발이 가능합니다<Footnote refId="react-docs" />. 
+
+같은 출처를 여러 번 인용할 때 `id`와 `refId`를 사용하면 편리합니다. 위에서 "react-docs"라는 ID로 등록한 각주를 다시 참조했습니다<Footnote refId="react-docs" />.
+
+## 딥링크 복사 기능
+
+각 각주 번호 옆의 🔗 아이콘을 클릭하면 해당 각주로 바로 가는 링크가 클립보드에 복사됩니다. 다른 사람과 특정 각주를 공유할 때 유용합니다.
 
 ## 긴 내용의 각주
 
@@ -23,6 +33,13 @@ Next.js는 React 기반의 풀스택 웹 애플리케이션 프레임워크입�
 ## 인용과 함께 사용하기
 
 > "좋은 코드는 스스로를 설명한다"<Footnote>이 명언은 소프트웨어 개발 커뮤니티에서 널리 인용되는 원칙입니다.</Footnote>
+
+## 주요 기능 정리
+
+1. **Tooltip 미리보기**: 각주 번호에 마우스를 올리면 내용을 미리볼 수 있습니다
+2. **딥링크 복사**: 🔗 버튼으로 특정 각주 링크를 복사할 수 있습니다
+3. **각주 재사용**: `id`와 `refId` 속성으로 같은 각주를 여러 곳에서 참조할 수 있습니다
+4. **양방향 링크**: 본문 ↔ 각주 간 클릭으로 쉽게 이동할 수 있습니다
 
 ---
 
