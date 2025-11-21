@@ -89,8 +89,8 @@
   pre > code {
     @apply bg-transparent p-0;
     display: grid;
-    /* 코드 블록이 부모 요소를 넘지 않도록 최대 너비 제한 */
-    max-width: 100%;
+    /* 코드 블록이 항상 전체 너비를 채우되, 긴 내용은 확장 가능 */
+    min-width: 100%;
     width: max-content;
     padding: 1rem;
   }
