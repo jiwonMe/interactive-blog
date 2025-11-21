@@ -189,4 +189,40 @@
   pre code [data-highlighted-chars] {
     @apply bg-yellow-100 dark:bg-yellow-900/30 rounded;
   }
+
+  /* TOC Scrollbar styling */
+  .toc-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(212 212 216) transparent;
+  }
+
+  .dark .toc-scrollbar {
+    scrollbar-color: rgb(63 63 70) transparent;
+  }
+
+  /* Webkit scrollbar */
+  .toc-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .toc-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .toc-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgb(212 212 216);
+    border-radius: 3px;
+  }
+
+  .dark .toc-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgb(63 63 70);
+  }
+
+  .toc-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: rgb(161 161 170);
+  }
+
+  .dark .toc-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: rgb(82 82 91);
+  }
 }
