@@ -104,7 +104,6 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
   const idRef = useRef<number | null>(null);
   const [numericId, setNumericId] = useState<number | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
-  const [copied, setCopied] = useState(false);
   const hasRegistered = useRef(false);
   const [content, setContent] = useState<React.ReactNode>(children);
 
@@ -138,23 +137,6 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
     setNumericId(footnoteId);
     setContent(children);
   }, [registerFootnote, getFootnoteIdByCustomId, getFootnoteById, children, customId, refId]);
-
-  // 딥링크 복사 핸들러
-  const handleCopyLink = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (numericId === null) return;
-    
-    const url = `${window.location.origin}${window.location.pathname}#footnote-${numericId}`;
-    
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }).catch(err => {
-      console.error('Failed to copy link:', err);
-    });
-  }, [numericId]);
 
   if (numericId === null) {
     return null;
@@ -191,29 +173,6 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
         </a>
       </sup>
       
-      {/* 딥링크 복사 버튼 */}
-      <button
-        onClick={handleCopyLink}
-        aria-label="각주 링크 복사"
-        className="
-          ml-1
-          inline-flex
-          items-center
-          justify-center
-          w-3.5 h-3.5
-          text-[10px]
-          opacity-0 hover:opacity-100
-          transition-opacity
-          text-zinc-500 dark:text-zinc-400
-          hover:text-blue-600 dark:hover:text-blue-400
-          cursor-pointer
-          align-super
-        "
-        style={{ verticalAlign: 'super' }}
-      >
-        {copied ? '✓' : '🔗'}
-      </button>
-      
       {/* Tooltip */}
       {showTooltip && (
         <span
@@ -245,25 +204,6 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
           {content}
         </span>
       )}
-      
-      {/* 복사 완료 피드백 */}
-      {copied && (
-        <span
-          className="
-            absolute z-50
-            left-0 -top-8
-            px-2 py-1
-            text-xs
-            rounded
-            bg-green-600 text-white
-            dark:bg-green-500 dark:text-zinc-900
-            whitespace-nowrap
-            animate-fade-in
-          "
-        >
-          링크 복사됨!
-        </span>
-      )}
     </span>
   );
 }
@@ -272,26 +212,12 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
  * FootnoteItem: 개별 각주 아이템 컴포넌트
  */
 function FootnoteItem({ footnote }: { footnote: FootnoteData }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopyLink = useCallback(() => {
-    const url = `${window.location.origin}${window.location.pathname}#footnote-${footnote.id}`;
-    
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }).catch(err => {
-      console.error('Failed to copy link:', err);
-    });
-  }, [footnote.id]);
-
   return (
     <li
       id={`footnote-${footnote.id}`}
       className="
         flex gap-2
         leading-relaxed
-        group
       "
     >
       {/* 각주 번호 */}
@@ -308,60 +234,20 @@ function FootnoteItem({ footnote }: { footnote: FootnoteData }) {
       {/* 각주 내용 */}
       <div className="flex-1">
         {footnote.content}
-        
-        {/* 액션 버튼들 */}
-        <span className="inline-flex items-center gap-1 ml-2">
-          {/* 본문으로 돌아가기 링크 */}
-          <a
-            href={`#footnote-ref-${footnote.id}`}
-            aria-label="본문으로 돌아가기"
-            className="
-              text-blue-600 dark:text-blue-400
-              hover:text-blue-800 dark:hover:text-blue-300
-              no-underline
-              transition-colors
-            "
-          >
-            ↩
-          </a>
-          
-          {/* 딥링크 복사 버튼 */}
-          <button
-            onClick={handleCopyLink}
-            aria-label="각주 링크 복사"
-            className="
-              relative
-              inline-flex
-              items-center
-              text-xs
-              opacity-0 group-hover:opacity-100
-              transition-opacity
-              text-zinc-500 dark:text-zinc-400
-              hover:text-blue-600 dark:hover:text-blue-400
-              cursor-pointer
-            "
-          >
-            {copied ? '✓' : '🔗'}
-            
-            {/* 복사 완료 피드백 */}
-            {copied && (
-              <span
-                className="
-                  absolute
-                  left-0 -top-6
-                  px-2 py-1
-                  text-xs
-                  rounded
-                  bg-green-600 text-white
-                  dark:bg-green-500 dark:text-zinc-900
-                  whitespace-nowrap
-                "
-              >
-                링크 복사됨!
-              </span>
-            )}
-          </button>
-        </span>
+        {/* 본문으로 돌아가기 링크 */}
+        <a
+          href={`#footnote-ref-${footnote.id}`}
+          aria-label="본문으로 돌아가기"
+          className="
+            ml-2
+            text-blue-600 dark:text-blue-400
+            hover:text-blue-800 dark:hover:text-blue-300
+            no-underline
+            transition-colors
+          "
+        >
+          ↩
+        </a>
       </div>
     </li>
   );
