@@ -62,8 +62,10 @@ export function TableOfContents({ toc }: { toc: TOCItem[] }) {
       ref={navRef}
       className={cn(
         // Layout
-        "hidden lg:block sticky self-start w-64 ml-12",
-        // Position
+        "hidden lg:block w-64 ml-12 flex-shrink-0",
+        // Sticky positioning
+        "sticky self-start",
+        // Position from top
         "top-24",
         // Height & Overflow
         "max-h-[calc(100vh-8rem)] overflow-y-auto",

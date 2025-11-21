@@ -111,15 +111,21 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
     <div 
       // Main container layout
       className={cn(
-        "max-w-7xl mx-auto px-6 py-12 flex justify-center relative",
-        // Prevent horizontal overflow
-        "overflow-x-hidden w-full"
+        "max-w-7xl mx-auto px-6 py-12",
+        // Full width
+        "w-full"
       )}
     >
+      <div
+        // Content wrapper with flex layout
+        className={cn(
+          "flex justify-center gap-0 relative"
+        )}
+      >
       <article 
         // Article content width constraint
         className={cn(
-          "w-full max-w-3xl",
+          "w-full max-w-3xl flex-shrink-0",
           // Prevent content from overflowing
           "overflow-x-hidden"
         )}
@@ -317,6 +323,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
       
       {/* TOC Sidebar - only visible on large screens */}
       <TableOfContents toc={post.toc} />
+      </div>
     </div>
   );
 }

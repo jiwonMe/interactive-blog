@@ -89,8 +89,6 @@ export default function RootLayout({
         className={cn(
           // base
           "bg-zinc-100 text-zinc-800 antialiased min-h-screen flex flex-col",
-          // overflow
-          "overflow-x-hidden",
           // selection
           "selection:bg-blue-100 selection:text-blue-900",
           // dark mode
