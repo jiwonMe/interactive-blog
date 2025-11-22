@@ -204,7 +204,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                     className={cn(
                       "px-2 py-1 rounded-md text-xs font-medium whitespace-nowrap",
                       // Tag colors
-                      "bg-zinc-100 text-zinc-700",
+                      "bg-zinc-200 text-zinc-700",
                       "dark:bg-zinc-800 dark:text-zinc-300"
                     )}
                   >

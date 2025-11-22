@@ -28,7 +28,7 @@
 @layer components {
   /* Inline code style - applied to code elements NOT inside pre */
   :not(pre) > code {
-    @apply px-1.5 py-0.5 rounded text-sm font-medium font-mono bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200;
+    @apply px-1.5 py-0.5 rounded text-sm font-medium font-mono bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200;
   }
 
   /* Code block styles - rehype-pretty-code가 생성한 구조 */
