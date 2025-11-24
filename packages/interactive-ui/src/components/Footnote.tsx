@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 // 각주 데이터 타입
 interface FootnoteData {
@@ -104,8 +105,16 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
   const idRef = useRef<number | null>(null);
   const [numericId, setNumericId] = useState<number | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState<{ 
+    top: number; 
+    left: number; 
+    transform: string;
+    arrowPosition: 'top' | 'bottom' | 'left' | 'right';
+    arrowOffset: number;
+  } | null>(null);
   const hasRegistered = useRef(false);
   const [content, setContent] = useState<React.ReactNode>(children);
+  const footnoteRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
     // 이미 등록된 경우 스킵 (strict mode에서 두 번 실행 방지)
@@ -138,48 +147,134 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
     setContent(children);
   }, [registerFootnote, getFootnoteIdByCustomId, getFootnoteById, children, customId, refId]);
 
+  useEffect(() => {
+    const updateTooltipPosition = () => {
+      if (footnoteRef.current) {
+        const rect = footnoteRef.current.getBoundingClientRect();
+        const tooltipWidth = 256; // w-64 = 256px
+        const tooltipHeight = 100; // 예상 높이 (실제로는 동적)
+        const margin = 8;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        // 기본: 요소 위 중앙
+        let top = rect.top - margin;
+        let left = rect.left + rect.width / 2;
+        let transform = 'translate(-50%, -100%)';
+        let arrowPosition: 'top' | 'bottom' | 'left' | 'right' = 'bottom';
+        let arrowOffset = 0;
+        const elementCenterY = rect.top + rect.height / 2;
+        const elementCenterX = rect.left + rect.width / 2;
+        
+        // 위로 벗어나는지 확인
+        if (top - tooltipHeight < 0) {
+          // 아래에 표시
+          top = rect.bottom + margin;
+          left = elementCenterX;
+          transform = 'translateX(-50%)';
+          arrowPosition = 'top';
+          arrowOffset = 0; // 중앙 정렬이므로 offset 불필요
+        } else {
+          // 왼쪽으로 벗어나는지 확인
+          const leftEdge = left - tooltipWidth / 2;
+          if (leftEdge < margin) {
+            // 오른쪽에 표시
+            left = rect.right + margin;
+            top = elementCenterY;
+            transform = 'translateY(-50%)';
+            arrowPosition = 'left';
+            arrowOffset = 0; // 중앙 정렬이므로 offset 불필요
+          } else {
+            // 오른쪽으로 벗어나는지 확인
+            const rightEdge = left + tooltipWidth / 2;
+            if (rightEdge > viewportWidth - margin) {
+              // 왼쪽에 표시
+              left = rect.left - margin;
+              top = elementCenterY;
+              transform = 'translate(-100%, -50%)';
+              arrowPosition = 'right';
+              arrowOffset = 0; // 중앙 정렬이므로 offset 불필요
+            } else {
+              // 기본: 위에 표시
+              arrowPosition = 'bottom';
+              arrowOffset = 0; // 중앙 정렬이므로 offset 불필요
+            }
+          }
+        }
+        
+        setTooltipPosition({
+          top,
+          left,
+          transform,
+          arrowPosition,
+          arrowOffset,
+        });
+      }
+    };
+
+    if (showTooltip) {
+      // 즉시 위치 계산
+      updateTooltipPosition();
+      // 다음 프레임에서도 한 번 더 계산 (레이아웃이 안정화된 후)
+      requestAnimationFrame(() => {
+        updateTooltipPosition();
+      });
+      window.addEventListener('scroll', updateTooltipPosition, true);
+      window.addEventListener('resize', updateTooltipPosition);
+    } else {
+      setTooltipPosition(null);
+    }
+
+    return () => {
+      window.removeEventListener('scroll', updateTooltipPosition, true);
+      window.removeEventListener('resize', updateTooltipPosition);
+    };
+  }, [showTooltip]);
+
   if (numericId === null) {
     return null;
   }
 
   return (
-    <span
-      className="
-        relative
-        inline-block
-      "
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
-      <sup
+    <>
+      <span
+        ref={footnoteRef}
         className="
-          ml-0.5
-          cursor-pointer
-          text-blue-600 dark:text-blue-400
-          hover:text-blue-800 dark:hover:text-blue-300
-          transition-colors
+          relative
+          inline-block
         "
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
       >
-        <a
-          href={`#footnote-${numericId}`}
-          id={`footnote-ref-${numericId}`}
-          aria-describedby={`footnote-${numericId}`}
+        <sup
           className="
-            no-underline
-            font-medium
+            ml-0.5
+            cursor-pointer
+            text-blue-600 dark:text-blue-400
+            hover:text-blue-800 dark:hover:text-blue-300
+            transition-colors
           "
         >
-          [{numericId}]
-        </a>
-      </sup>
+          <a
+            href={`#footnote-${numericId}`}
+            id={`footnote-ref-${numericId}`}
+            aria-describedby={`footnote-${numericId}`}
+            className="
+              no-underline
+              font-medium
+            "
+          >
+            [{numericId}]
+          </a>
+        </sup>
+      </span>
       
-      {/* Tooltip */}
-      {showTooltip && (
-        <span
+      {/* Tooltip - Portal로 body에 렌더링 */}
+      {showTooltip && typeof window !== 'undefined' && createPortal(
+        <div
           role="tooltip"
           className="
-            absolute z-50
-            left-1/2 -translate-x-1/2 bottom-full mb-2
+            fixed z-[100]
             w-64 max-w-[calc(100vw-2rem)]
             px-3 py-2
             text-sm leading-relaxed
@@ -191,22 +286,40 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
             whitespace-normal
             break-words
           "
+          style={tooltipPosition ? {
+            top: `${tooltipPosition.top}px`,
+            left: `${tooltipPosition.left}px`,
+            transform: tooltipPosition.transform,
+          } : {
+            visibility: 'hidden',
+          }}
         >
           {/* Tooltip 화살표 */}
-          <span
-            className="
-              absolute top-full left-1/2 -translate-x-1/2
-              w-0 h-0
-              border-l-4 border-l-transparent
-              border-r-4 border-r-transparent
-              border-t-4 border-t-zinc-900
-              dark:border-t-zinc-100
-            "
-          />
+          {tooltipPosition && (
+            <span
+              className={
+                tooltipPosition.arrowPosition === 'bottom'
+                  ? "absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-zinc-900 dark:border-t-zinc-100"
+                  : tooltipPosition.arrowPosition === 'top'
+                  ? "absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-b-4 border-b-zinc-900 dark:border-b-zinc-100"
+                  : tooltipPosition.arrowPosition === 'left'
+                  ? "absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-zinc-900 dark:border-r-zinc-100"
+                  : "absolute left-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-l-4 border-l-zinc-900 dark:border-l-zinc-100"
+              }
+              style={
+                (tooltipPosition.arrowPosition === 'left' || tooltipPosition.arrowPosition === 'right')
+                  ? { top: `calc(50% + ${tooltipPosition.arrowOffset}px)` }
+                  : (tooltipPosition.arrowPosition === 'top' || tooltipPosition.arrowPosition === 'bottom')
+                  ? { left: `calc(50% + ${tooltipPosition.arrowOffset}px)` }
+                  : undefined
+              }
+            />
+          )}
           {content}
-        </span>
+        </div>,
+        document.body
       )}
-    </span>
+    </>
   );
 }
 

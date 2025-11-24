@@ -5,6 +5,8 @@ import { TableOfContents } from '../../../components/toc';
 import { notFound } from 'next/navigation';
 import { cn } from '../../../lib/utils';
 import { Metadata } from 'next';
+import { generateBibTeX } from '../../../lib/bibtex';
+import { BibTeXCopyButton } from '../../../components/bibtex-copy-button';
 
 export async function generateStaticParams() {
   const posts = getPostSlugs();
@@ -177,43 +179,55 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             {post.title || post.slug.replace(/-/g, ' ')}
           </h1>
           
-          <div 
-            // Meta info container
-            className={cn(
-              "flex flex-wrap items-center gap-4 text-sm",
-              "text-zinc-500 dark:text-zinc-400"
-            )}
-          >
-            {post.date && (
-              <time dateTime={post.date}>
-                {formatDate(post.date)}
-              </time>
-            )}
-            
-            {post.tags && post.tags.length > 0 && (
-              <div 
-                className={cn(
-                  // Flex layout with wrapping
-                  "flex flex-wrap gap-2"
-                )}
-              >
-                {post.tags.map(tag => (
-                  <span 
-                    key={tag}
-                    // Tag styling
-                    className={cn(
-                      "px-2 py-1 rounded-md text-xs font-medium whitespace-nowrap",
-                      // Tag colors
-                      "bg-zinc-200 text-zinc-700",
-                      "dark:bg-zinc-800 dark:text-zinc-300"
-                    )}
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+          <BibTeXCopyButton bibtex={generateBibTeX(post)} post={post}>
+            <div 
+              // Meta info container
+              className={cn(
+                "flex flex-wrap items-center gap-1 text-sm",
+                "text-zinc-500 dark:text-zinc-400"
+              )}
+            >
+              {post.author && (
+                <span>
+                  {post.author}
+                </span>
+              )}
+              {post.date && (
+                <time dateTime={post.date}>
+                  · {formatDate(post.date)}
+                </time>
+              )}
+              {post.affiliate && (
+                <span>
+                  · {post.affiliate}
+                </span>
+              )}
+            </div>
+          </BibTeXCopyButton>
+          
+          {post.tags && post.tags.length > 0 && (
+            <div 
+              className={cn(
+                // Flex layout with wrapping
+                "flex flex-wrap gap-2 mt-3"
+              )}
+            >
+              {post.tags.map(tag => (
+                <span 
+                  key={tag}
+                  // Tag styling
+                  className={cn(
+                    "px-2 py-1 rounded-md text-xs font-medium whitespace-nowrap",
+                    // Tag colors
+                    "bg-zinc-200 text-zinc-700",
+                    "dark:bg-zinc-800 dark:text-zinc-300"
+                  )}
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
         </header>
 
         {post.series && seriesPosts.length > 0 && (
@@ -232,7 +246,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                 "text-zinc-900 dark:text-zinc-100"
               )}
             >
-              📚 {post.series} 시리즈
+              📚 {post.series} Series
             </h3>
             <ul className="space-y-2">
               {seriesPosts.map((p, index) => (

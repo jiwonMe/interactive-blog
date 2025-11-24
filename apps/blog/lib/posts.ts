@@ -50,6 +50,7 @@ export type PostData = {
   title?: string;
   description?: string;
   author?: string;
+  affiliate?: string;
   image?: string;
   series?: string;
   seriesOrder?: number;
@@ -85,6 +86,7 @@ export function getPostBySlug(slug: string): PostData | null {
     title: data.title,
     description: data.description,
     author: data.author,
+    affiliate: data.affiliate,
     image: data.image,
     series: data.series,
     seriesOrder: data.seriesOrder,

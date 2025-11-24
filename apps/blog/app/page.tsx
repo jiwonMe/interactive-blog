@@ -109,12 +109,18 @@ export default function Home() {
                       </h3>
                       <div
                         className={cn(
-                          "flex items-center gap-3 text-sm",
+                          "flex flex-wrap items-center gap-3 text-sm",
                           "text-zinc-500 dark:text-zinc-400"
                         )}
                       >
                         {post.date && (
                           <time dateTime={post.date}>{formatDate(post.date)}</time>
+                        )}
+                        {post.affiliate && (
+                          <>
+                            <span>•</span>
+                            <span>제휴: {post.affiliate}</span>
+                          </>
                         )}
                         <span>→</span>
                       </div>
