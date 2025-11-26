@@ -3,6 +3,7 @@ import { InteractivePanel, Playground, LinkCard, YouTube } from "@repo/interacti
 import { CodeHighlightingDemo } from './code-highlighting-demo';
 import { cn } from "../../lib/utils";
 import { Counter } from "../../articles/hello-world/components/counter";
+import { SecretaryProblem } from '../../articles/secretary-problem/components/SecretaryProblem';
 
 export type ControlType =
   | { type: 'text'; label: string; defaultValue: string }
@@ -204,6 +205,42 @@ export const experiments: ExperimentItem[] = [
     category: "Articles/Hello World",
     render: () => <Counter />,
     controls: {},
+  },
+  {
+    slug: "secretary-problem",
+    title: "비서문제 (Secretary Problem)",
+    description: "최적 멈춤 이론을 d3.js로 인터랙티브하게 시각화한 컴포넌트입니다.",
+    category: "Algorithms",
+    render: (props) => (
+      <SecretaryProblem 
+        numCandidates={props.numCandidates}
+        speed={props.speed}
+        autoPlay={props.autoPlay}
+      />
+    ),
+    controls: {
+      numCandidates: {
+        type: 'number',
+        label: '후보자 수',
+        defaultValue: 10,
+        min: 5,
+        max: 100,
+        step: 5,
+      },
+      speed: {
+        type: 'number',
+        label: '애니메이션 속도 (ms)',
+        defaultValue: 1000,
+        min: 100,
+        max: 3000,
+        step: 100,
+      },
+      autoPlay: {
+        type: 'boolean',
+        label: '자동 재생',
+        defaultValue: false,
+      },
+    },
   },
 ];
 
