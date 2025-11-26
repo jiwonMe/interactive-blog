@@ -29,18 +29,18 @@ export async function generateMetadata({
 
   if (!post) {
     return {
-      title: 'Post Not Found',
+      title: '포스트를 찾을 수 없습니다',
     };
   }
 
   const title = post.title || post.slug.replace(/-/g, ' ');
-  const description = post.description || '블로그 포스트';
-  const author = post.author || 'JIWON';
+  const description = post.description || '인터랙티브 컴포넌트와 함께하는 기술 블로그';
+  const author = post.author || 'PWNZ';
   
   // 이미지 URL 처리: 절대 경로인 경우 그대로 사용, 상대 경로인 경우 도메인 추가
   const imageUrl = post.image 
-    ? (post.image.startsWith('http') ? post.image : `https://jiwon.me${post.image}`)
-    : 'https://jiwon.me/og-default.png'; // 기본 OG 이미지
+    ? (post.image.startsWith('http') ? post.image : `https://pwnz.kr${post.image}`)
+    : 'https://pwnz.kr/og-default.png'; // 기본 OG 이미지
 
   return {
     // 기본 메타데이터
@@ -57,7 +57,7 @@ export async function generateMetadata({
       // 페이지 타입 (article로 설정)
       type: 'article',
       // 페이지 URL
-      url: `https://jiwon.me/posts/${slug}`,
+      url: `https://pwnz.kr/posts/${slug}`,
       // OG 이미지
       images: [
         {
@@ -74,7 +74,7 @@ export async function generateMetadata({
       // 태그
       tags: post.tags,
       // 사이트 이름
-      siteName: 'JIWON Blog',
+      siteName: 'PWNZ INTERACTIVES',
     },
     
     // Twitter Card
@@ -88,7 +88,7 @@ export async function generateMetadata({
       // 이미지
       images: [imageUrl],
       // 작성자 트위터 핸들 (있는 경우)
-      creator: '@jiwonme',
+      creator: '@pwnz',
     },
     
     // 추가 메타 태그

@@ -10,32 +10,32 @@ export const metadata: Metadata = {
   // 기본 메타데이터
   title: {
     // 기본 제목
-    default: "JIWON's Interactive Blog",
+    default: "PWNZ INTERACTIVES",
     // 템플릿: 각 페이지 제목 | 사이트 이름
-    template: "%s | JIWON's Blog",
+    template: "%s | PWNZ INTERACTIVES",
   },
   description: "인터랙티브 컴포넌트와 함께하는 기술 블로그",
-  authors: [{ name: "JIWON", url: "https://jiwon.me" }],
+  authors: [{ name: "PWNZ", url: "https://pwnz.kr" }],
   
   // Open Graph 기본 설정
   openGraph: {
     // 사이트 타입
     type: "website",
     // 사이트 URL
-    url: "https://jiwon.me",
+    url: "https://pwnz.kr",
     // 사이트 이름
-    siteName: "JIWON's Interactive Blog",
+    siteName: "PWNZ INTERACTIVES",
     // 기본 제목
-    title: "JIWON's Interactive Blog",
+    title: "PWNZ INTERACTIVES",
     // 기본 설명
     description: "인터랙티브 컴포넌트와 함께하는 기술 블로그",
     // 기본 이미지
     images: [
       {
-        url: "https://jiwon.me/og-default.png",
+        url: "https://pwnz.kr/og-default.png",
         width: 1200,
         height: 630,
-        alt: "JIWON's Interactive Blog",
+        alt: "PWNZ INTERACTIVES",
       },
     ],
     // 로케일
@@ -47,15 +47,15 @@ export const metadata: Metadata = {
     // Card 타입
     card: "summary_large_image",
     // 사이트 핸들
-    site: "@jiwonme",
+    site: "@pwnz",
     // 작성자 핸들
-    creator: "@jiwonme",
+    creator: "@pwnz",
     // 기본 제목
-    title: "JIWON's Interactive Blog",
+    title: "PWNZ INTERACTIVES",
     // 기본 설명
     description: "인터랙티브 컴포넌트와 함께하는 기술 블로그",
     // 기본 이미지
-    images: ["https://jiwon.me/og-default.png"],
+    images: ["https://pwnz.kr/og-default.png"],
   },
   
   // 메타 viewport
