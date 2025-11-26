@@ -29,6 +29,8 @@ export function BibTeXCopyButton({ bibtex, post, className, children }: Citation
   const [previewPosition, setPreviewPosition] = useState<{ top: number; left: number } | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const hoveredButtonRef = useRef<HTMLButtonElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -99,11 +101,22 @@ export function BibTeXCopyButton({ bibtex, post, className, children }: Citation
     };
   }, [showTooltip, isOpen]);
 
+  const getFormatLabel = (type: 'bibtex' | CitationFormat): string => {
+    if (type === 'bibtex') return 'BibTeX';
+    return citationFormats.find(f => f.format === type)?.label || type.toUpperCase();
+  };
+
   const copyToClipboard = async (text: string, type: 'bibtex' | CitationFormat) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedType(type);
       setIsOpen(false);
+      
+      // 토스트 알림 표시
+      setToastMessage(`${getFormatLabel(type)} 형식이 복사되었습니다`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2000);
+      
       setTimeout(() => setCopiedType(null), 2000);
       
       // GA4 이벤트 전송
@@ -407,6 +420,44 @@ export function BibTeXCopyButton({ bibtex, post, className, children }: Citation
               "border-t-zinc-900 dark:border-t-zinc-100"
             )}
           />
+        </div>,
+        document.body
+      )}
+
+      {/* 복사 완료 토스트 알림 */}
+      {showToast && typeof window !== 'undefined' && createPortal(
+        <div
+          className={cn(
+            // Positioning - 화면 하단 중앙
+            "fixed bottom-6 left-1/2 -translate-x-1/2 z-[200]",
+            // Container styles
+            "flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg",
+            // Colors
+            "bg-zinc-900 dark:bg-zinc-100",
+            "text-zinc-100 dark:text-zinc-900",
+            // Animation
+            "animate-in fade-in-0 slide-in-from-bottom-4 duration-300"
+          )}
+          role="alert"
+          aria-live="polite"
+        >
+          {/* 체크 아이콘 */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-green-400 dark:text-green-600"
+          >
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          <span className="text-sm font-medium">{toastMessage}</span>
         </div>,
         document.body
       )}

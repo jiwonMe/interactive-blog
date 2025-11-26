@@ -10,7 +10,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
-import 'katex/dist/katex.min.css';
+// KaTeX CSS는 layout.tsx에서 CDN으로 로드 (font-display: swap 적용)
 
 export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
   // 기본 컴포넌트와 아티클 컴포넌트를 합쳐서 최종 컴포넌트 맵 생성

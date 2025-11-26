@@ -1,18 +1,104 @@
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
+/**
+ * 폰트 최적화 노트:
+ * - Pretendard CSS는 layout.tsx에서 preload로 로드됨 (렌더링 차단 방지)
+ * - @import 대신 <link> 태그 사용으로 병렬 로드 가능
+ * - font-display: swap으로 FOIT(Flash of Invisible Text) 방지
+ */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/**
+ * Pretendard 폰트 font-display 재정의
+ * CDN CSS에서 font-display가 설정되지 않았을 경우를 대비
+ */
+@font-face {
+  font-family: "Pretendard Variable";
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/woff2/PretendardVariable.woff2") format("woff2-variations");
+}
+
+/**
+ * Fallback 폰트 정의 - CLS(레이아웃 시프트) 방지
+ * Pretendard 로딩 전 시스템 폰트를 사용하되, size-adjust로 메트릭 조정
+ * 이렇게 하면 폰트 교체 시 레이아웃 변동이 최소화됨
+ */
+@font-face {
+  font-family: "Pretendard Fallback";
+  /* macOS/iOS 시스템 폰트 사용 */
+  src: local("Apple SD Gothic Neo");
+  /* Pretendard와 Apple SD Gothic Neo의 메트릭 차이 보정 */
+  size-adjust: 100%;
+  ascent-override: 105%;
+  descent-override: 25%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Pretendard Fallback Windows";
+  /* Windows 시스템 폰트 사용 */
+  src: local("Malgun Gothic");
+  /* Pretendard와 Malgun Gothic의 메트릭 차이 보정 */
+  size-adjust: 99%;
+  ascent-override: 108%;
+  descent-override: 28%;
+  line-gap-override: 0%;
+}
+
+/**
+ * KaTeX 폰트 font-display 재정의
+ * CDN에서 로드된 KaTeX CSS의 폰트에 font-display: swap 강제 적용
+ * 참고: CDN의 KaTeX 0.16.x는 이미 font-display: swap을 포함하지만,
+ *       구버전 CDN 캐시 대비 명시적으로 재정의
+ */
+
+/* KaTeX 주요 폰트만 재정의 (가장 많이 사용되는 폰트) */
+@font-face {
+  font-family: "KaTeX_Main";
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/fonts/KaTeX_Main-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "KaTeX_Math";
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/fonts/KaTeX_Math-Italic.woff2") format("woff2");
+}
+
 @layer base {
 
   body {
     @apply text-zinc-800 bg-zinc-100 antialiased;
-    font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+    /* Pretendard 로드 전 Fallback 폰트 사용으로 CLS 최소화 */
+    font-family: 
+      "Pretendard Variable",
+      Pretendard,
+      "Pretendard Fallback",
+      "Pretendard Fallback Windows",
+      -apple-system,
+      BlinkMacSystemFont,
+      system-ui,
+      Roboto,
+      "Helvetica Neue",
+      "Segoe UI",
+      "Apple SD Gothic Neo",
+      "Noto Sans KR",
+      "Malgun Gothic",
+      "Apple Color Emoji",
+      "Segoe UI Emoji",
+      "Segoe UI Symbol",
+      sans-serif;
     /* Improve readability */
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: zincscale;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* Typography defaults */

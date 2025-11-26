@@ -7,6 +7,25 @@ import StitchesRegistry from "../components/stitches-registry";
 import { cn } from "../lib/utils";
 import { GoogleAnalytics } from "@next/third-parties/google";
 
+/**
+ * 폰트 최적화를 위한 상수들
+ * - preconnect: DNS, TCP, TLS 핸드셰이크를 미리 수행
+ * - preload: 중요한 리소스를 미리 로드
+ */
+const FONT_PRECONNECT_ORIGINS = [
+  // JSDelivr CDN (Pretendard 폰트)
+  "https://cdn.jsdelivr.net",
+] as const;
+
+const FONT_PRELOAD_URLS = {
+  // Pretendard Variable CSS - 렌더링 차단 방지를 위해 preload
+  pretendardCss: "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css",
+  // Pretendard Variable WOFF2 - 가장 큰 폰트 파일을 preload
+  pretendardWoff2: "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/woff2/PretendardVariable.woff2",
+  // KaTeX CSS - 수학 수식 렌더링용
+  katexCss: "https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex.min.css",
+} as const;
+
 export const metadata: Metadata = {
   // 기본 메타데이터
   title: {
@@ -86,6 +105,48 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko" className="scroll-smooth" suppressHydrationWarning>
+      <head>
+        {/* DNS prefetch & preconnect - 외부 CDN 연결 사전 수립 */}
+        {FONT_PRECONNECT_ORIGINS.map((origin) => (
+          <link
+            key={origin}
+            rel="preconnect"
+            href={origin}
+            crossOrigin="anonymous"
+          />
+        ))}
+        
+        {/* Pretendard CSS preload - 렌더링 차단 방지 */}
+        <link
+          rel="preload"
+          href={FONT_PRELOAD_URLS.pretendardCss}
+          as="style"
+        />
+        
+        {/* Pretendard 폰트 파일 preload - LCP 개선 */}
+        <link
+          rel="preload"
+          href={FONT_PRELOAD_URLS.pretendardWoff2}
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        
+        {/* Pretendard CSS 비동기 로드 - 렌더링 차단 방지 */}
+        <link
+          rel="stylesheet"
+          href={FONT_PRELOAD_URLS.pretendardCss}
+          fetchPriority="high"
+        />
+        
+        {/* KaTeX CSS - 수학 수식 렌더링용 (낮은 우선순위로 로드) */}
+        <link
+          rel="stylesheet"
+          href={FONT_PRELOAD_URLS.katexCss}
+          fetchPriority="low"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body
         className={cn(
           // base
