@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getPostBySlug, getPostSlugs, getSeriesPosts } from '../../../lib/posts';
+import { getPostBySlug, getAllPosts, getSeriesPosts } from '../../../lib/posts';
 import { CustomMDX } from '../../../components/mdx-remote';
 import { TableOfContents } from '../../../components/toc';
 import { notFound } from 'next/navigation';
@@ -9,9 +9,13 @@ import { generateBibTeX } from '../../../lib/bibtex';
 import { BibTeXCopyButton } from '../../../components/bibtex-copy-button';
 
 export async function generateStaticParams() {
-  const posts = getPostSlugs();
-  return posts.map((slug) => ({
-    slug: slug.replace(/\.mdx$/, ''),
+  const posts = getAllPosts();
+  // 프로덕션 빌드 시 hidden 포스트 제외
+  const isDev = process.env.NODE_ENV === 'development';
+  const filteredPosts = isDev ? posts : posts.filter(post => !post.hidden);
+  
+  return filteredPosts.map((post) => ({
+    slug: post.slug,
   }));
 }
 
@@ -107,6 +111,12 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
     notFound();
   }
 
+  // 프로덕션에서 hidden 포스트 접근 시 404
+  const isDev = process.env.NODE_ENV === 'development';
+  if (post.hidden && !isDev) {
+    notFound();
+  }
+
   const seriesPosts = post.series ? getSeriesPosts(post.series) : [];
 
   return (
@@ -162,6 +172,32 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
               )}
             >
               Series: {post.series}
+            </div>
+          )}
+          {/* Hidden 포스트 경고 배너 (개발 모드에서만 표시) */}
+          {post.hidden && isDev && (
+            <div
+              className={cn(
+                // layout
+                "mb-4 px-4 py-3 rounded-lg",
+                // colors
+                "bg-amber-50 dark:bg-amber-900/30",
+                // border
+                "border border-amber-300 dark:border-amber-700"
+              )}
+            >
+              <div
+                className={cn(
+                  // layout
+                  "flex items-center gap-2",
+                  // typography
+                  "text-sm font-medium",
+                  // colors
+                  "text-amber-800 dark:text-amber-300"
+                )}
+              >
+                🔒 이 포스트는 Hidden 상태입니다. 프로덕션에서는 보이지 않습니다.
+              </div>
             </div>
           )}
           <h1 

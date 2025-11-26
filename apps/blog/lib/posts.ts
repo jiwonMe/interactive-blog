@@ -55,6 +55,7 @@ export type PostData = {
   series?: string;
   seriesOrder?: number;
   tags?: string[];
+  hidden?: boolean;
 };
 
 export function getPostSlugs() {
@@ -91,15 +92,22 @@ export function getPostBySlug(slug: string): PostData | null {
     series: data.series,
     seriesOrder: data.seriesOrder,
     tags: data.tags,
+    hidden: data.hidden ?? false,
   };
 }
 
-export function getAllPosts(): (PostData | null)[] {
+export function getAllPosts(includeHidden: boolean = false): PostData[] {
   const slugs = getPostSlugs();
   const posts = slugs.map((slug) => getPostBySlug(slug)).filter((post): post is PostData => post !== null);
   
+  // 개발 모드이거나 includeHidden이 true인 경우 hidden 포스트 포함
+  const isDev = process.env.NODE_ENV === 'development';
+  const filteredPosts = (isDev || includeHidden) 
+    ? posts 
+    : posts.filter(post => !post.hidden);
+  
   // 날짜순 정렬 (최신순)
-  return posts.sort((a, b) => {
+  return filteredPosts.sort((a, b) => {
     if (!a.date && !b.date) return 0;
     if (!a.date) return 1;
     if (!b.date) return -1;

@@ -96,27 +96,59 @@ export default function Home() {
             <ul className="space-y-6">
               {posts.map(post => (
                 post && (
-                  <li key={post.slug}>
+                  <li 
+                    key={post.slug}
+                    className={cn(
+                      // hidden 포스트 구분용 스타일
+                      post.hidden && "relative pl-4 border-l-2 border-dashed border-amber-500 dark:border-amber-400"
+                    )}
+                  >
                     <Link href={`/posts/${post.slug}`} className="group flex">
                     
                     <div className="flex-1">
-                      <h3
-                        className={cn(
-                          "inline-block",  
-                          "text-xl font-semibold mb-2 transition-colors",
-                          "group-hover:bg-blue-200/20 dark:group-hover:bg-blue-800/20",
-                          "group-hover:text-blue-600 dark:group-hover:text-blue-400",
-                          "dark:group-hover:text-blue-400",
-                          "group-hover:border-opacity-100 transition-opacity duration-200",
-                          "border-b dark:border-opacity-0 border-opacity-0 border-blue-500 dark:border-blue-400 border-dashed",
-                          "text-zinc-800 dark:text-zinc-100",
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3
+                          className={cn(
+                            // display
+                            "inline-block",  
+                            // typography
+                            "text-xl font-semibold mb-2 transition-colors",
+                            // hover effects
+                            "group-hover:bg-blue-200/20 dark:group-hover:bg-blue-800/20",
+                            "group-hover:text-blue-600 dark:group-hover:text-blue-400",
+                            "group-hover:border-opacity-100 transition-opacity duration-200",
+                            // border
+                            "border-b dark:border-opacity-0 border-opacity-0 border-blue-500 dark:border-blue-400 border-dashed",
+                            // colors
+                            "text-zinc-800 dark:text-zinc-100",
+                            // hidden 포스트 스타일
+                            post.hidden && "text-amber-700 dark:text-amber-400"
+                          )}
+                        >
+                          {post.title || post.slug.replace(/-/g, ' ')}
+                          <span className="flex-shrink-0 opacity-0 
+                      group-hover:opacity-100 transition-opacity w-6 duration-200">
+                          {' '}→</span>
+                        </h3>
+                        {/* Hidden 배지 */}
+                        {post.hidden && (
+                          <span
+                            className={cn(
+                              // layout
+                              "inline-flex items-center px-2 py-0.5 mb-2",
+                              // typography
+                              "text-xs font-medium",
+                              // colors
+                              "bg-amber-100 text-amber-800",
+                              "dark:bg-amber-900/50 dark:text-amber-300",
+                              // border
+                              "rounded-full border border-amber-300 dark:border-amber-700"
+                            )}
+                          >
+                            🔒 Hidden
+                          </span>
                         )}
-                      >
-                        {post.title || post.slug.replace(/-/g, ' ')}
-                        <span className="flex-shrink-0 opacity-0 
-                    group-hover:opacity-100 transition-opacity w-6 duration-200">
-                        {' '}→</span>
-                      </h3>
+                      </div>
                       <div
                         className={cn(
                           "flex flex-wrap items-center gap-3 text-sm",
