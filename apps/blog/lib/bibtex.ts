@@ -8,7 +8,7 @@ export function generateBibTeX(post: PostData): string {
   const author = post.author || 'JIWON';
   const title = post.title || post.slug.replace(/-/g, ' ');
   const year = post.date ? new Date(post.date).getFullYear() : new Date().getFullYear();
-  const url = `https://jiwon.me/posts/${post.slug}`;
+  const url = `https://pwnz.kr/posts/${post.slug}`;
   
   return `@misc{${citationKey},
   author = {${author}},
@@ -29,7 +29,7 @@ export function generateAPA(post: PostData): string {
   const author = post.author || 'JIWON';
   const title = post.title || post.slug.replace(/-/g, ' ');
   const year = post.date ? new Date(post.date).getFullYear() : new Date().getFullYear();
-  const url = `https://jiwon.me/posts/${post.slug}`;
+  const url = `https://pwnz.kr/posts/${post.slug}`;
   
   return `${author}. (${year}). ${title}. ${url}`;
 }
@@ -39,7 +39,7 @@ export function generateMLA(post: PostData): string {
   const author = post.author || 'JIWON';
   const title = post.title || post.slug.replace(/-/g, ' ');
   const year = post.date ? new Date(post.date).getFullYear() : new Date().getFullYear();
-  const url = `https://jiwon.me/posts/${post.slug}`;
+  const url = `https://pwnz.kr/posts/${post.slug}`;
   const accessDate = new Date().toLocaleDateString('en-US', { 
     year: 'numeric', 
     month: 'long', 
@@ -54,7 +54,7 @@ export function generateChicago(post: PostData): string {
   const author = post.author || 'JIWON';
   const title = post.title || post.slug.replace(/-/g, ' ');
   const year = post.date ? new Date(post.date).getFullYear() : new Date().getFullYear();
-  const url = `https://jiwon.me/posts/${post.slug}`;
+  const url = `https://pwnz.kr/posts/${post.slug}`;
   const accessDate = new Date().toLocaleDateString('en-US', { 
     year: 'numeric', 
     month: 'long', 
@@ -69,7 +69,7 @@ export function generateHarvard(post: PostData): string {
   const author = post.author || 'JIWON';
   const title = post.title || post.slug.replace(/-/g, ' ');
   const year = post.date ? new Date(post.date).getFullYear() : new Date().getFullYear();
-  const url = `https://jiwon.me/posts/${post.slug}`;
+  const url = `https://pwnz.kr/posts/${post.slug}`;
   const accessDate = new Date().toLocaleDateString('en-US', { 
     year: 'numeric', 
     month: 'long', 
@@ -84,7 +84,7 @@ export function generateIEEE(post: PostData): string {
   const author = post.author || 'JIWON';
   const title = post.title || post.slug.replace(/-/g, ' ');
   const year = post.date ? new Date(post.date).getFullYear() : new Date().getFullYear();
-  const url = `https://jiwon.me/posts/${post.slug}`;
+  const url = `https://pwnz.kr/posts/${post.slug}`;
   const accessDate = new Date().toLocaleDateString('en-US', { 
     year: 'numeric', 
     month: 'long', 
