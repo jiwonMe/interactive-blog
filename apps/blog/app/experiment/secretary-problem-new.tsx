@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '../../lib/utils';
-import type { Candidate, SimulationResult } from './lib/secretary-types';
+import type { Candidate, SimulationResult } from '../../articles/secretary-problem/lib/secretary-types';
 import {
   generateCandidates as createCandidates,
   selectCandidate,
@@ -11,10 +11,10 @@ import {
   isOptimalSelection,
   createSimulationResult,
   calculateCumulativeStats,
-} from './lib/secretary-algorithm';
-import { SecretaryVisualization } from './components/SecretaryVisualization';
-import { SecretaryStats } from './components/SecretaryStats';
-import { SecretaryCumulativeStats } from './components/SecretaryCumulativeStats';
+} from '../../articles/secretary-problem/lib/secretary-algorithm';
+import { SecretaryVisualization } from '../../articles/secretary-problem/components/SecretaryVisualization';
+import { SecretaryStats } from '../../articles/secretary-problem/components/SecretaryStats';
+import { SecretaryCumulativeStats } from '../../articles/secretary-problem/components/SecretaryCumulativeStats';
 
 interface SecretaryProblemProps {
   numCandidates?: number;
