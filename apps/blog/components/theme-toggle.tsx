@@ -4,6 +4,7 @@ import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "../lib/utils";
+import { trackThemeToggle } from "../lib/analytics";
 
 export function ThemeToggle({ className }: { className?: string }) {
   const { setTheme, theme } = useTheme();
@@ -17,9 +18,17 @@ export function ThemeToggle({ className }: { className?: string }) {
     return <div className="w-9 h-9" />; // Placeholder to prevent layout shift
   }
 
+  const handleToggle = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    
+    // GA4 이벤트 전송
+    trackThemeToggle(newTheme);
+  };
+
   return (
     <button
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      onClick={handleToggle}
       className={cn(
         // layout
         "relative inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-200 bg-transparent p-0",

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { cn } from "../lib/utils";
+import { trackTOCClick } from "../lib/analytics";
 
 export type TOCItem = {
   id: string;
@@ -9,7 +10,12 @@ export type TOCItem = {
   level: number;
 };
 
-export function TableOfContents({ toc }: { toc: TOCItem[] }) {
+interface TableOfContentsProps {
+  toc: TOCItem[];
+  articleSlug?: string;
+}
+
+export function TableOfContents({ toc, articleSlug }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>("");
   const navRef = useRef<HTMLDivElement>(null);
   const activeItemRef = useRef<HTMLAnchorElement>(null);
@@ -111,6 +117,11 @@ export function TableOfContents({ toc }: { toc: TOCItem[] }) {
                 e.preventDefault();
                 document.getElementById(item.id)?.scrollIntoView({ behavior: "smooth" });
                 setActiveId(item.id);
+                
+                // GA4 이벤트 전송
+                if (articleSlug) {
+                  trackTOCClick(articleSlug, item.id, item.text);
+                }
               }}
             >
               {item.text}

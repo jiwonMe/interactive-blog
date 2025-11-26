@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { cn } from '../lib/utils';
 import { CitationFormat, generateCitation } from '../lib/bibtex';
 import { PostData } from '../lib/posts';
+import { trackCitationCopy } from '../lib/analytics';
 
 interface CitationCopyButtonProps {
   bibtex: string;
@@ -104,6 +105,9 @@ export function BibTeXCopyButton({ bibtex, post, className, children }: Citation
       setCopiedType(type);
       setIsOpen(false);
       setTimeout(() => setCopiedType(null), 2000);
+      
+      // GA4 이벤트 전송
+      trackCitationCopy(post.slug, type);
     } catch (err) {
       console.error('Failed to copy:', err);
     }

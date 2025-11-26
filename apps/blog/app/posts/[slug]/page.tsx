@@ -7,6 +7,8 @@ import { cn } from '../../../lib/utils';
 import { Metadata } from 'next';
 import { generateBibTeX } from '../../../lib/bibtex';
 import { BibTeXCopyButton } from '../../../components/bibtex-copy-button';
+import { ScrollTracker } from '../../../components/analytics/scroll-tracker';
+import { ReadingTimeTracker } from '../../../components/analytics/reading-time-tracker';
 
 export async function generateStaticParams() {
   const posts = getAllPosts();
@@ -372,7 +374,14 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
       </article>
       
       {/* TOC Sidebar - only visible on large screens */}
-      <TableOfContents toc={post.toc} />
+      <TableOfContents toc={post.toc} articleSlug={post.slug} />
+      
+      {/* Analytics Trackers */}
+      <ScrollTracker articleSlug={post.slug} />
+      <ReadingTimeTracker
+        articleSlug={post.slug}
+        articleTitle={post.title || post.slug}
+      />
       </div>
     </div>
   );
