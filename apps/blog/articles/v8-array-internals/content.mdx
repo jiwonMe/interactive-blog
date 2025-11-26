@@ -1,0 +1,197 @@
+---
+title: '[V8 Deep Dives] Array의 내부 구조 이해하기'
+date: '2025-11-26'
+description: 'V8 엔진이 JavaScript Array를 어떻게 구현했는지 살펴보고, elements kind의 동작 원리와 성능 최적화 방법을 알아봅니다.'
+author: 'Jiwon Park'
+tags: ['v8', 'javascript', 'array', 'elements-kind', 'internals']
+series: 'V8 Deep Dives'
+seriesOrder: 2
+image: '/images/articles/v8-array-internals/images/og-image.png'
+---
+
+> 이 글은 Andrey Pechkurov의 원문(V8 Deep Dives: Understanding Array Internals)<Footnote>https://itnext.io/v8-deep-dives-understanding-array-internals-5b17d872a0</Footnote>을 저자의 허락을 받고 번역한 글입니다.
+
+[이전 글](/posts/v8-map-internals)에서는 ES6에서 도입된 Map과 Set을 다뤘습니다. 이번에는 JavaScript 배열을 살펴보겠습니다.
+
+JavaScript 배열은 단순해 보입니다. 하지만 내부를 들여다보면 생각보다 복잡합니다. 이 글에서는 공개 API를 설명하는 대신, V8이 JS 배열을 내부적으로 어떻게 구현했는지 살펴봅니다. 메모리 레이아웃, 크기 제한, 그 외 흥미로운 구현 세부사항을 다룹니다.
+
+설명을 단순화하기 위해 V8이 64비트 시스템에서 실행된다고 가정하겠습니다.
+
+요약만 보고 싶다면 마지막 섹션으로 바로 이동하세요.
+
+**참고:** 이 글은 Node.js 개발 버전(commit 49342fe)에 포함된 V8 8.9 기준입니다. 구현 세부사항은 버전에 따라 달라질 수 있으니, 명세에 정의된 동작 외에는 보장되지 않습니다.
+
+## REPL에서 직접 살펴보기
+
+JavaScript 배열보다 단순한 게 뭐가 있을까요? 고정 크기 배열, 즉 연속된 메모리 블록이 뒤에 있을 거라고 생각하기 쉽습니다. 모든 연산은 그 배열에 대한 단순한 조작일 거라고요. 하지만 곧 보게 되겠지만, 현실은 조금 더 복잡합니다.
+
+실제로 어떻게 동작하는지 Node.js REPL<Footnote>https://nodejs.org/api/repl.html</Footnote>에서 배열의 내부 변화를 관찰해보겠습니다. 먼저 REPL을 실행합니다:
+
+```bash
+$ node --allow-natives-syntax
+Welcome to Node.js v16.0.0-pre.
+Type ".help" for more information.
+>
+```
+
+`--allow-natives-syntax` 플래그를 사용하면 V8의 `%DebugPrint()` 함수를 쓸 수 있습니다. 이 함수는 객체나 원시 값의 내부 디버그 정보를 출력합니다.
+
+빈 배열을 만들고 디버그 정보를 출력해봅시다:
+
+```javascript
+> const arr = [];
+undefined
+> %DebugPrint(arr);
+DebugPrint: 0x3db6370d4e51: [JSArray]
+- map: 0x3de594a433f9 <Map(PACKED_SMI_ELEMENTS)> [FastProperties]
+- prototype: 0x3a5538d05849 <JSArray[0]>
+- elements: 0x357222481309 <FixedArray[0]> [PACKED_SMI_ELEMENTS]
+- length: 0
+- properties: 0x357222481309 <FixedArray[0]>
+...
+[]
+```
+
+출력이 꽤 길어서 일부만 표시했습니다. 주목할 부분은 `- elements: ... [PACKED_SMI_ELEMENTS]`입니다. 배열이 데이터를 저장하는 데 고정 크기 배열을 사용한다는 것을 알 수 있습니다. V8은 이를 "backing store"라고 부릅니다. 현재 크기는 0입니다.
+
+디버그 출력에서 `PACKED_SMI_ELEMENTS`라는 elements kind도 보입니다. Elements kind는 V8이 추적하는 메타데이터로, 배열 요소의 타입을 설명합니다. V8은 이 정보를 바탕으로 배열 연산을 최적화합니다. 이 개념이 낯설다면 V8 팀의 블로그 글<Footnote>https://v8.dev/blog/elements-kinds</Footnote>을 먼저 읽어보시길 권합니다.
+
+`PACKED_SMI_ELEMENTS`는 가장 구체적인 elements kind입니다. 배열의 모든 항목이 Smi<Footnote>https://medium.com/fhinkel/v8-internals-how-small-is-a-small-integer-e0badc18b6da</Footnote>(Small Integer), 즉 -2³¹에서 2³¹-1 범위의 작은 정수라는 뜻입니다. V8은 이 메타데이터를 바탕으로 배열을 다룰 때 불필요한 검사나 값 변환을 건너뜁니다.
+
+여기서 중요한 점이 있습니다. JS 배열이 수정되면 elements kind가 더 구체적인 종류에서 덜 구체적인 종류로 전환될 수 있습니다. 하지만 반대 방향은 불가능합니다. 예를 들어 배열의 elements kind가 `PACKED_SMI_ELEMENTS`에서 다른 것으로 바뀌면, 그 배열 인스턴스는 다시 원래의 구체적인 kind로 돌아갈 수 없습니다.
+
+### 내부 배열의 크기 변화
+
+내부 배열이 어떻게 커지는지 보기 위해 첫 번째 요소로 작은 정수를 추가해봅시다:
+
+```javascript
+> arr.push(42);
+> %DebugPrint(arr);
+DebugPrint: 0xe61bd5eb321: [JSArray] in OldSpace
+...
+- elements: 0x0e61bd5e7501 <FixedArray[17]> [PACKED_SMI_ELEMENTS]
+- length: 1
+...
+- elements: 0x0e61bd5e7501 <FixedArray[17]> {
+    0: 42
+    1-16: 0x357222481669 <the_hole>
+}
+...
+[42]
+```
+
+backing store로 사용되는 내부 배열이 변경되었습니다. elements kind는 여전히 `PACKED_SMI_ELEMENTS`지만, 주소가 다르고 내부 배열 크기가 17입니다. 64비트 시스템에서 이는 17 × 8 = 136바이트의 메모리를 차지한다는 뜻입니다(객체 헤더는 무시).
+
+할당된 내부 배열이 요청한 것보다 크다는 점에 주목하세요. 이렇게 하면 `push()` 같은 연산이 평균적으로 $O(1)$에 동작합니다. 가끔 배열을 늘려야 할 때는 느리지만, 전체로 보면 상수 시간입니다. 내부 배열이 부족할 때 새 크기를 결정하는 공식<Footnote>https://github.com/nodejs/node/blob/49342fe6f2ca6cedd5219d835a0a810e6f03cdd7/deps/v8/src/objects/js-objects.h#L542</Footnote>은 다음과 같습니다:
+
+```
+new_capacity = (old_capacity + 50%) + 16
+```
+
+여기서 `old_capacity`는 기존 내부 배열 크기에 삽입할 항목 수를 더한 값입니다. 우리 경우에는 1이므로 `new_capacity`는 1 + 16 = 17로 계산됩니다.
+
+### The Hole
+
+출력에서 흥미로운 부분이 하나 더 있습니다. `1-16: ... <the_hole>` 부분입니다. 내부 배열의 사용되지 않는 부분이 "hole"로 채워져 있습니다. hole은 V8이 할당되지 않거나 삭제된 배열 항목을 표시하는 데 사용하는 특수 값입니다. 이는 JS 코드로 "누출"되지 않는 구현 세부사항입니다. 이 예제에서 V8은 hole로 배열의 사용되지 않는 부분을 초기화합니다.
+
+내부 배열이 줄어들기도 할까요? 네, `pop()`이나 `shift()` 같이 배열 길이를 줄이는 연산에서 줄어듭니다. 연산 결과로 절반 이상의 요소<Footnote>https://github.com/nodejs/node/blob/49342fe6f2ca6cedd5219d835a0a810e6f03cdd7/deps/v8/src/objects/elements.cc#L717</Footnote>(작은 배열은 약간의 여유 포함)가 사용되지 않으면 축소됩니다.
+
+### HOLEY Elements Kind로 전환
+
+REPL 세션으로 돌아갑시다. 현재 배열의 `PACKED_SMI_ELEMENTS` kind는 hole이 없다고 가정합니다. 배열을 특정 방식으로 변경하면 덜 구체적인 kind로 전환됩니다. 인덱스 1을 건너뛰고 인덱스 2에 값을 할당해봅시다:
+
+```javascript
+> arr[2] = 0;
+> %DebugPrint(arr);
+...
+- elements: 0x0e61bd5e7501 <FixedArray[17]> [HOLEY_SMI_ELEMENTS]
+- length: 3
+...
+- elements: 0x0e61bd5e7501 <FixedArray[17]> {
+    0: 42
+    1: 0x357222481669 <the_hole>
+    2: 0
+    3-16: 0x357222481669 <the_hole>
+}
+```
+
+인덱스 1에는 hole이 들어갔습니다. 결과적으로 elements kind가 `HOLEY_SMI_ELEMENTS`로 전환되었습니다. 이 kind는 배열이 Smi 또는 hole 값만 포함한다고 가정합니다. 성능 면에서 이 kind는 packed보다 약간 느립니다. V8이 배열을 순회하거나 수정할 때 hole을 건너뛰기 위한 검사를 해야 하기 때문입니다.
+
+다른 array 기반 elements kind에 대한 실험은 여기서 하지 않겠습니다. 궁금한 독자를 위한 과제로 남겨둡니다. 다만 V8이 64비트 부동소수점 숫자 배열을 최적화한다는 점은 언급할 가치가 있습니다. `PACKED_DOUBLE_ELEMENTS`와 `HOLEY_DOUBLE_ELEMENTS` kind는 숫자를 backing 배열에 직접 저장해서, 각 숫자에 대한 힙 포인터를 피합니다.
+
+### Dictionary Elements
+
+다음으로 배열 항목의 backing store가 고정 크기 배열이 아닌 다른 것일 수 있는지 알아보겠습니다. 아주 큰 인덱스에 값을 할당해봅시다:
+
+```javascript
+> arr[32 << 20] = 0;
+> %DebugPrint(arr);
+...
+- elements: 0x10f6026db0d9 <NumberDictionary[16]> [DICTIONARY_ELEMENTS]
+- length: 33554433
+...
+- elements: 0x10f6026db0d9 <NumberDictionary[16]> {
+    - max_number_key: 33554432
+    2: 0 (data, dict_index: 0, attrs: [WEC])
+    0: 42 (data, dict_index: 0, attrs: [WEC])
+    33554432: 0 (data, dict_index: 0, attrs: [WEC])
+}
+...
+```
+
+무슨 일이 일어났을까요? 배열이 더 이상 array 기반 backing store를 사용하지 않습니다. 대신 `NumberDictionary[16]`을 사용합니다. 이는 숫자 키에 특화된 해시 테이블 기반 컬렉션<Footnote>https://github.com/nodejs/node/blob/49342fe6f2ca6cedd5219d835a0a810e6f03cdd7/deps/v8/src/objects/dictionary.h#L301</Footnote>입니다. 세부 사항이 궁금하다면, 이 해시 테이블은 이차 탐사(quadratic probing)를 사용하는 개방 주소법<Footnote>https://en.wikipedia.org/wiki/Hash_table#Open_addressing</Footnote>을 씁니다.
+
+elements kind도 `DICTIONARY_ELEMENTS`로 전환되었습니다. 이는 JS 배열의 "느린" 경로를 의미합니다. 이 kind에서 V8은 hole이 많은 희소 배열(sparse array)의 메모리 사용량을 줄이려고 합니다. 해시 테이블은 hole이 아닌 배열 요소만 저장하기 때문입니다. 반면 해시 테이블 연산은 배열보다 느립니다. 해시 코드 계산, 항목 조회, 리해싱 비용을 지불해야 합니다. 잠시 후 벤치마크로 그 비용을 확인해보겠습니다.
+
+dictionary kind는 32 × 2²⁰(약 3,350만)보다 큰 배열에 사용됩니다. 그래서 이 제한<Footnote>https://github.com/nodejs/node/blob/49342fe6f2ca6cedd5219d835a0a810e6f03cdd7/deps/v8/src/objects/js-array.h#L120</Footnote>을 넘자마자 배열이 전환된 것입니다. 메모리 관점에서 이는 array 기반 JS 배열이 약 268MB를 넘어서 커질 수 없다는 뜻입니다.
+
+dictionary 기반 배열의 최대 크기는 ECMAScript 명세<Footnote>https://262.ecma-international.org/11.0/#sec-arraycreate</Footnote>에 의해 제한됩니다. 32비트 부호 없는 정수의 최대값(2³² — 1)을 초과할 수 없습니다.
+
+좋습니다. V8이 JS 배열을 어떻게 처리하는지 더 잘 이해했으니, 벤치마크를 해봅시다.
+
+## 간단한 벤치마크
+
+본격적으로 시작하기 전에 경고합니다. 다음 마이크로벤치마크는 완전히 비과학적이고 불공정합니다. 참고 정도로만 봐주세요. 벤치마크는 i5-8400H CPU, Ubuntu 20.04, Node.js v15.11.0 환경에서 수행했습니다.
+
+### 배열 순회 성능
+
+먼저 배열 순회에서 elements kind 간 차이를 알아봅시다. 첫 번째 벤치마크<Footnote>https://github.com/puzpuzpuz/microbenchmarks/blob/91672594d559f8c3dca69cc0a9241309bc6a7467/src/dictionary-array-iteration.js</Footnote>에서는 숫자 배열을 순회하며 요소의 총합을 계산합니다. 결과를 정리하면 다음과 같습니다:
+
+| Elements Kind | 상대 성능 |
+|---------------|----------|
+| PACKED | 100% (기준) |
+| HOLEY | 약 77% (23% 느림) |
+| DICTIONARY | 약 1% (두 자릿수 배 느림) |
+
+dictionary kind의 결과는 packed kind보다 두 자릿수 배(100배 이상) 작습니다. holey kind는 packed보다 약 23% 느립니다.
+
+### Push/Pop 성능
+
+이제 `push()`와 `pop()` 같은 기본 변경 연산을 측정해봅시다. 두 번째 벤치마크<Footnote>https://github.com/puzpuzpuz/microbenchmarks/blob/91672594d559f8c3dca69cc0a9241309bc6a7467/src/dictionary-array-push-pop.js</Footnote>에서는 각 반복마다 배열에 1,000개 요소를 push하고 모두 pop합니다. 결과는 다음과 같습니다:
+
+| Elements Kind | 초당 연산 수 |
+|---------------|-------------|
+| Array 기반 (PACKED/HOLEY) | ~238,000 ops/sec |
+| DICTIONARY | ~200 ops/sec |
+
+dictionary kind는 array 기반 kind보다 약 1,000배 느립니다.
+
+흥미롭게도 V8의 JIT를 `--jitless` 플래그로 비활성화하면, 결과가 ~200 대 ~16,000 ops/sec가 됩니다. V8 JIT가 array 기반 kind의 루프를 얼마나 잘 최적화하는지 보여줍니다.
+
+절대적인 숫자는 중요하지 않습니다. 위 결과는 JS 애플리케이션이 꼭 필요한 경우가 아니라면 dictionary 기반 배열을 피해야 한다는 것을 보여줍니다.
+
+## 정리
+
+오늘 알아본 내용을 정리하면 다음과 같습니다:
+
+- 각 JS 배열은 elements kind와 연결됩니다. V8이 배열 연산을 최적화하기 위해 추적하는 메타데이터입니다.
+- 충분히 작은 배열의 요소는 내부 고정 크기 배열에 저장됩니다. V8은 `push()` 같은 연산이 평균적으로 $O(1)$에 동작하도록 내부 배열에 여유 공간을 할당합니다. 배열 길이가 줄어들면 내부 배열도 줄어들 수 있습니다.
+- JS 배열이 커지면(hole이 많은 배열 포함), V8은 해시 테이블로 배열 요소를 저장합니다. 이때 배열은 "느린" dictionary elements kind와 연결됩니다.
+- hot loop에서 "느린" kind는 array 기반 kind보다 수백 배 느릴 수 있습니다.
+- V8 JIT는 array 기반 kind의 루프를 잘 최적화합니다.
+- hot path에서 큰 배열을 다루는 코드를 작성할 때는, V8이 배열에 가장 구체적인 elements kind를 사용하도록 해야 합니다.
+
+배열은 단순해 보이지만, 내부에서는 꽤 많은 일이 일어납니다. hot path에서 배열을 다룬다면 elements kind를 의식하는 것이 좋습니다. 다음 글에서는 Math.random()의 내부 구현을 다뤄볼 생각입니다. 다른 주제 제안이나 잘못된 부분에 대한 피드백도 환영합니다.
+
+<Footnotes />
+
