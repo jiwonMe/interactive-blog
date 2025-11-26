@@ -4,5 +4,11 @@ node_modules
 dist
 .DS_Store
 
+# Environment variables (except example files)
+.env
+.env.local
+.env*.local
+!.env.example
+
 # Generated blog images
 apps/blog/public/images/articles

@@ -5,6 +5,7 @@ import { Header } from "../components/header";
 import { Footer } from "../components/footer";
 import StitchesRegistry from "../components/stitches-registry";
 import { cn } from "../lib/utils";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 export const metadata: Metadata = {
   // 기본 메타데이터
@@ -118,6 +119,11 @@ export default function RootLayout({
             <Footer />
           </ThemeProvider>
         </StitchesRegistry>
+        
+        {/* Google Analytics 4 */}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
       </body>
     </html>
   );
