@@ -35,20 +35,12 @@ const b = {}; b.x = 10; b.y = 20;
 // a와 b는 같은 Hidden Class를 공유
 ```
 
-아래 인터랙티브 시뮬레이터로 직접 실험해보자. **Object A**와 **Object B**에 각각 프로퍼티(`x`, `y`, `z` 등)를 추가해보면 Hidden Class가 어떻게 생성되고 공유되는지 실시간으로 확인할 수 있다.
+Hidden Class가 같으면 V8은 "x는 항상 슬롯 0"이라고 확신할 수 있다. 해시테이블처럼 이름으로 검색할 필요 없이 **해당 슬롯을 직접 읽으면 된다**. 이것이 Object가 빠른 이유다.
 
-<Callout type="tip" title="시뮬레이터 사용법">
-- 각 Object 패널의 `+x`, `+y`, `+z` 버튼을 클릭하여 프로퍼티를 추가한다
-- **같은 순서로 추가**하면 두 Object가 같은 Hidden Class를 공유하는 것을 확인할 수 있다 (파란색/초록색 border로 표시)
-- **다른 순서로 추가**하면 같은 프로퍼티를 가져도 서로 다른 Hidden Class가 생성된다
-- 하단의 **Transition Tree**에서 Hidden Class 간의 전이 관계를 시각적으로 확인할 수 있다
-- 각 엣지의 색상은 추가된 프로퍼티를 나타낸다 (x=파란색, y=초록색, z=노란색 등)
-- 노드 아래에 "Object A" 또는 "Object B" 텍스트가 표시되면 해당 Object가 현재 그 Hidden Class를 사용 중임을 의미한다
-</Callout>
+아래 인터랙티브 시뮬레이터로 직접 실험해보자. **Object A**와 **Object B**에 각각 프로퍼티(`x`, `y`, `z` 등)를 추가해보면 Hidden Class가 어떻게 생성되고 공유되는지 실시간으로 확인할 수 있다.
 
 <HiddenClassVisualizer />
 
-Hidden Class가 같으면 V8은 "x는 항상 슬롯 0"이라고 확신할 수 있다. 해시테이블처럼 이름으로 검색할 필요 없이 **해당 슬롯을 직접 읽으면 된다**. 이것이 Object가 빠른 이유다.
 
 ### Inline Cache의 역할
 
