@@ -1,0 +1,311 @@
+---
+title: '한글이 ㄱㅏㄴㅏㄷㅏ로 풀어지는 버그, 대체 왜?'
+date: '2025-11-26'
+description: 'React에서 한글 입력 시 자모가 분리되는 IME 버그의 원인과 해결 방법을 알아봅니다.'
+author: 'JIWON'
+tags: ['react', 'ime', 'korean', 'input', 'composition']
+hidden: true
+---
+
+# 한글이 ㄱㅏㄴㅏㄷㅏ로 풀어지는 버그, 대체 왜?
+
+GitHub에서 "Korean input bug"를 검색하면 수천 개의 이슈가 나옵니다. Notion, Slack, Discord, VS Code 같은 서비스들도 한글 입력 관련 버그 리포트를 꾸준히 받고 있습니다. 증상은 대부분 비슷합니다. "한글을 입력하면 자모가 분리돼요."
+
+최근 React로 검색창을 만들다가 이 문제를 직접 겪었습니다. 입력값을 실시간으로 trim하는 간단한 기능이었는데, 한글만 입력하면 글자가 전부 풀어졌습니다. "가나다"가 "ㄱㅏㄴㅏㄷㅏ"가 됩니다.
+
+```jsx
+const [value, setValue] = useState("");
+
+const handleChange = (e) => {
+    setValue(e.target.value.trim());
+};
+```
+
+`trim()`이 한글에 영향을 줄 리 없는데, 무엇이 문제일까요?
+
+아래에서 직접 테스트해보세요. **왼쪽 입력창(버그 발생)**에 한글을 입력하면 자모가 분리되고, **오른쪽 입력창(정상)**은 정상적으로 조합됩니다.
+
+> 💡 **참고**: 아래 데모는 버그 원리를 명확히 재현하기 위해 `input.value`를 직접 조작합니다. 실제 React의 controlled input에서 `setValue()`를 호출하면 내부적으로 동일한 현상이 발생합니다. 단, 최신 React와 브라우저 조합에서는 같은 값을 설정할 때 최적화로 인해 문제가 발생하지 않을 수도 있습니다.
+
+<BuggyInputDemo />
+
+---
+
+## 처음엔 유니코드 문제를 의심했습니다
+
+한글은 유니코드에서 두 가지 방식으로 표현될 수 있습니다. NFC(완성형)와 NFD(분해형)입니다.
+
+```javascript
+const nfc = "가";                    // NFC: U+AC00 (1글자)
+const nfd = "가".normalize("NFD");   // NFD: U+1100 + U+1161 (2글자)
+
+console.log(nfc.length);  // 1
+console.log(nfd.length);  // 2
+```
+
+macOS 파일 시스템이 NFD를 선호하는 바람에 Mac에서 만든 파일을 Windows에서 열면 한글 파일명이 깨지는 현상이 있습니다. 이것 때문인가 싶어 확인해봤습니다.
+
+```javascript
+"가나다".trim().normalize("NFC").length  // 3, 정상
+```
+
+아니었습니다. `trim()`은 유니코드 정규화에 영향을 주지 않습니다.
+
+---
+
+## onChange를 찍어보니 이상한 점이 보였습니다
+
+```javascript
+const handleChange = (e) => {
+    console.log(e.target.value);
+    setValue(e.target.value.trim());
+};
+```
+
+"가"를 입력하려고 "ㄱ", "ㅏ"를 순서대로 눌렀더니 로그가 이렇게 찍혔습니다.
+
+```
+ㄱ
+ㄱㅏ
+```
+
+두 번째 로그에서 이미 "ㄱㅏ"로 분리되어 있었습니다. `setValue()` 호출 전인데도 말입니다. 브라우저 input에서는 분명 "가"로 조합되고 있었습니다.
+
+아래의 **이벤트 로거**에서 직접 확인해보세요. keydown, composition, input 이벤트가 어떤 순서로 발생하는지 볼 수 있습니다.
+
+<CompositionEventLogger />
+
+keydown 이벤트를 찍어봤습니다.
+
+```javascript
+input.addEventListener('keydown', (e) => {
+    console.log({ key: e.key, keyCode: e.keyCode, isComposing: e.isComposing });
+});
+```
+
+한글 모드에서 "ㄱ"을 누르면 이런 값이 반환됩니다.
+
+```javascript
+{ key: "Process", keyCode: 229, isComposing: true }
+```
+
+영어 모드에서 같은 키를 누르면 이렇습니다.
+
+```javascript
+{ key: "r", keyCode: 82, isComposing: false }
+```
+
+**keyCode 229**. W3C 명세를 찾아보니 이렇게 정의되어 있었습니다.
+
+> If an Input Method Editor is processing key input and the event is keydown, return 229.
+
+IME가 키 입력을 처리 중이면 229를 반환하라. "이 키는 IME가 가로챘으니 건드리지 마세요"라는 신호입니다.
+
+---
+
+## IME의 역할
+
+영어는 키 하나가 문자 하나에 대응합니다. 'A' 키를 누르면 'a'가 입력됩니다. 한글은 다릅니다. "가"라는 글자 하나를 입력하려면 "ㄱ"과 "ㅏ" 두 개의 키를 눌러야 합니다. 이 두 입력을 모아서 하나의 글자로 조합해주는 것이 IME(Input Method Editor)의 역할입니다.
+
+IME가 조합 중일 때 input에 보이는 "ㄱ"은 아직 확정되지 않은 임시 상태입니다. 보통 밑줄이 그어져 있습니다. 이 상태에서 "ㅏ"를 누르면 IME가 "ㄱ"과 "ㅏ"를 합쳐 "가"로 만들어줍니다.
+
+아래 시각화에서 한글 조합 과정을 확인해보세요.
+
+<HangulCompositionFlow />
+
+문제는 이 조합 중간에 외부에서 input의 value를 건드릴 때 발생합니다.
+
+---
+
+## setValue()가 조합을 깨뜨리는 과정
+
+React의 controlled input은 `setValue()`를 호출하면 다음 렌더링에서 input의 value를 새 값으로 동기화합니다. 이 과정에서 React가 `input.value = newValue`를 실행하면, 브라우저는 이를 "value가 외부에서 바뀌었다"고 인식합니다. 그리고 현재 진행 중인 IME 조합을 취소합니다.
+
+```
+1. [ㄱ 키 누름]
+   IME: 조합 중 "ㄱ"
+   input: "ㄱ" (밑줄, 미확정)
+   
+2. [onChange 발생]
+   setValue("ㄱ".trim()) 호출
+   
+3. [React가 input.value = "ㄱ" 실행]
+   브라우저: "value가 바뀌었네, 조합 취소"
+   IME: 리셋
+   "ㄱ"이 그대로 확정됨
+   
+4. [ㅏ 키 누름]
+   IME: 새로운 조합 시작 "ㅏ"
+   input: "ㄱㅏ" (분리됨)
+```
+
+핵심은 3번입니다. 브라우저는 `input.value`가 JavaScript에 의해 변경되면 IME 조합을 무효화합니다. 같은 값을 넣어도 마찬가지입니다.
+
+```jsx
+const handleChange = (e) => {
+    setValue(e.target.value);  // 가공 없이 그대로
+};
+```
+
+이렇게 해도 한글이 깨집니다. `setValue()` 호출 자체가 문제입니다.
+
+---
+
+## 2017년의 Slack, 2020년의 Notion
+
+이 문제를 겪은 것은 필자만이 아닙니다.
+
+Slack은 2017년에 한글 입력 시 자모가 분리되는 버그로 고생했습니다. 메시지를 입력하다 보면 "ㅎㅏㄴㄱㅡㄹ"처럼 풀어져서 입력되는 현상이었는데, 원인은 동일했습니다. 메시지 입력창에서 실시간으로 처리하면서 value를 건드린 것입니다.
+
+Notion도 2020년경에 비슷한 이슈가 보고되었습니다. 블록 에디터 특성상 입력할 때마다 다양한 처리가 일어나는데, 이 과정에서 IME 조합이 깨지는 경우가 있었습니다.
+
+VS Code도 예외는 아닙니다. 자동 완성, 자동 괄호 닫기, 포매팅 같은 기능이 한글 조합 중에 개입하면서 문제가 생긴 사례가 있습니다.
+
+공통점은 명확합니다. 모두 **입력 중에 value를 프로그래밍적으로 조작**하는 기능이 있는 서비스들입니다.
+
+---
+
+## 해결책: 조합 중에는 건드리지 않기
+
+브라우저는 IME 조합 상태를 추적할 수 있는 이벤트를 제공합니다.
+
+- `compositionstart`: 조합 시작
+- `compositionupdate`: 조합 중
+- `compositionend`: 조합 완료
+
+"가"를 입력할 때 발생하는 이벤트입니다.
+
+```
+[ㄱ 키]
+keydown: 229, isComposing: true
+compositionstart
+compositionupdate: ㄱ
+input: ㄱ
+
+[ㅏ 키]
+keydown: 229, isComposing: true
+compositionupdate: 가
+input: 가
+
+[스페이스 키]
+compositionend: 가
+keydown: 32, isComposing: false
+```
+
+이를 활용해 조합 중에는 값을 가공하지 않으면 됩니다.
+
+```jsx
+function SearchInput() {
+    const [value, setValue] = useState("");
+    const isComposing = useRef(false);
+    
+    const handleChange = (e) => {
+        const newValue = e.target.value;
+        
+        if (isComposing.current) {
+            setValue(newValue);  // 조합 중엔 그대로
+        } else {
+            setValue(newValue.trim());  // 조합 끝나면 가공
+        }
+    };
+    
+    return (
+        <input
+            value={value}
+            onChange={handleChange}
+            onCompositionStart={() => { isComposing.current = true; }}
+            onCompositionEnd={(e) => {
+                isComposing.current = false;
+                setValue(e.target.value.trim());
+            }}
+        />
+    );
+}
+```
+
+useState 대신 useRef를 쓴 이유는 플래그 변경으로 리렌더링이 일어날 필요가 없기 때문입니다.
+
+주의할 점이 있습니다. `compositionend`와 `onChange`의 순서가 브라우저마다 다를 수 있습니다. Chrome에서는 일반적으로 `compositionend`가 먼저 발생하지만, 일부 환경에서는 반대일 수 있습니다. 확실하게 하려면 `e.nativeEvent?.isComposing`도 함께 확인하는 것이 좋습니다.
+
+```jsx
+const handleChange = (e) => {
+    const newValue = e.target.value;
+    const composing = e.nativeEvent?.isComposing ?? isComposing.current;
+    
+    if (composing) {
+        setValue(newValue);
+    } else {
+        setValue(newValue.trim());
+    }
+};
+```
+
+---
+
+## 디바운스도 방법입니다
+
+값 가공이 API 호출과 연결되어 있다면 디바운스가 더 실용적일 수 있습니다.
+
+```jsx
+function SearchInput({ onSearch }) {
+    const [value, setValue] = useState("");
+    
+    const debouncedSearch = useMemo(
+        () => debounce((query) => {
+            onSearch(query.trim());
+        }, 300),
+        [onSearch]
+    );
+    
+    const handleChange = (e) => {
+        setValue(e.target.value);  // 가공 없이 그대로
+        debouncedSearch(e.target.value);
+    };
+    
+    return <input value={value} onChange={handleChange} />;
+}
+```
+
+`setValue()`에 원본 값을 그대로 넣기 때문에 조합이 깨지지 않습니다. 실제 가공은 디바운스된 함수에서 처리합니다. 빠르게 타이핑하면 디바운스가 계속 리셋되므로, 조합이 끝나고 타이핑을 멈춘 후에야 처리가 실행됩니다.
+
+---
+
+## 한글 조합의 또 다른 특수성
+
+여기까지가 자모 분리 버그의 원인과 해결책입니다. 한글 IME에는 다른 언어에서 볼 수 없는 동작이 하나 더 있습니다. 복잡한 에디터를 만들 때 알아두면 좋습니다.
+
+받침이 있는 글자 뒤에 모음을 입력하면, 받침이 다음 글자의 초성으로 넘어갑니다.
+
+```
+"각" 입력 후 "ㅏ" 입력:
+각 + ㅏ = 가가
+```
+
+"각"의 받침 "ㄱ"이 다음 음절의 초성으로 이동해서 "가가"가 됩니다. 한국어의 연음 법칙 때문입니다. "각이"를 발음하면 [가기]가 되는 것과 같은 원리입니다.
+
+겹받침은 더 복잡합니다. 앞 자음은 남고 뒤 자음만 넘어갑니다.
+
+```
+"읽" + "ㅏ" = 일가
+(겹받침 ㄺ 중 ㄹ은 유지, ㄱ은 이동)
+```
+
+이 때문에 **이미 완성되었다고 생각한 글자가 바뀔 수 있습니다**. 에디터를 만들 때 실시간 글자 수 표시가 이상하게 뛰거나, Undo가 예상과 다르게 동작하는 문제가 생길 수 있는 이유입니다.
+
+---
+
+keyCode 229는 "IME가 이 키 입력을 처리 중"이라는 신호입니다. 이 상태에서 input의 value를 JavaScript로 건드리면 조합이 깨지고 자모가 분리됩니다.
+
+해결책은 단순합니다. 조합 중에는 건드리지 않으면 됩니다. `compositionstart`/`compositionend`로 상태를 추적하고, 조합 중에는 입력값을 그대로 두면 됩니다.
+
+한글, 중국어, 일본어 등 IME를 사용하는 인구는 수십억 명입니다. IME 입력을 올바르게 처리하는 것은 웹 애플리케이션 국제화의 기본입니다.
+
+---
+
+## 참고 자료
+
+- [W3C UI Events - Composition Events](https://www.w3.org/TR/uievents/#events-compositionevents)
+- [MDN - CompositionEvent](https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent)
+
+<Footnotes />
+

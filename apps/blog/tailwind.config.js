@@ -6,6 +6,7 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./articles/**/*.{js,ts,jsx,tsx,mdx}",
     "./content/**/*.{js,ts,jsx,tsx,mdx}",
+    "./articles/**/*.{js,ts,jsx,tsx,mdx}",
     "../../packages/interactive-ui/src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {

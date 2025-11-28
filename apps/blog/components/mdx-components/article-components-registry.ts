@@ -12,6 +12,9 @@ import { ShuffleVisualizer } from '../../articles/shuffle-bias/components/Shuffl
 import { SecretaryProblem } from '../../articles/secretary-problem/components/SecretaryProblem';
 import { HiddenClassVisualizer } from '../../articles/v8-object-vs-map/components/HiddenClassVisualizer';
 import { PropertyStorageVisualizer } from '../../articles/v8-object-vs-map/components/PropertyStorageVisualizer';
+import { BuggyInputDemo } from '../../articles/korean-ime-bug/components/BuggyInputDemo';
+import { CompositionEventLogger } from '../../articles/korean-ime-bug/components/CompositionEventLogger';
+import { HangulCompositionFlow } from '../../articles/korean-ime-bug/components/HangulCompositionFlow';
 
 // 컴포넌트 이름과 컴포넌트를 매핑하는 레지스트리
 export const articleComponentsRegistry: Record<string, React.ComponentType<any>> = {
@@ -26,6 +29,9 @@ export const articleComponentsRegistry: Record<string, React.ComponentType<any>>
   SecretaryProblem,
   HiddenClassVisualizer,
   PropertyStorageVisualizer,
+  BuggyInputDemo,
+  CompositionEventLogger,
+  HangulCompositionFlow,
 };
 
 // 컴포넌트를 동적으로 가져오는 함수
