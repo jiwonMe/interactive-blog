@@ -92,6 +92,10 @@ Hidden Class에는 "a는 슬롯 0, b는 슬롯 1, c는 슬롯 2"라고 기록되
 
 **한 번 Dictionary mode가 되면 다시 돌아가지 않는다**. 그 객체는 영원히 느린 상태로 남는다.
 
+아래 시뮬레이터로 직접 실험해보자. 프로퍼티를 추가하면서 In-object → Fast 모드 전환을 관찰하고, 중간 프로퍼티를 삭제하면 Dictionary mode로 영구 전환되는 것을 확인할 수 있다.
+
+<PropertyStorageVisualizer />
+
 ## Map과 Object의 구조적 차이
 
 Object는 원래 "여러 프로퍼티를 가진 엔티티"를 표현하기 위해 만들어졌다. 키-값 저장소로 쓰는 건 본래 용도가 아니다. 반면 Map은 **처음부터 키-값 컬렉션으로 설계**되었다<Footnote>A. Pechkurov, "[V8 Deep Dives] Understanding Map Internals," DEV Community, 2021. https://dev.to/puzpuzpuz/v8-deep-dives-understanding-map-internals-fc6</Footnote>.
