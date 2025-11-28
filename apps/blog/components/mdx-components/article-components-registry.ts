@@ -10,6 +10,7 @@ import { MemoryLeakVisualizerWrapper as MemoryLeakVisualizer } from '../../artic
 import { TimerComparisonPlaygroundWrapper as TimerComparisonPlayground } from '../../articles/settimeout-vs-setinterval/components/TimerComparisonPlaygroundWrapper';
 import { ShuffleVisualizer } from '../../articles/shuffle-bias/components/ShuffleVisualizer';
 import { SecretaryProblem } from '../../articles/secretary-problem/components/SecretaryProblem';
+import { HiddenClassVisualizer } from '../../articles/v8-object-vs-map/components/HiddenClassVisualizer';
 
 // 컴포넌트 이름과 컴포넌트를 매핑하는 레지스트리
 export const articleComponentsRegistry: Record<string, React.ComponentType<any>> = {
@@ -22,6 +23,7 @@ export const articleComponentsRegistry: Record<string, React.ComponentType<any>>
   TimerComparisonPlayground,
   ShuffleVisualizer,
   SecretaryProblem,
+  HiddenClassVisualizer,
 };
 
 // 컴포넌트를 동적으로 가져오는 함수

@@ -9,3 +9,5 @@ export { LinkCard } from './components/LinkCard';
 export type { LinkCardProps } from './components/LinkCard';
 export { Controls } from './components/Controls';
 export { FootnoteProvider, Footnote, Footnotes } from './components/Footnote';
+export { Callout } from './components/Callout';
+export type { CalloutType } from './components/Callout';

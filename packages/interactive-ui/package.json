@@ -16,8 +16,10 @@
   },
   "dependencies": {
     "@stitches/react": "^1.2.8",
+    "clsx": "^2.1.0",
     "framer-motion": "^12.23.24",
-    "lucide-react": "0.554.0"
+    "lucide-react": "0.554.0",
+    "tailwind-merge": "^2.2.1"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

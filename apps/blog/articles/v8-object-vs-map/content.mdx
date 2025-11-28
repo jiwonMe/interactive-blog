@@ -1,0 +1,341 @@
+---
+title: '[V8 Deep Dives] Object와 Map의 차이점 완전 분석'
+date: '2025-11-28'
+description: 'V8 엔진 관점에서 Object와 Map의 본질적 차이를 분석합니다. Hidden Class, Inline Cache, Dictionary mode 등 핵심 개념과 실측 벤치마크를 통해 올바른 선택 기준을 제시합니다.'
+author: 'Jiwon Park'
+tags: ['v8', 'javascript', 'object', 'map', 'hidden-class', 'performance']
+series: 'V8 Deep Dives'
+seriesOrder: 2
+---
+
+**Object와 Map 중 무엇을 선택해야 할까?** V8 엔진 관점에서 결론부터 말하면, Object는 **고정된 구조**에서 최대 성능을 발휘하고, Map은 **동적 키-값 저장소**에 최적화되어 있다.
+
+선행 아티클에서 Map의 OrderedHashMap 구현을 다뤘다면, 이번에는 Object의 Hidden Class 시스템과 두 자료구조의 본질적 차이를 파헤친다. 핵심 차이는 Object가 "클래스처럼 행동하려는 동적 객체"인 반면, Map은 "처음부터 해시테이블로 설계된 컬렉션"이라는 점이다. 이 구조적 차이가 성능 특성의 모든 것을 결정한다.
+
+## V8이 Object를 빠르게 만드는 방법: Hidden Class
+
+JavaScript는 동적 언어지만, V8은 Object를 C++ 구조체처럼 빠르게 접근할 수 있게 만든다. 비결은 **Hidden Class**(V8 내부 용어로 'Map', ES6 Map과는 무관)다<Footnote>V8 Team, "Maps (Hidden Classes) in V8," v8.dev, 2024. https://v8.dev/docs/hidden-classes</Footnote>.
+
+Hidden Class는 일종의 **설계도**다. "이 객체에서 x는 첫 번째 칸에, y는 두 번째 칸에 있다"는 정보를 담고 있다<Footnote>V8 Team, "Design Elements - Fast Property Access," V8 Wiki, Google. https://chromium.googlesource.com/external/github.com/v8/v8.wiki/+/60dc23b22b18adc6a8902bd9693e386a3748040a/Design-Elements.md</Footnote>. V8은 이 설계도를 보고 프로퍼티를 찾는다.
+
+```javascript
+const obj = {};
+obj.x = 1;  // Hidden Class 전환: C0 → C1
+obj.y = 2;  // Hidden Class 전환: C1 → C2
+```
+
+프로퍼티를 추가할 때마다 V8은 새로운 Hidden Class로 전환한다. 위 예시에서 `{} → {x} → {x, y}` 순서로 프로퍼티를 추가하면 C0 → C1 → C2로 Hidden Class가 바뀌며, 이 전환 경로는 **Transition Tree**에 캐싱된다.
+
+핵심은 **같은 순서로 프로퍼티를 추가한 객체들은 같은 Hidden Class를 공유한다**는 점이다.
+
+```javascript
+const a = {}; a.x = 1; a.y = 2;
+const b = {}; b.x = 10; b.y = 20;
+// a와 b는 같은 Hidden Class를 공유
+```
+
+아래 인터랙티브 시뮬레이터로 직접 실험해보자. **Object A**와 **Object B**에 각각 프로퍼티(`x`, `y`, `z` 등)를 추가해보면 Hidden Class가 어떻게 생성되고 공유되는지 실시간으로 확인할 수 있다.
+
+<Callout type="tip" title="시뮬레이터 사용법">
+- 각 Object 패널의 `+x`, `+y`, `+z` 버튼을 클릭하여 프로퍼티를 추가한다
+- **같은 순서로 추가**하면 두 Object가 같은 Hidden Class를 공유하는 것을 확인할 수 있다 (파란색/초록색 border로 표시)
+- **다른 순서로 추가**하면 같은 프로퍼티를 가져도 서로 다른 Hidden Class가 생성된다
+- 하단의 **Transition Tree**에서 Hidden Class 간의 전이 관계를 시각적으로 확인할 수 있다
+- 각 엣지의 색상은 추가된 프로퍼티를 나타낸다 (x=파란색, y=초록색, z=노란색 등)
+- 노드 아래에 "Object A" 또는 "Object B" 텍스트가 표시되면 해당 Object가 현재 그 Hidden Class를 사용 중임을 의미한다
+</Callout>
+
+<HiddenClassVisualizer />
+
+Hidden Class가 같으면 V8은 "x는 항상 슬롯 0"이라고 확신할 수 있다. 해시테이블처럼 이름으로 검색할 필요 없이 **해당 슬롯을 직접 읽으면 된다**. 이것이 Object가 빠른 이유다.
+
+### Inline Cache의 역할
+
+Inline Cache(IC)는 프로퍼티 접근 패턴을 기록해두는 최적화 기법이다.
+
+함수가 처음 어떤 객체를 만나면 "이 Hidden Class의 x는 첫 번째 슬롯"이라고 기록한다. 이후 같은 Hidden Class의 객체가 오면 조회 없이 바로 해당 슬롯을 읽는다<Footnote>C. Payer and C. Payer, "Fast properties in V8," v8.dev, 2017. https://v8.dev/blog/fast-properties</Footnote>.
+
+**한 종류의 Hidden Class만 반복되는 상태**를 **Monomorphic**이라고 부른다. 이 상태에서 프로퍼티 접근은 최대 **60배** 빠를 수 있다<Footnote>M. Primariediev, "Understanding Monomorphism to Improve Your JS Performance up to 60x," Builder.io, 2023. https://www.builder.io/blog/monomorphic-javascript</Footnote>.
+
+**4개 이상**의 서로 다른 Hidden Class를 만나면 **Megamorphic** 상태가 된다. IC가 더 이상 패턴을 기록하지 않고, 매번 해시 테이블 조회로 처리한다.
+
+## Object의 세 가지 프로퍼티 저장 모드
+
+V8은 Object 프로퍼티를 세 가지 방식으로 저장한다.
+
+### 1. In-object 프로퍼티
+
+객체 자체의 메모리 공간에 직접 저장한다. 추가적인 포인터 참조가 없어서 **가장 빠르다**.
+
+```javascript
+function Point(x, y) {
+  this.x = x;  // in-object 슬롯 0
+  this.y = y;  // in-object 슬롯 1
+}
+const p = new Point(1, 2);
+```
+
+### 2. Fast properties
+
+In-object 슬롯이 부족하면 별도의 **PropertyArray**에 저장한다. 한 단계 간접 참조가 생기지만, 메타데이터는 여전히 Hidden Class에 있으므로 IC가 작동한다.
+
+### 3. Slow properties (Dictionary mode)
+
+**NameDictionary**라는 해시테이블에 프로퍼티 이름, 값, 속성을 모두 저장한다. Hidden Class가 프로퍼티 위치를 알지 못하므로 IC가 작동하지 않는다. 매번 이름으로 검색해야 해서 느리다.
+
+```javascript
+const obj = { a: 1, b: 2, c: 3 };
+delete obj.b;  // 중간 프로퍼티 삭제 → Dictionary mode 전환
+// 이후 obj.a, obj.c 접근 성능도 저하됨
+```
+
+### Dictionary mode 전환 조건
+
+delete는 Hidden Class 구조를 무너뜨린다.
+
+Hidden Class에는 "a는 슬롯 0, b는 슬롯 1, c는 슬롯 2"라고 기록되어 있다. b를 삭제하면 "a는 슬롯 0, c는 슬롯 2"가 되어야 하는데, 이렇게 **중간에 빈 슬롯이 있는 Hidden Class**는 Transition Tree에서 표현할 수 없다<Footnote>"Pros and Cons of 'dictionary mode'," Stack Overflow, 2014. https://stackoverflow.com/questions/23455678/pros-and-cons-of-dictionary-mode</Footnote>.
+
+마지막 프로퍼티를 삭제하면 이전 Hidden Class로 롤백할 수 있다. 하지만 **중간 프로퍼티를 삭제하면** V8은 Hidden Class를 포기하고 Dictionary mode로 전환한다.
+
+**한 번 Dictionary mode가 되면 다시 돌아가지 않는다**. 그 객체는 영원히 느린 상태로 남는다.
+
+## Map과 Object의 구조적 차이
+
+Object는 원래 "여러 프로퍼티를 가진 엔티티"를 표현하기 위해 만들어졌다. 키-값 저장소로 쓰는 건 본래 용도가 아니다. 반면 Map은 **처음부터 키-값 컬렉션으로 설계**되었다<Footnote>A. Pechkurov, "[V8 Deep Dives] Understanding Map Internals," DEV Community, 2021. https://dev.to/puzpuzpuz/v8-deep-dives-understanding-map-internals-fc6</Footnote>.
+
+선행 아티클에서 다룬 것처럼 Map은 **OrderedHashMap**으로 구현되어 삽입 순서를 보장한다.
+
+| 구분 | Object | Map |
+|------|--------|-----|
+| 원래 용도 | 사물 표현 | 키-값 저장소 |
+| 키 타입 | 문자열/심볼만 | 뭐든 가능 |
+| 순서 보장 | 제한적 | 삽입 순서 그대로 |
+| 크기 확인 | `Object.keys(obj).length` | `map.size` |
+
+### 메모리 사용량
+
+Fast mode Object는 매우 효율적이다. 프로퍼티 이름은 Hidden Class에 한 번만 저장하고, 각 객체는 **값만 저장**하면 된다<Footnote>Z. He, "When You Should Prefer Map Over Object In JavaScript," zhenghao.io, 2022. https://www.zhenghao.io/posts/object-vs-map</Footnote>.
+
+Map은 매 엔트리마다 키와 값을 모두 저장한다. 작은 컬렉션에서는 Object가 메모리를 덜 쓴다.
+
+### 키 처리 방식: 가장 큰 차이
+
+Object는 모든 키를 **문자열로 바꿔버린다**:
+
+```javascript
+const obj = {};
+obj[{ id: 1 }] = 'a';  // 키가 "[object Object]"로 변환됨
+obj[{ id: 2 }] = 'b';  // 똑같이 "[object Object]"로 변환됨
+console.log(Object.keys(obj));  // ['[object Object]'] - 하나만 남음!
+```
+
+Map은 **객체 자체를 키로** 쓸 수 있다:
+
+```javascript
+const map = new Map();
+const key1 = { id: 1 };
+const key2 = { id: 2 };
+map.set(key1, 'a');
+map.set(key2, 'b');
+console.log(map.size);  // 2 - 둘 다 살아있음
+```
+
+객체를 키로 쓸 일이 있다면 무조건 Map이다<Footnote>V8 Team, "Optimizing hash tables: hiding the hash code," v8.dev, 2018. https://v8.dev/blog/hash-code</Footnote>.
+
+## 실측 성능 비교
+
+어느 쪽이 더 빠른지는 **상황에 따라 다르다**. 아래 벤치마크 코드로 직접 확인해볼 수 있다.
+
+### 벤치마크 코드
+
+```javascript
+// benchmark.js
+// 실행: node benchmark.js
+
+const ITERATIONS = 100_000;  // 빠른 확인용. 정밀 측정 시 1_000_000 권장
+const WARMUP = 1_000;
+
+function bench(name, fn) {
+  // 워밍업: JIT 컴파일 유도
+  for (let i = 0; i < WARMUP; i++) fn();
+  
+  const start = performance.now();
+  for (let i = 0; i < ITERATIONS; i++) fn();
+  const end = performance.now();
+  
+  console.log(`${name}: ${(end - start).toFixed(2)}ms`);
+}
+
+// 테스트 데이터 준비
+const keys = Array.from({ length: 1000 }, (_, i) => `key_${i}`);
+const intKeys = Array.from({ length: 1000 }, (_, i) => i);
+
+console.log('=== 문자열 키 삽입 ===');
+bench('Object 삽입', () => {
+  const obj = {};
+  for (const k of keys) obj[k] = 1;
+});
+bench('Map 삽입', () => {
+  const map = new Map();
+  for (const k of keys) map.set(k, 1);
+});
+
+console.log('\n=== 정수 키 삽입 ===');
+bench('Object 정수키', () => {
+  const obj = {};
+  for (const k of intKeys) obj[k] = 1;
+});
+bench('Map 정수키', () => {
+  const map = new Map();
+  for (const k of intKeys) map.set(k, 1);
+});
+
+console.log('\n=== 조회 ===');
+const prefilledObj = {};
+const prefilledMap = new Map();
+for (const k of keys) {
+  prefilledObj[k] = 1;
+  prefilledMap.set(k, 1);
+}
+bench('Object 조회', () => {
+  let sum = 0;
+  for (const k of keys) sum += prefilledObj[k];
+  return sum;
+});
+bench('Map 조회', () => {
+  let sum = 0;
+  for (const k of keys) sum += prefilledMap.get(k);
+  return sum;
+});
+
+console.log('\n=== 삭제 ===');
+bench('Object delete', () => {
+  const obj = { a: 1, b: 2, c: 3, d: 4, e: 5 };
+  delete obj.c;  // 중간 프로퍼티 삭제
+  return obj.a;
+});
+bench('Map delete', () => {
+  const map = new Map([['a', 1], ['b', 2], ['c', 3], ['d', 4], ['e', 5]]);
+  map.delete('c');
+  return map.get('a');
+});
+
+console.log('\n=== delete 후 조회 성능 비교 ===');
+// Dictionary mode 전환이 후속 조회에 미치는 영향
+const fastObj = { a: 1, b: 2, c: 3, d: 4, e: 5 };
+const slowObj = { a: 1, b: 2, c: 3, d: 4, e: 5 };
+delete slowObj.c;  // Dictionary mode 전환
+
+bench('Fast Object 조회', () => fastObj.a + fastObj.b + fastObj.d + fastObj.e);
+bench('Slow Object 조회', () => slowObj.a + slowObj.b + slowObj.d + slowObj.e);
+
+console.log('\n=== 순회 ===');
+bench('Object for-in', () => {
+  let sum = 0;
+  for (const k in prefilledObj) sum += prefilledObj[k];
+  return sum;
+});
+bench('Map for-of', () => {
+  let sum = 0;
+  for (const [, v] of prefilledMap) sum += v;
+  return sum;
+});
+```
+
+### 실제 측정 결과 (Node.js 20+)
+
+| 연산 | Object | Map | 비율 |
+|------|--------|-----|------|
+| 문자열 키 삽입 | 41.4s | 28.8s | Map **1.4배** 빠름 |
+| 정수 키 삽입 | 9.6s | 22.9s | Object **2.4배** 빠름 |
+| 조회 (1000키) | 8.4s | 7.7s | 비슷 |
+| 순회 | 76.3s | 9.6s | Map **8배** 빠름 |
+| Fast vs Slow Object | 4.9ms | 27.0ms | **5.5배** 차이 |
+
+(100만 회 반복, 1000개 키 기준)
+
+**핵심 발견**: `delete`로 Dictionary mode가 된 Object는 Fast mode Object보다 조회가 **5배 이상 느려진다**. 이것이 "Object에서 delete를 피하라"는 권장의 근거다.
+
+### 삽입: Map이 대체로 빠름
+
+문자열 키 삽입은 Map이 더 빠르다. Object는 프로퍼티 추가 시 Hidden Class 전환이 발생하기 때문이다.
+
+단, **작은 정수 키(0, 1, 2...)**는 Object가 더 빠르다. V8이 이런 키를 별도의 연속 배열(Elements)로 처리하기 때문이다.
+
+### 조회: Fast mode Object가 가장 빠름
+
+Fast mode Object는 슬롯 번호를 알고 있으므로 직접 읽으면 된다. Map은 `map.get(key)` 호출, 해시 계산, 버킷 탐색 과정을 거친다.
+
+하지만 Object가 Dictionary mode로 전환되면 이 이점은 사라진다.
+
+### 삭제: Map이 압도적으로 유리
+
+여기서 두 자료구조의 차이가 가장 크다.
+
+Object에서 `delete obj.x`는 **Dictionary mode 전환을 유발**할 수 있다. 전환되면 해당 객체의 모든 프로퍼티 접근 성능이 저하된다.
+
+Map에서 `map.delete(key)`는 해당 엔트리만 제거한다. 다른 연산에 영향이 없다.
+
+V8 팀이 "해시테이블이 필요하면 Map을 써라"라고 권장하는 이유다<Footnote>S. Ostrowski, "Use Maps More and Objects Less," Builder.io, 2022. https://www.builder.io/blog/maps</Footnote>.
+
+### 순회: Map이 빠름
+
+Map의 `for...of`는 내부 배열을 쭉 읽으면 된다. Object의 `for...in`은 프로토타입 체인까지 확인해야 해서 더 느리다.
+
+## 벤치마크 주의사항
+
+직접 벤치마크를 수행할 때 주의할 점이 있다.
+
+### 워밍업
+
+V8은 처음에는 코드를 인터프리터로 실행하다가, 자주 실행되는 코드를 발견하면 JIT 컴파일로 최적화한다. 워밍업 없이 측정하면 **최적화 전 코드의 성능**을 측정하게 된다.
+
+### IC 상태
+
+같은 키로만 반복 테스트하면 IC가 Monomorphic 상태를 유지하여 비현실적으로 빠른 결과가 나온다.
+
+### Hidden Class 통일
+
+테스트용 Object들의 프로퍼티 초기화 순서가 다르면 Hidden Class가 달라진다. 이 경우 Object 성능이 인위적으로 저하된다.
+
+### Dead Code Elimination
+
+V8은 사용되지 않는 계산 결과를 제거한다. 벤치마크 결과를 출력하거나 반환해야 실제 연산이 수행된다.
+
+## 시나리오별 사용 가이드
+
+### Object를 선택해야 할 때
+
+- 고정된 구조의 레코드 (사용자 정보, 설정 객체)
+- JSON 직렬화가 필요할 때
+- 작은 정수 키
+- 소규모 컬렉션
+- 읽기 위주로 거의 수정되지 않을 때
+
+### Map을 선택해야 할 때
+
+- 키 추가/삭제가 빈번할 때
+- 사용자 입력이 키가 될 때 (프로토타입 오염 방지)
+- 객체나 함수를 키로 사용할 때
+- 대규모 컬렉션
+- 정확한 삽입 순서 보장이 필요할 때
+- `.size` 프로퍼티가 필요할 때<Footnote>"Map vs Object in JavaScript," Stack Overflow, 2013. https://stackoverflow.com/questions/18541940/map-vs-object-in-javascript</Footnote>
+
+### WeakMap을 선택해야 할 때
+
+DOM 요소나 객체에 메타데이터를 연결하되 메모리 누수를 방지하고 싶을 때. WeakMap은 키가 가비지 컬렉션되면 해당 엔트리도 자동으로 정리된다.
+
+## 결론
+
+Object와 Map의 선택은 단순한 선호도가 아닌 엔진 내부 구조에 기반한 기술적 결정이다.
+
+**실무 핵심 규칙:**
+
+1. **Object에서 delete를 사용하지 말 것**. 프로퍼티를 "삭제"해야 한다면 `undefined`로 설정하거나, 처음부터 Map을 사용하라.
+
+2. **Hidden Class 전환을 최소화할 것**. 생성자에서 모든 프로퍼티를 같은 순서로 초기화하라.
+
+이 두 가지 습관만으로도 대부분의 성능 문제를 예방할 수 있다.
+
+<Footnotes />
+
