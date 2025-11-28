@@ -462,11 +462,10 @@ const getLayoutedElements = (
   }
   
   // Node placement (Left-to-Right layout)
-  // 모바일 대응: 노드 간격 축소
   Object.entries(levels).forEach(([depthStr, ids]) => {
     const depth = parseInt(depthStr);
-    const nodeHeight = 130; // Height + Gap (축소: 180 → 130)
-    const nodeWidth = 160; // Width (축소: 250 → 160)
+    const nodeHeight = 160; // 수직 간격
+    const nodeWidth = 220; // 수평 간격 (노드 간 폭)
     const totalHeight = ids.length * nodeHeight;
     const startY = -totalHeight / 2 + nodeHeight / 2;
     
