@@ -1,0 +1,78 @@
+---
+title: "The Secretary Problem and the 37% Rule"
+date: "2025-01-15"
+description: "An English explanation of the optimal stopping strategy, complete with the same interactive simulator and a bonus hiring exercise."
+tags: ["algorithm", "probability", "optimization", "decision-making", "math"]
+hidden: true
+---
+
+# The Secretary Problem
+
+You are the HR lead who must interview 100 candidates **one by one**. After each interview you must **decide immediately**. A rejected candidate cannot return. The goal is to hire the single best person.
+
+What should you do?
+
+## The 37% (1/e) rule
+
+The mathematically proven answer:
+
+1. **Observe** the first 37% of candidates without hiring anyone.
+2. **Select** the first candidate who is better than everyone you have seen so far.
+
+Following that rule yields a success probability of roughly **37%**, far better than a random pick.
+
+## Interactive simulation
+
+<SecretaryProblem numCandidates={20} />
+
+## Why 37%?
+
+If there are $n$ candidates and you only observe the first $r$, the success probability is
+
+$$
+P(r) = \frac{r}{n} \sum_{i=r+1}^{n} \frac{1}{i-1}
+$$
+
+Maximizing the expression leads to $r/n = 1/e \approx 0.368$ as $n \to \infty$.
+
+## Real-life applications
+
+1. **Hiring**: design interview flows and decision checkpoints.
+2. **Real estate**: decide when to stop touring and make an offer.
+3. **Dating**: determine when to commit.
+4. **Trading**: pick buy/sell moments.
+5. **Parking**: skip the first few spots and then take the first good one.
+
+## Variants
+
+1. **Multiple winners**: what if you can hire the top $k$ candidates?
+2. **Recallable candidates**: can you invite people back later?
+3. **Noisy rankings**: what if your evaluations contain measurement error?
+
+## Key insights
+
+> **Even with incomplete information, a structured policy can approximate the optimal outcome.**
+
+1. **Exploration**: observe enough samples to build a baseline.
+2. **Commitment**: once you have a baseline, act decisively.
+3. **Balance**: neither rush nor wait forever.
+
+## Mathematical beauty
+
+The fact that the answer is tied to the natural constant $e$ is striking. The same constant appears in compound interest, probability distributions, and natural growth, hinting that optimal stopping is deeply connected to broader laws of nature.
+
+## Bonus hiring drill
+
+Set the simulator to 40 candidates:
+
+1. Observe the first 14 candidates (≈35%).
+2. Record the highest score during exploration.
+3. Starting with candidate 15, hire the first person who beats that benchmark.
+
+Repeat the exercise a few times—your intuition for where the cutoff should be will quickly align with the math.
+
+## References
+
+- Ferguson, T. S. (1989). “Who Solved the Secretary Problem?”
+- Gilbert, J., & Mosteller, F. (1966). “Recognizing the Maximum of a Sequence.”
+- “Algorithms to Live By,” Brian Christian & Tom Griffiths.

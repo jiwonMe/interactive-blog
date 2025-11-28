@@ -1,0 +1,88 @@
+---
+title: '[V8 Deep Dives] Understanding Array Internals'
+date: '2025-11-26'
+description: 'An English translation of the V8 array deep dive that inspects elements kinds, dictionary mode, memory layout, and benchmarks.'
+author: 'Jiwon Park'
+tags: ['v8', 'javascript', 'array', 'elements-kind', 'internals']
+series: 'V8 Deep Dives'
+seriesOrder: 2
+image: '/images/articles/v8-array-internals/images/og-image.png'
+---
+
+> This is the English edition of Andrey Pechkurov’s “V8 Deep Dives: Understanding Array Internals,” published with the author’s permission.<Footnote>https://itnext.io/v8-deep-dives-understanding-array-internals-5b17d872a0</Footnote>
+
+Previously we dissected ES6 `Map` and `Set`. Now let’s demystify JavaScript arrays from V8’s point of view. The article assumes a 64‑bit build of V8 8.9 (Node.js commit `49342fe`); details may change across releases.
+
+## Hands-on REPL tour
+
+Launch Node with native syntax enabled:
+
+```bash
+node --allow-natives-syntax
+```
+
+`%DebugPrint()` exposes the internal representation of any value. For an empty array we see:
+
+```javascript
+const arr = [];
+%DebugPrint(arr);
+```
+
+```
+[JSArray]
+- elements: <FixedArray[0]> [PACKED_SMI_ELEMENTS]
+- length: 0
+```
+
+An element kind such as `PACKED_SMI_ELEMENTS` tells V8 what types live inside the array. The more specific the kind, the more aggressively V8 can optimize array operations.
+
+## Elements kinds
+
+The moment an array stores something other than small integers (Smis<Footnote>https://medium.com/fhinkel/v8-internals-how-small-is-a-small-integer-e0badc18b6da</Footnote>) or introduces holes, the kind degrades to a more generic variant. Importantly, kinds only move **downhill**—once you leave `PACKED_SMI_ELEMENTS`, you never go back.
+
+### Capacity growth
+
+Pushing a single value inflates the backing store up to 17 slots because V8 allocates headroom:
+
+```
+new_capacity = (old_capacity + 50%) + 16
+```
+
+That amortizes `push()` to $O(1)$ time.
+
+### Holes and HOLEY kinds
+
+Assigning `arr[2] = 0` while `arr[1]` is unset introduces holes and flips the kind to `HOLEY_SMI_ELEMENTS`. Iteration becomes slower because V8 must skip the hole markers.
+
+### Dictionary elements
+
+Setting a very large index, e.g., `arr[32 << 20] = 0`, forces V8 to switch from a packed array to a hash-table-based `NumberDictionary`<Footnote>https://github.com/nodejs/node/blob/49342fe6f2ca6cedd5219d835a0a810e6f03cdd7/deps/v8/src/objects/dictionary.h#L301</Footnote>. This keeps sparse arrays memory efficient but significantly slows down operations. The dictionary threshold is roughly 32 × 2²⁰ entries (~33.5M), so packed arrays top out at ~268 MB.
+
+## Microbenchmarks (warning: illustrative only)
+
+| Elements kind | Traversal speed |
+|---------------|----------------|
+| PACKED | 100% (baseline) |
+| HOLEY | ~77% |
+| DICTIONARY | ~1% |
+
+`push()`/`pop()` tests show dictionary elements lagging by roughly three orders of magnitude.
+
+> Disable JIT with `--jitless` to see how important optimized code paths are; the gap shrinks but never disappears.
+
+## Summary
+
+- Every array tracks an elements kind that dictates the fast path.
+- V8 over-allocates backing storage so that push/pop stay amortized $O(1)$.
+- Sparse or giant arrays eventually become dictionary-backed hash tables.
+- Packed vs dictionary code paths can differ by 100× or more.
+
+## Bonus exercise: tracing kind transitions
+
+1. Start with `const arr = [];`.
+2. Push Smis, doubles, and objects in different orders.
+3. After each change, run `%DebugPrint(arr)` and note how the elements kind degrades.
+
+Document the sequence—you will quickly memorize which operations keep you on the fast path.
+
+<Footnotes />

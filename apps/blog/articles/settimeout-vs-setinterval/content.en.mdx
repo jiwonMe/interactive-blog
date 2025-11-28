@@ -1,0 +1,132 @@
+---
+title: 'A Deep Dive into setTimeout vs setInterval (English Edition)'
+description: 'An English research-style walkthrough that mirrors the Korean article while adding a bonus drift-aware stopwatch exercise.'
+date: '2025-11-21'
+author: 'Jiwon Park'
+affiliate: 'Hanyang University, Seoul'
+tags: ['JavaScript', 'Event Loop', 'Timers', 'Performance', 'Node.js', 'Browser', 'Research']
+hidden: true
+---
+
+JavaScript developers lean on `setTimeout` and `setInterval` for almost every asynchronous task. Yet the two APIs behave very differently once you factor in the event loop, timer clamping, drift, and cleanup strategy. This English version covers the same ground as the Korean article so that multilingual readers can share a single set of diagrams and experiments.
+
+## 1. Definitions
+
+`setTimeout` schedules a callback **once** after the requested delay<Footnote>Understanding JavaScript event-based interactions - ACM Digital Library, https://dl.acm.org/doi/abs/10.1145/2568225.2568268</Footnote>.  
+`setInterval` schedules a callback **repeatedly** at roughly the requested cadence<Footnote>Events and Timers - Springer, https://link.springer.com/chapter/10.1007/978-1-4302-5861-2_4</Footnote>.
+
+Both APIs return an integer ID that you can pass into `clearTimeout`/`clearInterval`<Footnote>Timeouts Best Practices - OSTI, https://www.osti.gov/biblio/2545700</Footnote>.
+
+## 2. Event loop mechanics
+
+JavaScript is single threaded, so timers rely on the call stack, the event loop, and the task queue<Footnote>Reasoning about the node.js event loop using async graphs - IEEE Xplore, https://ieeexplore.ieee.org/abstract/document/8661173/</Footnote>.
+
+<EventLoopSimulator />
+
+Hit **“메인 스레드 600ms 블로킹”** in the simulator above and watch every mode drift. The “corrected timeout” mode compensates by adjusting the next delay dynamically.
+
+## 3. Key differences at a glance
+
+| Feature | setTimeout | setInterval |
+|--------|------------|-------------|
+| Execution | Single shot | Repeats |
+| Drift | Small when self-recursing | Accumulates quickly |
+| Cancellation | `clearTimeout(id)` | `clearInterval(id)` |
+| Use case | Debounce, precise loops | Simple heartbeats |
+
+The table mirrors Mike Bostock’s original write-up but is tailored to the interactive widgets in this repo<Footnote>Hands-on Node.js - Leanpub, https://dl.ebooksworld.ir/sooth3r/javascript/Leanpub.Hands-on.Node.js.Dec.2013.www.EBooksWorld.ir.pdf</Footnote>.
+
+## 4. Drift analysis
+
+Drift describes how far the **actual** timestamp deviates from the **expected** timestamp<Footnote>Internal Clock Drift Estimation in Computer Clusters - Wiley, https://onlinelibrary.wiley.com/doi/10.1155/2008/583162</Footnote>. Causes include:
+
+1. Event loop congestion<Footnote>A comprehensive study on real world concurrency bugs in Node.js - IEEE Xplore, https://ieeexplore.ieee.org/abstract/document/8115663/</Footnote>.
+2. Browser throttling in background tabs<Footnote>SoK: In Search of Lost Time - IEEE Xplore, https://ieeexplore.ieee.org/document/9581218/</Footnote>.
+3. Hardware and OS timer resolution<Footnote>Fantastic timers and where to find them - Springer, https://link.springer.com/chapter/10.1007/978-3-319-70972-7_13</Footnote>.
+
+<IntervalDriftChart />
+
+Use the chart to compare Chromium, Firefox, Safari, and Node.js under various loads.  
+`setInterval` keeps queueing callbacks even if earlier invocations are still running, so the errors accumulate<Footnote>Periodic timers revisited - Elsevier, https://linkinghub.elsevier.com/retrieve/pii/S0045790611000309</Footnote>.
+
+<TimerAccuracyTester />
+
+The tester highlights how modern browsers clamp sub-4ms delays for security reasons<Footnote>30 seconds is not enough! - ACM Digital Library, https://dl.acm.org/doi/abs/10.1145/1357010.1352614</Footnote>.
+
+## 5. Strategies to minimize drift
+
+### Recursive setTimeout pattern
+
+```javascript
+(function loop() {
+  const startedAt = performance.now();
+  // ...work...
+  const elapsed = performance.now() - startedAt;
+  const delay = Math.max(0, 1000 - elapsed);
+  setTimeout(loop, delay);
+})();
+```
+
+The loop above measures the work cost and compensates the next delay accordingly<Footnote>A Sense of Time for JavaScript and Node.js - USENIX, https://www.usenix.org/conference/usenixsecurity18/presentation/davis</Footnote>.
+
+### Extra safeguards
+
+- Dynamically adjust `setTimeout` based on `(targetTime - now)`<Footnote>Interval timing - Nature, https://www.nature.com/articles/nrn1764-c1</Footnote>.
+- Track cumulative error and periodically reset.
+- Monitor event-loop lag in Node.js before scheduling work<Footnote>Assessing the security of Node.js platform - IEEE Xplore, https://ieeexplore.ieee.org/abstract/document/6470829/</Footnote>.
+
+### Environment-specific notes
+
+- **Browser**: prefer `requestAnimationFrame` for anything tied to paint cycles<Footnote>Games and Animations - eCampus Ontario, https://ecampusontario.pressbooks.pub/webdev/chapter/games-and-animations/</Footnote>.
+- **Node.js**: offload CPU-heavy work to worker threads or native addons to avoid starving the loop<Footnote>Efficient dynamic analysis for Node.js - ACM Digital Library, https://dl.acm.org/doi/10.1145/3178372.3179527</Footnote>.
+
+## 6. Correct usage and pitfalls
+
+### setTimeout shines when
+
+1. You need a one-off delay (e.g., tooltips, debounced searches)<Footnote>Applying Timeout Effectively - Sage, https://sk.sagepub.com/book/mono/difficult-behavior-in-early-childhood/chpt/applying-timeout-effectively</Footnote>.
+2. You build a precise loop with drift correction.
+
+### setInterval shines when
+
+1. The workload is light and timing is forgiving<Footnote>setInterval (): Time-Based Readings of Kinetic Poetry - University of Bergen, https://bora.uib.no/bora-xmlui/handle/1956/17267</Footnote>.
+2. You need a heartbeat ping or analytics beacon.
+
+### Pitfalls
+
+- Overlapping callbacks cause massive slowdowns<Footnote>Making JavaScript better by making it even slower - IEEE Xplore, https://ieeexplore.ieee.org/abstract/document/6730750/</Footnote>.
+- Forgetting to clear timer IDs leaks memory<Footnote>Securing timeout instructions in web applications - IEEE Xplore, https://ieeexplore.ieee.org/abstract/document/5230485/</Footnote>.
+- Attackers can weaponize timers for DoS or side-channel attacks<Footnote>ConScript: Specifying and enforcing fine-grained security policies for JavaScript - IEEE Xplore, https://ieeexplore.ieee.org/abstract/document/5504806/</Footnote><Footnote>GUARDIA: specification and enforcement of javascript security policies without VM modifications - ACM Digital Library, https://dl.acm.org/doi/abs/10.1145/3237009.3237025</Footnote>.
+
+<MemoryLeakVisualizer />
+
+The visualizer stresses why abandoned timers quickly snowball into leaks.
+
+## 7. Alternatives and future work
+
+- **requestAnimationFrame** for paint-aligned work<Footnote>Approaches towards the Comparison and Utilization of JavaScript Animation Libraries - Semantic Scholar, https://www.semanticscholar.org/paper/d442ec388e9838bba2d5802dfa1e1a2ffe94f898</Footnote>.
+- **Web Workers** for CPU-heavy or off-main-thread timers<Footnote>Modeling the HTML DOM and browser API in static analysis of JavaScript web applications - ACM Digital Library, https://dl.acm.org/doi/abs/10.1145/2025113.2025125</Footnote>.
+- **Web Audio API** for sub-millisecond accuracy in synths and DAWs<Footnote>Alternatives to Lookahead Audio Scheduling - Semantic Scholar, https://www.semanticscholar.org/paper/4760eee36caba54d3e0a5027ffd7d21550b157e4</Footnote>.
+
+<TimerComparisonPlayground />
+
+The playground lets you compare all three APIs in real time.
+
+### Standardization outlook
+
+TC39 and WHATWG continue to explore deterministic timing for IoT and security-hardening for browsers<Footnote>Optimal Language Design is Hard - Semantic Scholar, https://www.semanticscholar.org/paper/c9493bd79b18b893f93638d4c0d866c8543daff7</Footnote><Footnote>Deterministic timing for the industrial internet of things - IEEE Xplore, https://ieeexplore.ieee.org/abstract/document/8539099/</Footnote><Footnote>A JavaScript extension providing deterministic temporal semantics for the Internet of Things - UC Berkeley, https://www2.eecs.berkeley.edu/Pubs/TechRpts/2017/EECS-2017-136.pdf</Footnote><Footnote>Reining in the web with content security policy - ACM Digital Library, https://dl.acm.org/doi/abs/10.1145/1772690.1772784</Footnote><Footnote>Static detection of user-specified security vulnerabilities in client-side javascript - ACM Digital Library, https://dl.acm.org/doi/abs/10.1145/2993600.2993612</Footnote>.
+
+## Bonus exercise: build a drift-aware stopwatch
+
+1. Use a recursive `setTimeout` loop as shown earlier.
+2. Track the **ideal** timestamp (next tick) and the **actual** timestamp (performance.now()).
+3. Display both values side-by-side.  
+4. Save the cumulative error and graph it with `<IntervalDriftChart />`.
+
+This tiny project cements everything you learned about drift, clamping, and compensation.
+
+## Conclusion
+
+`setTimeout` and `setInterval` look deceptively similar, but their trade-offs diverge once you inspect drift, cleanup, and security. Learn the patterns above, combine them with the interactive demos, and you will be able to explain every timing anomaly you encounter in production.
+
+<Footnotes />

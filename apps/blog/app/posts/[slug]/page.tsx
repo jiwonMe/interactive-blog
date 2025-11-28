@@ -25,12 +25,18 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ 
-  params 
+  params,
+  searchParams,
 }: { 
-  params: Promise<{ slug: string }> 
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ lang?: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const requestedLocale = typeof resolvedSearchParams.lang === 'string' 
+    ? resolvedSearchParams.lang.toLowerCase() 
+    : undefined;
+  const post = getPostBySlug(slug, requestedLocale);
 
   if (!post) {
     return {
@@ -107,12 +113,22 @@ function formatDate(dateString?: string) {
   return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-export default async function Post({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Post({ 
+  params,
+  searchParams,
+}: { 
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ lang?: string }>;
+}) {
   const { slug } = await params; 
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const requestedLocale = typeof resolvedSearchParams.lang === 'string'
+    ? resolvedSearchParams.lang.toLowerCase()
+    : undefined;
   
   // Admin 인증 상태 확인
   const isAdmin = await isAdminAuthenticated();
-  const post = getPostBySlug(slug);
+  const post = getPostBySlug(slug, requestedLocale);
 
   if (!post) {
     notFound();
@@ -124,7 +140,19 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
     notFound();
   }
 
-  const seriesPosts = post.series ? getSeriesPosts(post.series) : [];
+  const seriesPosts = post.series ? getSeriesPosts(post.series, post.locale) : [];
+
+  const buildLocaleHref = (targetLocale: string) => {
+    return targetLocale === post.defaultLocale
+      ? `/posts/${post.slug}`
+      : `/posts/${post.slug}?lang=${targetLocale}`;
+  };
+
+  const buildLocalizedPostHref = (targetSlug: string) => {
+    return post.locale === post.defaultLocale
+      ? `/posts/${targetSlug}`
+      : `/posts/${targetSlug}?lang=${post.locale}`;
+  };
 
   return (
     <div 
@@ -288,6 +316,51 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
               ))}
             </div>
           )}
+
+          {post.availableLocales.length > 1 && (
+            <div
+              className={cn(
+                /* layout */
+                "flex flex-wrap items-center gap-2",
+                /* spacing */
+                "mt-6"
+              )}
+            >
+              <span
+                className={cn(
+                  /* typography */
+                  "text-xs font-semibold uppercase tracking-wide",
+                  /* color */
+                  "text-zinc-500 dark:text-zinc-400"
+                )}
+              >
+                Language
+              </span>
+              {post.availableLocales.map((locale) => {
+                const isActive = locale === post.locale;
+                return (
+                  <Link
+                    key={locale}
+                    href={buildLocaleHref(locale)}
+                    replace
+                    scroll={false}
+                    className={cn(
+                      /* layout */
+                      "px-3 py-1 rounded-md text-xs font-semibold",
+                      /* transition */
+                      "transition-colors duration-200",
+                      /* active colors */
+                      isActive && "bg-blue-600 text-white dark:bg-blue-500",
+                      /* inactive colors */
+                      !isActive && "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    )}
+                  >
+                    {locale.toUpperCase()}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </header>
 
         {post.series && seriesPosts.length > 0 && (
@@ -325,7 +398,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                     </span>
                   ) : (
                     <Link 
-                      href={`/posts/${p.slug}`}
+                      href={buildLocalizedPostHref(p.slug)}
                       className={cn(
                         "hover:underline decoration-blue-500/30 underline-offset-4",
                         "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
@@ -359,7 +432,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                  <>
                    {prevPost ? (
                      <Link 
-                       href={`/posts/${prevPost.slug}`}
+                      href={buildLocalizedPostHref(prevPost.slug)}
                        className={cn(
                          "group p-4 rounded-lg border transition-all",
                          "border-zinc-200 dark:border-zinc-800",
@@ -375,7 +448,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
 
                    {nextPost ? (
                      <Link 
-                       href={`/posts/${nextPost.slug}`}
+                      href={buildLocalizedPostHref(nextPost.slug)}
                        className={cn(
                          "group p-4 rounded-lg border transition-all text-right",
                          "border-zinc-200 dark:border-zinc-800",

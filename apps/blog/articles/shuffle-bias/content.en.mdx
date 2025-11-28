@@ -1,0 +1,99 @@
+---
+title: 'Visualizing Shuffle Bias'
+date: '2025-11-21'
+description: 'An English version of the shuffle-bias article that recreates Mike Bostock’s experiment with D3 + React and adds a bonus fairness checklist.'
+author: 'JIWON'
+tags: ['algorithm', 'visualization', 'd3', 'random']
+hidden: true
+---
+
+# Visualizing Shuffle Bias
+
+Mike Bostock’s “Will It Shuffle?” showed how biased shuffles reveal themselves visually<Footnote>https://bost.ocks.org/mike/shuffle/compare.html</Footnote>. This English article mirrors the Korean write-up so you can compare outputs across locales.
+
+## What does “fair” mean?
+
+If a shuffle is fair, every element has the same probability ($1/N$) of landing in any position after the shuffle.
+
+## Matrix diagram
+
+The interactive diagram runs thousands of shuffles and aggregates the results.
+
+- **Row ($i$)**: original position.
+- **Column ($j$)**: final position.
+- **Color scale**:
+  - <span style={{color: "#e66101", fontWeight: "bold"}}>Orange</span>: shows up **more** than expected.
+  - <span style={{color: "#f7f7f7", backgroundColor: "#333", padding: "0 4px"}}>White</span>: matches expectation.
+  - <span style={{color: "#5e3c99", fontWeight: "bold"}}>Purple</span>: shows up **less** than expected.
+
+<ShuffleVisualizer />
+
+## 1. Random Comparator (bad)
+
+The infamous `array.sort(() => Math.random() - 0.5)` fails because the comparator violates transitivity. Sort algorithms assume consistent ordering; once that assumption breaks, runs inside the array stay half-sorted and cling to the diagonal.
+
+```javascript
+// ❌ Never do this
+function randomComparatorShuffle(items) {
+  return items.sort(() => Math.random() - 0.5);
+}
+```
+
+### Entropy mismatch
+
+An $N$-element shuffle needs $\log_2(N!)$ bits of entropy. A comparison sort only provides $O(N \log N)$ comparisons and, worse, those comparisons are inconsistent. The mismatch creates bias.
+
+### V8-specific behavior
+
+V8 uses insertion sort for tiny arrays and TimSort for large ones. Random comparator keeps partial runs intact, which is why the diagonal glows bright orange.
+
+## 2. Naive Swap (still biased)
+
+Swapping each element with a random index produces $N^N$ possible trajectories, but only $N!$ permutations exist. Because $N^N$ is not divisible by $N!`, some permutations inevitably occur more often.
+
+```javascript
+// ❌ Subtle bias
+function naiveSwapShuffle(items) {
+  for (let i = 0; i < items.length; i++) {
+    const j = Math.floor(Math.random() * items.length);
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+}
+```
+
+## 3. Fisher–Yates (correct)
+
+```javascript
+// ✅ Perfect shuffle
+function fisherYatesShuffle(items) {
+  for (let i = items.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+  return items;
+}
+```
+
+Fisher–Yates produces exactly $N!$ equally likely permutations. Each step picks from the remaining pool, so the probability of any concrete permutation is $1/N!$.
+
+### Proof sketch
+
+Induction shows that every element has $1/N$ chance of occupying any slot:
+
+- Base case ($N = 1$): trivial.
+- Inductive step: fix the last slot (probability $1/N$), then recursively shuffle the rest ($1/(N-1)!$). Multiply them to get $1/N!$.
+
+## Bonus fairness checklist
+
+When reviewing a shuffle implementation, confirm the following:
+
+1. **Decrementing pool**: each pick comes from the shrinking suffix.
+2. **Uniform RNG**: use `Math.random()` or a stronger source with the same interval.
+3. **No replacement**: once an item is locked into place, it is never touched again.
+4. **Tests + visualization**: run both statistical tests and the matrix diagram to expose hidden bias.
+
+## Conclusion
+
+Small algorithmic differences create massive distribution changes. Whenever randomness matters—games, crypto, sampling—reach for Fisher–Yates and verify it visually.
+
+<Footnotes />

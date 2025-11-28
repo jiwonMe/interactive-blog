@@ -10,9 +10,9 @@
 mkdir apps/blog/articles/my-new-post
 ```
 
-## 2. content.mdx 작성
+## 2. content.<locale>.mdx 작성
 
-생성한 폴더 안에 `content.mdx` 파일을 만들고 다음과 같이 작성합니다. `date`는 반드시 `YYYY-MM-DD` 형식을 지켜야 합니다.
+생성한 폴더 안에 기본 언어(한국어)의 파일을 `content.ko.mdx` 이름으로 생성합니다. `date`는 반드시 `YYYY-MM-DD` 형식을 지켜야 하며, 필요한 경우 동일한 구조로 `content.en.mdx`, `content.ja.mdx` 등 다양한 언어 버전을 추가할 수 있습니다.
 
 ```mdx
 ---
@@ -30,6 +30,12 @@ seriesOrder: 1 (선택)
 
 여기에 내용을 작성합니다.
 ```
+
+> **파일 네이밍 규칙**
+>
+> - `content.ko.mdx`: 한국어 기본 버전 (필수)
+> - `content.en.mdx`: 영어 버전 (선택)
+> - `content.<locale>.mdx`: 기타 언어 (선택, 예: `content.ja.mdx`)
 
 ### 메타데이터 필드 설명
 
@@ -87,7 +93,7 @@ seriesOrder: 1 (선택)
 
 ```bash
 apps/blog/articles/my-new-post/
-├── content.mdx
+├── content.ko.mdx
 └── components/
     └── my-interactive-demo.tsx
 ```
@@ -111,7 +117,7 @@ apps/blog/articles/my-new-post/
      ),
    };
    ```
-4. 이제 `content.mdx`에서 `<MyInteractiveDemo />` 태그를 사용할 수 있습니다.
+4. 이제 `content.<locale>.mdx`에서 `<MyInteractiveDemo />` 태그를 사용할 수 있습니다.
 
 ## 4. 시리즈 작성
 
@@ -124,4 +130,11 @@ series: '나의 멋진 시리즈'
 seriesOrder: 1
 ---
 ```
+
+## 5. 다국어 버전 추가
+
+1. 기본 한국어 파일을 기준으로 번역할 언어 수만큼 `content.<locale>.mdx` 파일을 추가합니다. 예를 들어 영어 번역을 추가하려면 `content.en.mdx` 파일을 생성합니다.
+2. 각 파일은 독립적으로 Frontmatter를 가질 수 있으므로, 제목과 설명을 해당 언어에 맞게 조정할 수 있습니다.
+3. 빌드 시 자동으로 가용 언어 목록이 계산되며, 페이지 상단에서 언어 스위처가 제공됩니다.
+4. 특정 언어를 기본값으로 사용하고 싶다면 해당 언어 파일을 `content.ko.mdx`와 동일한 내용으로 유지한 뒤, 코드에서 `DEFAULT_LOCALE`을 변경하면 됩니다.
 
