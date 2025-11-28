@@ -11,7 +11,7 @@ function cn(...inputs: ClassValue[]) {
 interface CollapsibleCodeProps {
   /** 접힌 상태에서 보여줄 제목 */
   title: string;
-  /** 코드 블록 children (pre 태그가 들어옴) */
+  /** 코드 블록 children (rehype-pretty-code가 생성한 figure > pre 구조) */
   children: React.ReactNode;
   /** 기본 열림 상태 */
   defaultOpen?: boolean;
@@ -119,10 +119,29 @@ export const CollapsibleCode = ({
           )}
         >
           {/* 
-            children으로 들어오는 pre 태그의 margin을 제거하기 위해 
-            [&>pre]:my-0 클래스 적용 
+            rehype-pretty-code가 생성한 구조: figure[data-rehype-pretty-code-figure] > pre > code
+            - figure의 margin 제거
+            - pre의 margin, border, rounded 제거
           */}
-          <div className="[&>pre]:my-0 [&>pre]:rounded-none [&>pre]:border-0">
+          <div
+            className={cn(
+              // figure 스타일 초기화 (rehype-pretty-code가 생성)
+              '[&>figure]:my-0',
+              // figure 내부 pre 스타일 초기화
+              '[&>figure>pre]:my-0',
+              '[&>figure>pre]:rounded-none',
+              '[&>figure>pre]:border-0',
+              // fallback: 직접 pre가 children인 경우
+              '[&>pre]:my-0',
+              '[&>pre]:rounded-none',
+              '[&>pre]:border-0',
+              // CodeBlock wrapper 스타일 초기화
+              '[&>div]:mb-0',
+              '[&>div>pre]:my-0',
+              '[&>div>pre]:rounded-none',
+              '[&>div>pre]:border-0'
+            )}
+          >
             {children}
           </div>
         </div>
