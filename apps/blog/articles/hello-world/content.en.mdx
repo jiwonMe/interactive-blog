@@ -1,0 +1,51 @@
+---
+title: 'Hello Interactive World (English Edition)'
+date: '2025-11-20'
+description: 'A concise English walkthrough of the colocated article system with an extra example that shows how locale-specific MDX stays in sync with interactive components.'
+author: 'JIWON'
+image: '/images/hello-world-og.png'
+tags: ['example', 'interactive']
+hidden: true
+---
+
+# Hello Interactive World
+
+Welcome to the English version of our very first article that uses the new `apps/blog/articles/*` structure.
+
+## How the folders are organized
+
+Every article owns a dedicated folder that contains both the prose (`content.<locale>.mdx`) and any custom components (`components/*`).
+
+```bash
+apps/blog/articles/
+└── hello-world/
+    ├── content.ko.mdx
+    ├── content.en.mdx
+    └── components/
+        └── counter.tsx
+```
+
+The language suffix (`ko`, `en`, ...) is what powers the locale switcher on the article page. If a locale file is missing, the page gracefully falls back to the default (`ko`).
+
+## Embedded interactive component
+
+The counter below lives right next to this MDX file inside `components/counter.tsx`.
+
+<Counter />
+
+## Code block sample
+
+```typescript showLineNumbers
+export function Counter() {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
+}
+```
+
+## Bonus example: wiring another locale
+
+1. Duplicate `content.ko.mdx` into `content.ja.mdx`.
+2. Translate only the prose—component imports stay untouched.
+3. Refresh the article page and use the locale chips at the top to confirm that Korean, English, and Japanese now share the same interactive counter.
+
+That is all you need to keep translations and interactive demos in perfect sync.

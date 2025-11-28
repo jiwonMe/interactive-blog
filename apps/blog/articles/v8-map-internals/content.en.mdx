@@ -1,0 +1,93 @@
+---
+title: '[V8 Deep Dives] Map Internals Explained'
+date: '2025-11-26'
+description: 'English translation of the V8 Map article, covering deterministic hash tables, capacity rules, hashing, and benchmarks.'
+author: 'Jiwon Park'
+tags: ['v8', 'javascript', 'map', 'hash-table', 'internals']
+image: '/images/articles/v8-map-internals/images/og-image.png'
+series: 'V8 Deep Dives'
+seriesOrder: 1
+---
+
+> This article is the English edition of Andrey Pechkurov’s “V8 Deep Dives: Understanding Map Internals,” reprinted with permission.<Footnote>https://itnext.io/v8-deep-dives-understanding-map-internals-45eb94a183df</Footnote>
+
+Map, Set, WeakMap, and WeakSet arrived with ES6, but the specification intentionally avoids dictating how engines must implement them. V8 adopts Tyler Close’s **deterministic hash table** so that lookups stay $O(1)$ while iteration preserves insertion order.
+
+## Core data structure
+
+```typescript
+interface CloseTable {
+  hashTable: number[];
+  dataTable: Entry[];
+  nextSlot: number;
+}
+
+interface Entry {
+  key: any;
+  value: any;
+  chain: number;
+}
+```
+
+- `hashTable` stores bucket heads.
+- `dataTable` stores entries in insertion order.
+- `chain` links entries that land in the same bucket.
+
+Deleting an entry clears its slot but does not reclaim the index; rehashing compacts the structure when necessary.
+
+## Visual example
+
+Insert `(0,'a')`, `(1,'b')`, `(2,'c')` into a table with two buckets:
+
+```
+hashTable                 dataTable
+┌────────┬──────┐         ┌──────┬─────┬───────┬───────┐
+│ bucket │ head │         │ slot │ key │ value │ chain │
+├────────┼──────┤         ├──────┼─────┼───────┼───────┤
+│   0    │  0 ──┼────────▶│  0   │  0  │  'a'  │   2 ──┼──┐
+│   1    │  1 ──┼────────▶│  1   │  1  │  'b'  │  -1   │  │
+└────────┴──────┘         │  2   │  2  │  'c'  │  -1   │◀─┘
+                          │  3   │     │       │       │ ← nextSlot
+```
+
+Deletion simply rewires the chains. Iterating a Map is as easy as scanning `dataTable` from slot 0 to `nextSlot - 1`, which is why insertion order is preserved.
+
+## Capacity rules
+
+- Bucket count is always a power of two.
+- Load factor is fixed at 2 (capacity = buckets × 2).
+- A fresh Map starts with 2 buckets (capacity 4).
+- Once `size > capacity`, V8 rehashes into a table with twice as many buckets.
+- Shrinking happens when `size < buckets / 2`.
+
+On 64-bit builds, Maps max out around $2^{27}$ entries (~16.7M) because of pointer compression limits.
+
+## Hashing
+
+- **Numbers**: custom hash function with low collision rate.<Footnote>https://github.com/nodejs/node/blob/238104c531219db05e3421521c305404ce0c0cce/deps/v8/src/utils/utils.h#L213</Footnote>
+- **Strings/Symbols**: computed from the string contents and cached.<Footnote>https://github.com/nodejs/node/blob/238104c531219db05e3421521c305404ce0c0cce/deps/v8/src/objects/string.cc#L1338</Footnote>
+- **Objects**: assigned a random hash stored in the object header.<Footnote>https://github.com/nodejs/node/blob/238104c531219db05e3421521c305404ce0c0cce/deps/v8/src/execution/isolate.cc#L3785</Footnote>
+
+## Complexity
+
+- `set`, `get`, `delete`: expected $O(1)$.
+- Rehash: $O(N)$ because every entry moves.
+
+## Memory layout
+
+Entries live in a contiguous `FixedArray` that looks like this:
+
+<Image src="images/memory-layout.webp" alt="Memory Layout" width={1000} height={1000} style={{ backgroundColor: 'white' }} />
+
+Each slot packs key, value, and chain pointers. A capacity of $2^{20}$ consumes roughly 29 MB (assuming 8-byte pointers).
+
+## Bonus checklist: when to pick Map
+
+1. Keys need to be objects or other non-string types.
+2. You rely on insertion order.
+3. The workload involves frequent insert/delete operations.
+4. You need `.size` or you want to avoid prototype pollution.
+
+If none of those apply and your data has a rigid schema, a plain object with stable hidden classes may still be faster.
+
+<Footnotes />

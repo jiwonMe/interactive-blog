@@ -1,0 +1,104 @@
+---
+title: '[V8 Deep Dives] Object vs Map'
+date: '2025-11-28'
+description: 'English translation of the Object vs Map analysis, covering hidden classes, inline caches, dictionary mode, benchmarks, and decision checklists.'
+author: 'Jiwon Park'
+tags: ['v8', 'javascript', 'object', 'map', 'hidden-class', 'performance']
+series: 'V8 Deep Dives'
+seriesOrder: 3
+hidden: true
+---
+
+**Which should you choose, Object or Map?**  
+From V8’s perspective: Objects scream when their structure is stable, whereas Maps are optimized as flexible key–value stores from day one.
+
+> This English version builds on the Korean deep dive and cites the same sources, including the original V8 blog posts.<Footnote>V8 Team, "Maps (Hidden Classes) in V8," v8.dev, 2024. https://v8.dev/docs/hidden-classes</Footnote>
+
+## Hidden classes make Objects fast
+
+```javascript
+const obj = {};
+obj.x = 1; // Hidden class: C0 → C1
+obj.y = 2; // Hidden class: C1 → C2
+```
+
+Hidden classes act like blueprints that map property names to fixed slots.<Footnote>V8 Team, "Design Elements - Fast Property Access," V8 Wiki</Footnote>  
+Two objects that add the same properties in the same order share the same hidden class:
+
+```javascript
+const a = {}; a.x = 1; a.y = 2;
+const b = {}; b.x = 10; b.y = 20;
+```
+
+### Inline caches (ICs)
+
+ICs record that “hidden class C2 stores `x` in slot 0”. As long as the call site sees one hidden class, V8 is **monomorphic** and property access can be up to 60× faster.<Footnote>M. Primariediev, "Understanding Monomorphism to Improve Your JS Performance up to 60x," Builder.io, 2023.</Footnote> Encounter four or more classes and the site becomes **megamorphic**, forcing V8 to fall back to hash lookups.
+
+### Property storage modes
+
+1. **In-object**: fastest; values live directly inside the object.
+2. **Fast properties**: spill into a `PropertyArray` but still leverage hidden classes.
+3. **Dictionary mode**: uses `NameDictionary` when the structure becomes unpredictable—e.g., deleting a middle property.<Footnote>"Pros and Cons of 'dictionary mode'," Stack Overflow, 2014.</Footnote>
+
+Once you hit dictionary mode, there is no going back.
+
+## Map internals recap
+
+Maps use `OrderedHashMap`, which keeps entries in insertion order while still relying on hashing.<Footnote>A. Pechkurov, "[V8 Deep Dives] Understanding Map Internals," DEV Community, 2021.</Footnote>
+
+| Aspect | Object | Map |
+|--------|--------|-----|
+| Intended use | Structured records | Key–value store |
+| Key types | String/Symbol only | Any value |
+| Order | Partially defined | Preserves insertion order |
+| Size | `Object.keys(obj).length` | `map.size` |
+
+Objects coerce keys to strings (risking `[object Object]` collisions), while Maps keep keys by identity.
+
+## Benchmarks (Node.js 20+)
+
+| Operation | Object | Map | Notes |
+|-----------|--------|-----|-------|
+| String-key inserts | 41.4s | 28.8s | Map faster (hidden-class churn) |
+| Integer-key inserts | 9.6s | 22.9s | Object faster (elements array) |
+| Reads (1000 keys) | 8.4s | 7.7s | Similar |
+| Iteration | 76.3s | 9.6s | Map’s order array wins |
+| Fast vs Slow Object | 4.9ms | 27.0ms | Dictionary mode is 5.5× slower |
+
+Numbers are illustrative but highlight the direction: delete-heavy workloads punish Objects.
+
+## Scenarios
+
+### Prefer Object when
+
+1. Structure is fixed (user profiles, configs).
+2. JSON serialization matters.
+3. Keys are small integers (packed elements).
+4. Dataset is tiny and mostly read-only.
+
+### Prefer Map when
+
+1. Keys come from user input (avoid prototype pollution).
+2. Inserts/deletes are frequent.
+3. Keys must be objects/functions.<Footnote>V8 Team, "Optimizing hash tables: hiding the hash code," v8.dev, 2018.</Footnote>
+4. Accurate size reporting or order preservation is mandatory.<Footnote>"Map vs Object in JavaScript," Stack Overflow, 2013.</Footnote>
+
+### Prefer WeakMap when
+
+You need to associate metadata with objects without preventing garbage collection.
+
+## Bonus exercise: dictionary-mode detector
+
+1. Create an object with five properties.
+2. Delete the middle one, then access the remaining fields inside a hot loop.
+3. Compare it to an identical object that never deletes properties.
+
+Inspect with `--trace_ic`. You will see the IC degrade from monomorphic to megamorphic the moment dictionary mode kicks in.
+
+## Takeaways
+
+1. Avoid `delete` on Objects—set the property to `undefined` or switch to Map.
+2. Initialize all properties in the same order to keep hidden classes stable.
+3. Reach for Map whenever your data behaves like a hash table rather than a structured record.
+
+<Footnotes />

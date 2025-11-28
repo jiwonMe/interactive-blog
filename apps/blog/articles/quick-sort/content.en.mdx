@@ -1,0 +1,104 @@
+---
+title: 'Mastering Quick Sort With Visual Intuition'
+date: '2025-11-21'
+author: 'Jiwon Park'
+affiliate: 'Hanyang University'
+description: 'An English walk-through of Quick Sort that mirrors the Korean article, complete with visual explainers, performance notes, and an extra real-world example.'
+tags: ['algorithm', 'sorting', 'interactive', 'quick-sort']
+hidden: true
+---
+
+# What is Quick Sort?
+
+Quick Sort is one of the fastest practical sorting algorithms thanks to the **divide and conquer** strategy.
+
+## Imagine you are the librarian
+
+1. Pick one book and call it the **pivot**.
+2. Send every book with a smaller index to the left and larger ones to the right.
+3. The pivot is now locked in the correct position.
+4. Repeat the same process for the left stack and the right stack.
+
+That loop—split, conquer, and merge the knowledge—is the whole idea.
+
+---
+
+## Watch it happen
+
+<QuickSortVisualizer initialAlgorithm="standard" />
+
+### Legend
+
+1. **Yellow bar**: current **pivot**.
+2. **Blue bar**: value being compared with the pivot.
+3. **Red bar**: items being swapped.
+4. **Green bar**: items that already reached their final position.
+
+---
+
+## Step-by-step breakdown
+
+### 1. Choosing the pivot
+
+You may pick the first, last, or middle element. The visualizer uses the **last element** for clarity.
+
+### 2. Partition
+
+- Move everything **smaller than the pivot** to the left.
+- Move everything **greater** to the right.
+
+After this pass, the pivot sticks to its final index forever.
+
+### 3. Recursion
+
+- Repeat the routine for the left partition.
+- Repeat it for the right partition.
+
+When each partition shrinks to size 0 or 1, you are done.
+
+---
+
+## Why is it fast?
+
+On average the algorithm touches **$O(N \log N)$** elements:
+
+- $N$ items to arrange.
+- $\log N$ levels because each partition roughly halves the data.
+
+Choosing terrible pivots (e.g., always picking the maximum) degenerates the performance to **$O(N^2)$**, so picking a balanced pivot matters.
+
+## Optimizations
+
+### Median-of-three
+
+<QuickSortVisualizer initialAlgorithm="median-of-three" />
+
+Pick three numbers (first, middle, last) and use their median as the pivot. This dramatically lowers the chance of hitting the worst case.
+
+### Insertion sort fallback
+
+For tiny partitions (≈10 items or fewer) the overhead of recursive Quick Sort is higher than simply running **Insertion Sort**. Production implementations typically hybridize the two.
+
+### Dual-pivot Quick Sort
+
+<QuickSortVisualizer initialAlgorithm="dual-pivot" />
+
+Using two pivots splits the data into three bands (less than P1, between P1 and P2, greater than P2), reducing swaps even further. Java’s runtime uses a dual-pivot variant for primitive arrays.
+
+---
+
+## Bonus example: sorting real exam scores
+
+Let’s sort `[72, 88, 91, 65, 83, 99, 77]` using the median-of-three rule.
+
+1. Pick the median of `(72, 83, 77)` → `77` becomes the pivot.
+2. Partition: left `[72, 65]`, pivot `77`, right `[88, 91, 83, 99]`.
+3. Recursively apply the same strategy to each side.
+
+You rarely have to think about the recursion tree manually in production, but rehearsing a realistic dataset cements *why* the algorithm behaves so well on average.
+
+---
+
+## Wrap-up
+
+Quick Sort feels approachable once you see the colors dance. Launch the visualizer, toggle through the pivot strategies, and observe how the bars move—your intuition for divide and conquer will stick.
