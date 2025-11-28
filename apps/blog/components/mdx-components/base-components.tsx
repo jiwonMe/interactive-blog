@@ -1,4 +1,4 @@
-import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard, Footnote, Footnotes, Callout } from '@repo/interactive-ui';
+import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard, Footnote, Footnotes, Callout, CollapsibleCode } from '@repo/interactive-ui';
 import { cn } from '../../lib/utils';
 import Image from 'next/image';
 import React from 'react';
@@ -46,6 +46,8 @@ export function createBaseComponents(slug?: string) {
     Footnotes,
     // Callout 컴포넌트
     Callout: (props: any) => <Callout {...props} />,
+    // CollapsibleCode 컴포넌트
+    CollapsibleCode: (props: any) => <CollapsibleCode {...props} />,
     LinkCard: (props: any) => {
       // MDX에서 전달되는 props를 적절한 타입으로 변환
       // 빈 문자열이나 undefined인 경우 undefined로 처리

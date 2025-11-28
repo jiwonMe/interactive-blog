@@ -11,3 +11,4 @@ export { Controls } from './components/Controls';
 export { FootnoteProvider, Footnote, Footnotes } from './components/Footnote';
 export { Callout } from './components/Callout';
 export type { CalloutType } from './components/Callout';
+export { CollapsibleCode } from './components/CollapsibleCode';
