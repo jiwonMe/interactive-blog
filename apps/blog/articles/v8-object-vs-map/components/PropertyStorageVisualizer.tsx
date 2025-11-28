@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../../lib/utils';
 
 // -----------------------------------------------------------------------------
@@ -45,17 +46,20 @@ function ModeBadge({ mode, isTransitioning }: { mode: StorageMode; isTransitioni
   };
   
   return (
-    <span className={cn(
-      // 레이아웃
-      "px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-sm font-bold font-mono",
-      // 색상
-      config[mode].color,
-      // 애니메이션
-      "transition-all duration-300",
-      isTransitioning && "animate-pulse scale-110"
-    )}>
+    <motion.span 
+      layout
+      initial={{ scale: 1 }}
+      animate={{ scale: isTransitioning ? 1.1 : 1 }}
+      transition={{ duration: 0.3 }}
+      className={cn(
+        // 레이아웃
+        "px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded text-[10px] sm:text-xs font-bold font-mono",
+        // 색상
+        config[mode].color
+      )}
+    >
       {config[mode].label}
-    </span>
+    </motion.span>
   );
 }
 
@@ -75,33 +79,34 @@ function MemorySlot({
   const color = property ? PROPERTY_COLORS[property.key] : null;
   
   return (
-    <div className={cn(
-      // 레이아웃
-      "flex items-center gap-1 sm:gap-2 font-mono text-[10px] sm:text-xs py-1 px-1.5 sm:px-2 rounded border",
-      // 애니메이션
-      "transition-all duration-300",
-      isNew && "animate-slot-in",
-      // 배경
-      isEmpty || isDeleted
-        ? "bg-zinc-100 dark:bg-zinc-800/50 border-dashed border-zinc-300 dark:border-zinc-600"
-        : color 
-          ? cn(color.bg, color.border)
-          : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
-    )}>
-      <span className="text-zinc-500 dark:text-zinc-400 w-12 sm:w-14">
+    <motion.div 
+      layout
+      initial={isNew ? { opacity: 0, x: -12, backgroundColor: 'rgba(196, 219, 255, 0.3)' } : false}
+      animate={{ opacity: 1, x: 0, backgroundColor: 'rgba(196, 219, 255, 0)' }}
+      transition={{ duration: 0.3, backgroundColor: { duration: 0.8 } }}
+      className={cn(
+        // 레이아웃
+        "flex items-center gap-1 sm:gap-2 font-mono text-[10px] sm:text-xs py-0.5 px-1 sm:px-1.5 rounded",
+        // 배경 (회색톤 베이스)
+        isEmpty || isDeleted
+          ? "bg-zinc-100/50 dark:bg-zinc-800/30"
+          : "bg-zinc-100 dark:bg-zinc-800"
+      )}
+    >
+      <span className="text-zinc-500 dark:text-zinc-500 w-14 sm:w-16">
         offset {index}
       </span>
-      <span className="text-zinc-400 dark:text-zinc-500">→</span>
+      <span className="text-zinc-300 dark:text-zinc-600">→</span>
       {isDeleted ? (
         <span className="text-red-400 dark:text-red-500 line-through italic">deleted</span>
       ) : isEmpty ? (
         <span className="text-zinc-400 dark:text-zinc-500 italic">empty</span>
       ) : property ? (
-        <span className={cn("font-bold", color?.text)}>
-          {property.key}: {property.value}
+        <span className="text-zinc-700 dark:text-zinc-300">
+          <span className={cn("font-bold", color?.text)}>{property.key}</span>: {property.value}
         </span>
       ) : null}
-    </div>
+    </motion.div>
   );
 }
 
@@ -123,67 +128,71 @@ function JSObjectBlock({
   const slots = Array.from({ length: IN_OBJECT_SLOTS }, (_, i) => i);
   
   return (
-    <div className={cn(
-      // 레이아웃
-      "p-3 sm:p-4 rounded-lg border-2 min-w-[160px] sm:min-w-[200px]",
-      // 애니메이션
-      "transition-all duration-500",
-      isShaking && "animate-shake",
-      // 배경 및 테두리
-      mode === 'dictionary'
-        ? "bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-700"
-        : "bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-600"
-    )}>
+    <motion.div 
+      layout
+      animate={{ 
+        x: isShaking ? [0, -4, 4, -4, 4, 0] : 0,
+      }}
+      transition={{ duration: 0.4 }}
+      className={cn(
+        // 레이아웃
+        "p-2.5 sm:p-3 rounded-sm border min-w-[140px] sm:min-w-[180px]",
+        // 배경 및 테두리 (회색톤)
+        mode === 'dictionary'
+          ? "bg-red-50/50 dark:bg-red-950/20 border-red-300 dark:border-red-800"
+          : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700"
+      )}
+    >
       <div className={cn(
-        "text-xs sm:text-sm font-bold mb-2 sm:mb-3",
-        "text-zinc-700 dark:text-zinc-300"
+        "text-[10px] sm:text-xs font-bold mb-2",
+        "text-zinc-600 dark:text-zinc-400"
       )}>
         JSObject
       </div>
       
-      <div className="space-y-1">
-        {slots.map(i => {
-          const prop = inObjectProps[i];
-          const isNew = prop?.key === recentKey;
-          return (
-            <MemorySlot
-              key={i}
-              index={i}
-              property={prop}
-              isEmpty={!prop && !deletedSlots.has(i)}
-              isDeleted={deletedSlots.has(i)}
-              isNew={isNew}
-            />
-          );
-        })}
+      <div className="space-y-0.5">
+        <AnimatePresence mode="popLayout">
+          {slots.map(i => {
+            const prop = inObjectProps[i];
+            const isNew = prop?.key === recentKey;
+            return (
+              <MemorySlot
+                key={i}
+                index={i}
+                property={prop}
+                isEmpty={!prop && !deletedSlots.has(i)}
+                isDeleted={deletedSlots.has(i)}
+                isNew={isNew}
+              />
+            );
+          })}
+        </AnimatePresence>
       </div>
       
       {(hasPropertyArray || mode === 'dictionary') && (
-        <div className={cn(
-          // 레이아웃
-          "mt-3 pt-2 border-t flex items-center gap-2 text-[10px] sm:text-xs font-mono",
-          // 애니메이션
-          "animate-fade-in",
-          // 테두리
-          "border-zinc-200 dark:border-zinc-700"
-        )}>
-          <span className="text-zinc-500 dark:text-zinc-400">properties</span>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className={cn(
+            // 레이아웃
+            "mt-2 pt-1.5 border-t flex items-center gap-1.5 text-[9px] sm:text-[10px] font-mono",
+            // 테두리
+            "border-zinc-200 dark:border-zinc-700"
+          )}
+        >
+          <span className="text-zinc-500 dark:text-zinc-500">properties</span>
+          <span className="text-zinc-300 dark:text-zinc-600">→</span>
           <span className={cn(
-            "text-zinc-400 dark:text-zinc-500",
-            // 연결선 애니메이션
-            "animate-pulse"
-          )}>→</span>
-          <span className={cn(
-            "px-1.5 py-0.5 rounded",
+            "px-1 py-0.5 rounded text-[9px] font-medium",
             mode === 'dictionary'
-              ? "bg-red-200 dark:bg-red-900/50 text-red-700 dark:text-red-300"
-              : "bg-sky-200 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300"
+              ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
+              : "bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400"
           )}>
             {mode === 'dictionary' ? 'NameDictionary*' : 'PropertyArray*'}
           </span>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -191,32 +200,39 @@ function PropertyArrayBlock({ properties, recentKey }: { properties: Property[];
   if (properties.length === 0) return null;
   
   return (
-    <div className={cn(
-      // 레이아웃
-      "p-3 sm:p-4 rounded-lg border-2 min-w-[160px] sm:min-w-[200px]",
-      // 애니메이션
-      "animate-slide-in",
-      // 배경 및 테두리
-      "bg-sky-50 dark:bg-sky-950/30 border-sky-300 dark:border-sky-600"
-    )}>
+    <motion.div 
+      layout
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.3 }}
+      className={cn(
+        // 레이아웃
+        "p-2.5 sm:p-3 rounded-sm border min-w-[140px] sm:min-w-[180px]",
+        // 배경 및 테두리 (회색톤 + 약한 색상 힌트)
+        "bg-sky-50/50 dark:bg-sky-950/20 border-sky-200 dark:border-sky-800"
+      )}
+    >
       <div className={cn(
-        "text-xs sm:text-sm font-bold mb-2 sm:mb-3",
-        "text-sky-700 dark:text-sky-300"
+        "text-[10px] sm:text-xs font-bold mb-2",
+        "text-sky-600 dark:text-sky-400"
       )}>
         PropertyArray
       </div>
       
-      <div className="space-y-1">
-        {properties.map((prop, i) => (
-          <MemorySlot 
-            key={prop.key} 
-            index={i} 
-            property={prop} 
-            isNew={prop.key === recentKey}
-          />
-        ))}
+      <div className="space-y-0.5">
+        <AnimatePresence mode="popLayout">
+          {properties.map((prop, i) => (
+            <MemorySlot 
+              key={prop.key} 
+              index={i} 
+              property={prop} 
+              isNew={prop.key === recentKey}
+            />
+          ))}
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -230,59 +246,66 @@ function DictionaryBlock({ properties, recentKey }: { properties: Property[]; re
   }));
   
   return (
-    <div className={cn(
-      // 레이아웃
-      "p-3 sm:p-4 rounded-lg border-2 min-w-[200px] sm:min-w-[260px]",
-      // 애니메이션
-      "animate-dictionary-in",
-      // 배경 및 테두리
-      "bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-600"
-    )}>
+    <motion.div 
+      layout
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.4 }}
+      className={cn(
+        // 레이아웃
+        "p-2.5 sm:p-3 rounded-sm border min-w-[160px] sm:min-w-[200px]",
+        // 배경 및 테두리 (회색톤 + 약한 빨강 힌트)
+        "bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-800"
+      )}
+    >
       <div className={cn(
-        "text-xs sm:text-sm font-bold mb-2 sm:mb-3 flex items-center gap-2",
-        "text-red-700 dark:text-red-300"
-      )}>
-        <span className="animate-pulse">⚠️</span>
-        NameDictionary (Hash Table)
-      </div>
-      
-      <div className="space-y-1">
-        {buckets.map((entry, i) => {
-          const color = PROPERTY_COLORS[entry.key];
-          const isNew = entry.key === recentKey;
-          return (
-            <div 
-              key={entry.key} 
-              className={cn(
-                // 레이아웃
-                "flex items-center gap-1 sm:gap-2 font-mono text-[10px] sm:text-xs py-1 px-1.5 sm:px-2 rounded border",
-                // 애니메이션
-                "transition-all duration-300",
-                isNew && "animate-slot-in",
-                // 배경 및 테두리
-                color.bg, color.border
-              )}
-              style={{ animationDelay: `${i * 100}ms` }}
-            >
-              <span className="text-zinc-500 dark:text-zinc-400 w-14 sm:w-16">
-                h={entry.hash}
-              </span>
-              <span className="text-zinc-400 dark:text-zinc-500">→</span>
-              <span className={cn("font-bold", color.text)}>
-                "{entry.key}": {entry.value}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-      
-      <div className={cn(
-        "mt-2 text-[9px] sm:text-[10px] italic",
+        "text-[10px] sm:text-xs font-bold mb-2 flex items-center gap-1.5",
         "text-red-600 dark:text-red-400"
+      )}>
+        <span>⚠️</span>
+        NameDictionary
+      </div>
+      
+      <div className="space-y-0.5">
+        <AnimatePresence mode="popLayout">
+          {buckets.map((entry, i) => {
+            const color = PROPERTY_COLORS[entry.key];
+            const isNew = entry.key === recentKey;
+            return (
+              <motion.div 
+                key={entry.key}
+                layout
+                initial={isNew ? { opacity: 0, x: -12 } : false}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: i * 0.05 }}
+                className={cn(
+                  // 레이아웃
+                  "flex items-center gap-1 sm:gap-2 font-mono text-[10px] sm:text-xs py-0.5 px-1 sm:px-1.5 rounded",
+                  // 배경 (회색톤)
+                  "bg-zinc-100 dark:bg-zinc-800"
+                )}
+              >
+                <span className="text-zinc-500 dark:text-zinc-500 w-10 sm:w-12">
+                  h={entry.hash}
+                </span>
+                <span className="text-zinc-300 dark:text-zinc-600">→</span>
+                <span className="text-zinc-700 dark:text-zinc-300">
+                  "<span className={cn("font-bold", color.text)}>{entry.key}</span>": {entry.value}
+                </span>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </div>
+      
+      <div className={cn(
+        "mt-1.5 text-[8px] sm:text-[9px] italic",
+        "text-red-500 dark:text-red-500"
       )}>
         * 매번 해시 조회 필요
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -298,8 +321,7 @@ export function PropertyStorageVisualizer() {
   const [recentKey, setRecentKey] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
   const [isModeTransitioning, setIsModeTransitioning] = useState(false);
-  const logsContainerRef = useRef<HTMLDivElement>(null);
-  const logIdRef = useRef(0);
+  const logIdRef = React.useRef(0);
 
   // 현재 모드 계산
   const inObjectProps = properties.slice(0, IN_OBJECT_SLOTS);
@@ -327,14 +349,6 @@ export function PropertyStorageVisualizer() {
       return () => clearTimeout(timer);
     }
   }, [isModeTransitioning]);
-
-  // 로그 스크롤
-  useEffect(() => {
-    if (logsContainerRef.current && logs.length > 0) {
-      const container = logsContainerRef.current;
-      container.scrollTop = container.scrollHeight;
-    }
-  }, [logs]);
 
   const addLog = (message: React.ReactNode, type: LogEntry['type'] = 'info') => {
     logIdRef.current += 1;
@@ -469,84 +483,18 @@ export function PropertyStorageVisualizer() {
   return (
     <div className={cn(
       // 레이아웃
-      "flex flex-col gap-3 sm:gap-5 p-3 sm:p-6 rounded-xl border",
+      "flex flex-col gap-1 sm:gap-2 p-3 sm:p-6 rounded-xl border",
       // 배경 및 테두리
       "bg-zinc-50 dark:bg-zinc-900/50",
       "border-zinc-200 dark:border-zinc-800"
     )}>
-      {/* CSS Keyframes */}
-      <style jsx>{`
-        @keyframes slot-in {
-          0% { 
-            opacity: 0; 
-            transform: scale(0.8) translateX(-10px); 
-          }
-          50% { 
-            transform: scale(1.05); 
-          }
-          100% { 
-            opacity: 1; 
-            transform: scale(1) translateX(0); 
-          }
-        }
-        @keyframes slide-in {
-          0% { 
-            opacity: 0; 
-            transform: translateX(20px); 
-          }
-          100% { 
-            opacity: 1; 
-            transform: translateX(0); 
-          }
-        }
-        @keyframes dictionary-in {
-          0% { 
-            opacity: 0; 
-            transform: scale(0.9); 
-            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-          }
-          50% {
-            box-shadow: 0 0 20px 10px rgba(239, 68, 68, 0.3);
-          }
-          100% { 
-            opacity: 1; 
-            transform: scale(1); 
-            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-          }
-        }
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
-          20%, 40%, 60%, 80% { transform: translateX(4px); }
-        }
-        @keyframes fade-in {
-          0% { opacity: 0; }
-          100% { opacity: 1; }
-        }
-        :global(.animate-slot-in) {
-          animation: slot-in 0.4s ease-out forwards;
-        }
-        :global(.animate-slide-in) {
-          animation: slide-in 0.5s ease-out forwards;
-        }
-        :global(.animate-dictionary-in) {
-          animation: dictionary-in 0.6s ease-out forwards;
-        }
-        :global(.animate-shake) {
-          animation: shake 0.5s ease-in-out;
-        }
-        :global(.animate-fade-in) {
-          animation: fade-in 0.3s ease-out forwards;
-        }
-      `}</style>
-
       {/* Header */}
       <div className="flex flex-wrap justify-between items-center gap-2">
         <h3 className={cn(
           "font-bold text-sm sm:text-lg",
           "text-zinc-900 dark:text-zinc-100"
         )}>
-          Property Storage Mode 시뮬레이터
+          Property Storage
         </h3>
         <div className="flex items-center gap-2">
           <ModeBadge mode={mode} isTransitioning={isModeTransitioning} />
@@ -570,8 +518,57 @@ export function PropertyStorageVisualizer() {
         </div>
       </div>
 
+      {/* 실행 로그 (최근 1줄) */}
+      <AnimatePresence mode="wait">
+        {logs.length > 0 ? (
+          <motion.div
+            key={logs[logs.length - 1].id}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.2 }}
+            className={cn(
+              // 레이아웃
+              "px-2.5 py-1.5 sm:px-3 sm:py-2 rounded border font-mono text-[10px] sm:text-xs",
+              // 배경 및 테두리
+              "bg-zinc-100 dark:bg-zinc-800/80",
+              "border-zinc-200 dark:border-zinc-700",
+              // 텍스트 색상
+              "text-zinc-600 dark:text-zinc-300",
+              // 왼쪽 테두리 색상 (로그 타입별)
+              "border-l-2",
+              logs[logs.length - 1].type === 'info' 
+                ? "border-l-blue-500 dark:border-l-blue-400"
+                : logs[logs.length - 1].type === 'success'
+                ? "border-l-green-500 dark:border-l-green-400"
+                : logs[logs.length - 1].type === 'warning'
+                ? "border-l-orange-500 dark:border-l-orange-400"
+                : "border-l-red-500 dark:border-l-red-400"
+            )}
+          >
+            {logs[logs.length - 1].message}
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className={cn(
+              // 레이아웃
+              "px-2.5 py-1.5 sm:px-3 sm:py-2 rounded border font-mono text-[10px] sm:text-xs italic",
+              // 배경 및 테두리
+              "bg-zinc-100 dark:bg-zinc-800/80",
+              "border-zinc-200 dark:border-zinc-700",
+              // 텍스트 색상
+              "text-zinc-400 dark:text-zinc-500"
+            )}
+          >
+            프로퍼티를 추가하거나 삭제해보세요.
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Memory Visualization */}
-      <div className="flex flex-wrap items-start gap-3 sm:gap-6 justify-center min-h-[180px]">
+      <div className="flex flex-wrap items-start gap-2 sm:gap-4 justify-center min-h-[150px]">
         <JSObjectBlock
           inObjectProps={mode === 'dictionary' ? [] : inObjectProps}
           hasPropertyArray={hasPropertyArray}
@@ -581,37 +578,39 @@ export function PropertyStorageVisualizer() {
           isShaking={isShaking}
         />
         
-        {hasPropertyArray && (
-          <PropertyArrayBlock 
-            properties={overflowProps} 
-            recentKey={recentKey}
-          />
-        )}
-        
-        {mode === 'dictionary' && (
-          <DictionaryBlock 
-            properties={properties}
-            recentKey={recentKey}
-          />
-        )}
+        <AnimatePresence>
+          {hasPropertyArray && (
+            <PropertyArrayBlock 
+              properties={overflowProps} 
+              recentKey={recentKey}
+            />
+          )}
+          
+          {mode === 'dictionary' && (
+            <DictionaryBlock 
+              properties={properties}
+              recentKey={recentKey}
+            />
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Controls */}
       <div className={cn(
         // 레이아웃
-        "p-3 sm:p-4 rounded-lg border space-y-3",
-        // 배경 및 테두리
+        "p-2.5 sm:p-3 rounded-sm border space-y-2",
+        // 배경 및 테두리 (회색톤)
         "bg-white dark:bg-zinc-900",
         "border-zinc-200 dark:border-zinc-700"
       )}>
         <div>
           <p className={cn(
-            "text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium",
-            "text-zinc-600 dark:text-zinc-300"
+            "text-[10px] sm:text-xs mb-1 sm:mb-1.5 font-medium",
+            "text-zinc-500 dark:text-zinc-500"
           )}>
             프로퍼티 추가:
           </p>
-          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+          <div className="flex flex-wrap gap-1 sm:gap-1.5">
             {ALL_PROPS.map(prop => {
               const hasProp = existingKeys.has(prop);
               const propColor = PROPERTY_COLORS[prop];
@@ -622,24 +621,29 @@ export function PropertyStorageVisualizer() {
                   disabled={hasProp}
                   className={cn(
                     // 레이아웃
-                    "min-w-[40px] min-h-[36px] sm:min-w-0 sm:min-h-0",
-                    "px-3 py-2 sm:px-3 sm:py-1 text-xs font-mono rounded border font-bold",
+                    "min-w-[32px] min-h-[28px] sm:min-w-0 sm:min-h-0",
+                    "px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-mono rounded border",
                     // 전환 효과
-                    "transition-all duration-200",
+                    "transition-all duration-150",
                     hasProp 
                       ? cn(
-                          "bg-zinc-100 dark:bg-zinc-950",
-                          "text-zinc-400 dark:text-zinc-600",
+                          // 비활성화 상태 (회색)
+                          "bg-zinc-100 dark:bg-zinc-900",
+                          "text-zinc-300 dark:text-zinc-600",
                           "border-zinc-200 dark:border-zinc-800",
-                          "cursor-not-allowed opacity-60"
+                          "cursor-not-allowed"
                         )
                       : cn(
-                          propColor.bg, propColor.text, propColor.border,
-                          "hover:opacity-80 hover:scale-105 active:scale-95"
+                          // 활성화 상태 (회색 베이스 + 약한 색상 힌트)
+                          "bg-zinc-50 dark:bg-zinc-800",
+                          "border-zinc-300 dark:border-zinc-600",
+                          "text-zinc-600 dark:text-zinc-400",
+                          "hover:bg-zinc-100 dark:hover:bg-zinc-700",
+                          "active:scale-95"
                         )
                   )}
                 >
-                  +{prop}
+                  <span className={cn(!hasProp && "font-medium", !hasProp && propColor.text)}>+{prop}</span>
                 </button>
               );
             })}
@@ -648,12 +652,12 @@ export function PropertyStorageVisualizer() {
         
         <div>
           <p className={cn(
-            "text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium",
-            "text-zinc-600 dark:text-zinc-300"
+            "text-[10px] sm:text-xs mb-1 sm:mb-1.5 font-medium",
+            "text-zinc-500 dark:text-zinc-500"
           )}>
-            프로퍼티 삭제 (delete):
+            프로퍼티 삭제:
           </p>
-          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+          <div className="flex flex-wrap gap-1 sm:gap-1.5">
             {ALL_PROPS.map(prop => {
               const hasProp = existingKeys.has(prop);
               return (
@@ -663,23 +667,25 @@ export function PropertyStorageVisualizer() {
                   disabled={!hasProp}
                   className={cn(
                     // 레이아웃
-                    "min-w-[40px] min-h-[36px] sm:min-w-0 sm:min-h-0",
-                    "px-3 py-2 sm:px-3 sm:py-1 text-xs font-mono rounded border font-bold",
+                    "min-w-[32px] min-h-[28px] sm:min-w-0 sm:min-h-0",
+                    "px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-mono rounded border",
                     // 전환 효과
-                    "transition-all duration-200",
+                    "transition-all duration-150",
                     !hasProp
                       ? cn(
-                          "bg-zinc-100 dark:bg-zinc-950",
-                          "text-zinc-400 dark:text-zinc-600",
+                          // 비활성화 상태 (회색)
+                          "bg-zinc-100 dark:bg-zinc-900",
+                          "text-zinc-300 dark:text-zinc-600",
                           "border-zinc-200 dark:border-zinc-800",
-                          "cursor-not-allowed opacity-60"
+                          "cursor-not-allowed"
                         )
                       : cn(
-                          "bg-red-100 dark:bg-red-900/40",
-                          "text-red-600 dark:text-red-400",
-                          "border-red-300 dark:border-red-700",
-                          "hover:bg-red-200 dark:hover:bg-red-900/60",
-                          "hover:scale-105 active:scale-95"
+                          // 활성화 상태 (회색 베이스 + 빨강 힌트)
+                          "bg-zinc-50 dark:bg-zinc-800",
+                          "border-zinc-300 dark:border-zinc-600",
+                          "text-red-500 dark:text-red-400",
+                          "hover:bg-red-50 dark:hover:bg-red-900/20",
+                          "active:scale-95"
                         )
                   )}
                 >
@@ -688,44 +694,6 @@ export function PropertyStorageVisualizer() {
               );
             })}
           </div>
-        </div>
-      </div>
-
-      {/* Logs */}
-      <div className="space-y-2">
-        <h4 className={cn(
-          "text-xs sm:text-sm font-semibold",
-          "text-zinc-700 dark:text-zinc-300"
-        )}>
-          실행 로그
-        </h4>
-        <div 
-          ref={logsContainerRef}
-          className={cn(
-            // 레이아웃
-            "h-28 sm:h-32 overflow-y-auto p-2 sm:p-3 rounded-lg font-mono text-[10px] sm:text-xs space-y-1 sm:space-y-1.5 border",
-            // 배경 및 테두리
-            "bg-zinc-900 dark:bg-zinc-950",
-            "text-zinc-200 dark:text-zinc-300",
-            "border-zinc-800"
-          )}
-        >
-          {logs.length === 0 && (
-            <div className="italic text-zinc-500">
-              프로퍼티를 추가하거나 삭제해보세요.
-            </div>
-          )}
-          {logs.map(log => (
-            <div key={log.id} className={cn(
-              "border-l-2 pl-2 animate-fade-in",
-              log.type === 'info' && "border-blue-500 dark:border-blue-400",
-              log.type === 'success' && "border-green-500 dark:border-green-400",
-              log.type === 'warning' && "border-orange-500 dark:border-orange-400",
-              log.type === 'error' && "border-red-500 dark:border-red-400"
-            )}>
-              {log.message}
-            </div>
-          ))}
         </div>
       </div>
     </div>
