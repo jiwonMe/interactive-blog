@@ -101,48 +101,50 @@ export const CollapsibleCode = ({
         </svg>
       </button>
 
-      {/* Content - 코드 블록 영역 */}
+      {/* Content - 코드 블록 영역 (CSS Grid 애니메이션 사용) */}
       <div
         className={cn(
-          // animation
-          'overflow-hidden transition-all duration-300 ease-in-out',
-          // conditional height
-          isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+          // CSS Grid 기반 애니메이션 (콘텐츠 높이에 상관없이 동작)
+          'grid transition-all duration-300 ease-in-out',
+          // conditional grid rows
+          isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
         )}
       >
-        <div
-          className={cn(
-            // border top
-            'border-t',
-            // color
-            'border-zinc-200 dark:border-zinc-800'
-          )}
-        >
-          {/* 
-            rehype-pretty-code가 생성한 구조: figure[data-rehype-pretty-code-figure] > pre > code
-            - figure의 margin 제거
-            - pre의 margin, border, rounded 제거
-          */}
+        <div className="overflow-hidden">
           <div
             className={cn(
-              // figure 스타일 초기화 (rehype-pretty-code가 생성)
-              '[&>figure]:my-0',
-              // figure 내부 pre 스타일 초기화
-              '[&>figure>pre]:my-0',
-              '[&>figure>pre]:rounded-none',
-              '[&>figure>pre]:border-0',
-              // fallback: 직접 pre가 children인 경우
-              '[&>pre]:my-0',
-              '[&>pre]:rounded-none',
-              '[&>pre]:border-0',
-              // CodeBlock wrapper 스타일 초기화
-              '[&>div]:mb-0',
-              '[&>div>pre]:my-0',
-              '[&>div>pre]:rounded-none',
-              '[&>div>pre]:border-0'
+              // border top
+              'border-t',
+              // color
+              'border-zinc-200 dark:border-zinc-800'
             )}
           >
-            {children}
+            {/* 
+              rehype-pretty-code가 생성한 구조: figure[data-rehype-pretty-code-figure] > pre > code
+              - figure의 margin 제거
+              - pre의 margin, border, rounded 제거
+            */}
+            <div
+              className={cn(
+                // figure 스타일 초기화 (rehype-pretty-code가 생성)
+                '[&>figure]:my-0',
+                // figure 내부 pre 스타일 초기화
+                '[&>figure>pre]:my-0',
+                '[&>figure>pre]:rounded-none',
+                '[&>figure>pre]:border-0',
+                // fallback: 직접 pre가 children인 경우
+                '[&>pre]:my-0',
+                '[&>pre]:rounded-none',
+                '[&>pre]:border-0',
+                // CodeBlock wrapper 스타일 초기화
+                '[&>div]:mb-0',
+                '[&>div>pre]:my-0',
+                '[&>div>pre]:rounded-none',
+                '[&>div>pre]:border-0'
+              )}
+            >
+              {children}
+            </div>
           </div>
         </div>
       </div>
