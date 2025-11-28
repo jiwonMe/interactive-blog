@@ -1,8 +1,11 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { getAllPosts } from '../lib/posts';
 import { cn } from '../lib/utils';
 import { PwnzLogo } from '../components/pwnz-logo';
 import { ThemeToggle } from '../components/theme-toggle';
+import { AdminPasswordModal, AdminBadge } from '../components/admin';
+import { isAdminAuthenticated } from '../lib/admin';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -53,20 +56,37 @@ function MainTitle() {
   );
 }
 
-export default function Home() {
-  const posts = getAllPosts();
+export default async function Home() {
+  // Admin 인증 상태 확인
+  const isAdmin = await isAdminAuthenticated();
+  // Admin이면 hidden 포스트 포함
+  const posts = getAllPosts(isAdmin);
 
   return (
     <main className="w-full flex flex-col items-center">
+      {/* Admin 비밀번호 모달 (클라이언트 컴포넌트) */}
+      <Suspense fallback={null}>
+        <AdminPasswordModal />
+      </Suspense>
+      
       {/* Theme Toggle - Fixed to top right */}
-      <ThemeToggle
+      <div
         className={cn(
           // positioning
           "fixed top-4 right-4 z-50",
-          // border
-          "border-none"
+          // layout
+          "flex items-center gap-2"
         )}
-      />
+      >
+        {/* Admin 배지 (인증된 경우만 표시) */}
+        {isAdmin && <AdminBadge />}
+        <ThemeToggle
+          className={cn(
+            // border
+            "border-none"
+          )}
+        />
+      </div>
       <div className="dark:bg-zinc-950 w-full py-6 sm:py-12 px-3 sm:px-6 border-dashed border-b border-zinc-300 dark:border-zinc-700">
         <div className="max-w-3xl mx-auto px-6">
           <MainTitle />

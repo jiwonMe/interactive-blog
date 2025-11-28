@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { getPostBySlug, getAllPosts, getSeriesPosts } from '../../../lib/posts';
 import { CustomMDX } from '../../../components/mdx-remote';
 import { TableOfContents } from '../../../components/toc';
@@ -9,6 +10,8 @@ import { generateBibTeX } from '../../../lib/bibtex';
 import { BibTeXCopyButton } from '../../../components/bibtex-copy-button';
 import { ScrollTracker } from '../../../components/analytics/scroll-tracker';
 import { ReadingTimeTracker } from '../../../components/analytics/reading-time-tracker';
+import { AdminPasswordModal, AdminBadge } from '../../../components/admin';
+import { isAdminAuthenticated } from '../../../lib/admin';
 
 export async function generateStaticParams() {
   const posts = getAllPosts();
@@ -107,15 +110,17 @@ function formatDate(dateString?: string) {
 export default async function Post({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params; 
   
+  // Admin 인증 상태 확인
+  const isAdmin = await isAdminAuthenticated();
   const post = getPostBySlug(slug);
 
   if (!post) {
     notFound();
   }
 
-  // 프로덕션에서 hidden 포스트 접근 시 404
+  // 프로덕션에서 hidden 포스트 접근 시: admin 인증 필요
   const isDev = process.env.NODE_ENV === 'development';
-  if (post.hidden && !isDev) {
+  if (post.hidden && !isDev && !isAdmin) {
     notFound();
   }
 
@@ -130,6 +135,23 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
         "w-full"
       )}
     >
+      {/* Admin 비밀번호 모달 */}
+      <Suspense fallback={null}>
+        <AdminPasswordModal />
+      </Suspense>
+      
+      {/* Admin 배지 - 우측 상단 고정 */}
+      {isAdmin && (
+        <div
+          className={cn(
+            // positioning
+            "fixed top-4 right-20 z-50"
+          )}
+        >
+          <AdminBadge />
+        </div>
+      )}
+      
       <div
         // Content wrapper with flex layout
         className={cn(
@@ -176,8 +198,8 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
               Series: {post.series}
             </div>
           )}
-          {/* Hidden 포스트 경고 배너 (개발 모드에서만 표시) */}
-          {post.hidden && isDev && (
+          {/* Hidden 포스트 경고 배너 (개발 모드 또는 Admin 모드에서만 표시) */}
+          {post.hidden && (isDev || isAdmin) && (
             <div
               className={cn(
                 // layout
