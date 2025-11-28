@@ -6,7 +6,8 @@ import { styled } from '../stitches.config';
 const CodeBlockWrapper = styled('div', {
   position: 'relative',
   display: 'block',
-  
+
+  marginBottom: '1rem',
   '&:hover': {
     '& button': {
       opacity: 1,

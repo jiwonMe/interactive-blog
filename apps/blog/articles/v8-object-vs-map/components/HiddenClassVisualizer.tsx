@@ -4,6 +4,7 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { ReactFlow, Background, Controls, useNodesState, useEdgesState, MarkerType, Position, Handle, Node, Edge, ReactFlowInstance } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useTheme } from 'next-themes';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../../lib/utils';
 
 // -----------------------------------------------------------------------------
@@ -104,39 +105,53 @@ function ObjectPanel({
   state, 
   hiddenClass,
   onAddProperty,
+  objectKey,
 }: { 
   state: ObjectState;
   hiddenClass: HiddenClass;
   onAddProperty: (prop: string) => void;
+  objectKey: 'A' | 'B';
 }) {
-  const colorStyles = HIDDEN_CLASS_COLORS[hiddenClass.colorKey];
   const potentialProps = ['x', 'y', 'z', 'a', 'b'];
+  
+  // Hidden Class 색상 (구분용)
+  const hiddenClassColor = HIDDEN_CLASS_COLORS[hiddenClass.colorKey];
+  
+  // Object A: 파란색 dot, Object B: 초록색 dot (최소한의 색상만)
+  const objectDotColor = objectKey === 'A' 
+    ? 'bg-blue-500 dark:bg-blue-400'
+    : 'bg-green-500 dark:bg-green-400';
 
   return (
     <div className={cn(
       // 레이아웃
-      "flex-1 p-2.5 sm:p-4 rounded-lg border transition-all duration-300",
-      // 배경 및 테두리
+      "flex-1 p-2.5 sm:p-4 rounded-sm border transition-all duration-300",
+      // 배경 및 테두리 (회색톤)
       "bg-white dark:bg-zinc-900",
-      "border-zinc-200 dark:border-zinc-700",
-      // 그림자
-      "shadow-sm dark:shadow-lg"
+      "border-zinc-200 dark:border-zinc-700"
     )}>
-      <div className="flex items-center gap-2 sm:gap-3 mb-2.5 sm:mb-4">
+      <div className="flex items-center gap-1.5 sm:gap-2 mb-2.5 sm:mb-4">
+        {/* Object 구분용 색상 dot */}
+        <div className={cn(
+          // 레이아웃 (작은 dot)
+          "w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0",
+          // 색상
+          objectDotColor
+        )} />
         <span className={cn(
+          // 회색 텍스트 (미니멀)
           "font-mono font-bold text-xs sm:text-md",
-          "text-zinc-900 dark:text-zinc-100"
+          "text-zinc-700 dark:text-zinc-300"
         )}>
           {state.name}
         </span>
+        {/* Hidden Class 뱃지 (색상으로 구분) */}
         <span className={cn(
           // 레이아웃
-          "px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-sm font-bold font-mono shadow-sm border",
-          // 색상
-          colorStyles.badge, 
-          colorStyles.text,
-          // 테두리
-          "border-zinc-200 dark:border-zinc-700"
+          "px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded text-[10px] sm:text-xs font-bold font-mono",
+          // Hidden Class별 색상
+          hiddenClassColor.badge,
+          hiddenClassColor.text
         )}>
           {hiddenClass.name}
         </span>
@@ -145,61 +160,93 @@ function ObjectPanel({
       {/* Properties Display */}
       <div className={cn(
         // 레이아웃
-        "space-y-0.5 sm:space-y-1 min-h-[60px] sm:min-h-[80px] mb-2.5 sm:mb-4 border rounded-md p-1.5 sm:p-2",
-        // 배경 및 테두리
-        "bg-zinc-50 dark:bg-zinc-950",
+        "space-y-0.5 sm:space-y-1 min-h-[60px] sm:min-h-[80px] mb-2.5 sm:mb-4 border rounded p-1.5 sm:p-2",
+        // 배경 및 테두리 (회색톤)
+        "bg-zinc-50 dark:bg-zinc-900/50",
         "border-zinc-200 dark:border-zinc-800"
       )}>
         {state.properties.length === 0 ? (
-          <span className={cn(
-            "text-xs sm:text-sm italic",
-            "text-zinc-400 dark:text-zinc-500"
-          )}>
+          <motion.span 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className={cn(
+              "text-xs sm:text-sm italic block",
+              "text-zinc-400 dark:text-zinc-500"
+            )}
+          >
             {'{}'} (빈 객체)
-          </span>
+          </motion.span>
         ) : (
-          state.properties.map((prop, idx) => {
-            const propColor = PROPERTY_COLORS[prop.key] || PROPERTY_COLORS.x;
-            return (
-              <div key={`${prop.key}-${idx}`} className="flex items-center gap-1 sm:gap-2 font-mono text-[10px] sm:text-sm">
-                <span className={cn(
-                  // 레이아웃
-                  "rounded text-center",
-                  // 배경 및 텍스트 색상
-                  "text-sky-700 dark:text-sky-300"
-                )}>
-                  slot {idx}
-                </span>
-                <span className={cn(
-                  "text-zinc-400 dark:text-zinc-500"
-                )}>
-                  →
-                </span>
-                <span className={cn(
-                  // 레이아웃
-                  "px-1.5 py-0.5 sm:px-2 rounded border font-bold",
-                  // 색상
-                  ...propColor.bg,
-                  ...propColor.text,
-                  ...propColor.border
-                )}>
-                  {prop.key}: {prop.value}
-                </span>
+          <>
+            {/* 모바일: 3개 초과 시 숨겨진 프로퍼티 개수 표시 */}
+            {state.properties.length > 3 && (
+              <div className={cn(
+                // 모바일에서만 표시
+                "block sm:hidden",
+                "text-[9px] text-zinc-400 dark:text-zinc-500 mb-1"
+              )}>
+                +{state.properties.length - 3}개 더...
               </div>
-            );
-          })
+            )}
+            <AnimatePresence mode="popLayout">
+              {state.properties.map((prop, idx) => {
+                const propColor = PROPERTY_COLORS[prop.key] || PROPERTY_COLORS.x;
+                // 모바일에서 3개 초과 시 앞의 프로퍼티 숨김
+                const hiddenOnMobile = state.properties.length > 3 && idx < state.properties.length - 3;
+                return (
+                  <motion.div 
+                    key={`${prop.key}-${idx}`}
+                    layout
+                    initial={{ opacity: 0, x: -12, backgroundColor: 'rgba(196, 219, 255, 0.3)' }}
+                    animate={{ opacity: 1, x: 0, backgroundColor: 'rgba(196, 219, 255, 0)' }}
+                    transition={{ 
+                      duration: 0.3,
+                      backgroundColor: { duration: 0.8 }
+                    }}
+                    className={cn(
+                      // 레이아웃
+                      "flex items-center gap-1 sm:gap-2 font-mono text-[10px] sm:text-sm rounded px-1 -mx-1",
+                      // 모바일에서 숨김 (3개 초과 시)
+                      hiddenOnMobile && "hidden sm:flex"
+                    )}
+                  >
+                    <span className={cn(
+                      // 회색톤 offset 텍스트
+                      "text-zinc-500 dark:text-zinc-500"
+                    )}>
+                      offset {idx}
+                    </span>
+                    <span className={cn(
+                      "text-zinc-300 dark:text-zinc-600"
+                    )}>
+                      →
+                    </span>
+                    <span className={cn(
+                      // 레이아웃
+                      "px-1.5 py-0.5 sm:px-2 rounded font-medium",
+                      // 회색톤 베이스 + 약한 색상 힌트
+                      "bg-zinc-100 dark:bg-zinc-800",
+                      "text-zinc-700 dark:text-zinc-300"
+                    )}>
+                      <span className={cn("font-bold", ...propColor.text)}>{prop.key}</span>: {prop.value}
+                    </span>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </>
         )}
       </div>
 
       {/* Controls */}
       <div>
         <p className={cn(
-          "text-[10px] sm:text-xs mb-1.5 sm:mb-2 font-medium",
-          "text-zinc-600 dark:text-zinc-300"
+          "text-[10px] sm:text-xs mb-1 sm:mb-1.5 font-medium",
+          "text-zinc-500 dark:text-zinc-500"
         )}>
           프로퍼티 추가:
         </p>
-        <div className="flex flex-wrap gap-1.5 sm:gap-2">
+        <div className="flex flex-wrap gap-1 sm:gap-1.5">
           {potentialProps.map(prop => {
             const hasProp = state.properties.some(p => p.key === prop);
             const propColor = PROPERTY_COLORS[prop];
@@ -209,33 +256,31 @@ function ObjectPanel({
                 onClick={() => !hasProp && onAddProperty(prop)}
                 disabled={hasProp}
                 className={cn(
-                  // 레이아웃 - 터치 타겟 최소 44px 확보
-                  "min-w-[40px] min-h-[36px] sm:min-w-0 sm:min-h-0",
-                  "px-3 py-2 sm:px-3 sm:py-1 text-xs sm:text-xs font-mono rounded border font-bold",
+                  // 레이아웃
+                  "min-w-[32px] min-h-[28px] sm:min-w-0 sm:min-h-0",
+                  "px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-mono rounded border",
                   // 전환 효과
-                  "transition-all duration-200",
+                  "transition-all duration-150",
                   hasProp 
                     ? cn(
-                        // 비활성화 상태
-                        "bg-zinc-100 dark:bg-zinc-950",
-                        "text-zinc-400 dark:text-zinc-600",
+                        // 비활성화 상태 (회색)
+                        "bg-zinc-100 dark:bg-zinc-900",
+                        "text-zinc-300 dark:text-zinc-600",
                         "border-zinc-200 dark:border-zinc-800",
-                        "cursor-not-allowed",
-                        "opacity-60 dark:opacity-50"
+                        "cursor-not-allowed"
                       )
                     : cn(
-                        // 활성화 상태
-                        ...propColor.bg,
-                        ...propColor.text,
-                        ...propColor.border,
-                        "hover:opacity-80 dark:hover:opacity-90",
-                        "hover:scale-105 active:scale-95",
-                        "hover:shadow-sm dark:hover:shadow-md",
-                        "dark:hover:brightness-110"
+                        // 활성화 상태 (회색 베이스 + 약한 색상 힌트)
+                        "bg-zinc-50 dark:bg-zinc-800",
+                        "border-zinc-300 dark:border-zinc-600",
+                        "text-zinc-600 dark:text-zinc-400",
+                        "hover:bg-zinc-100 dark:hover:bg-zinc-700",
+                        "hover:border-zinc-400 dark:hover:border-zinc-500",
+                        "active:scale-95"
                       )
                 )}
               >
-                +{prop}
+                <span className={cn(!hasProp && "font-medium", !hasProp && propColor.text.join(' '))}>+{prop}</span>
               </button>
             );
           })}
@@ -254,7 +299,7 @@ const HiddenClassNode = ({ data }: { data: { label: string, properties: string[]
   let borderClass = "border-[3px] border-zinc-200 dark:border-zinc-700";
   if (hasObjectA && hasObjectB) {
     // 둘 다 사용 중: 보라색 (파란색 + 초록색의 혼합 느낌)
-    borderClass = "border-[3px] border-purple-500 dark:border-purple-400";
+    borderClass = "border-[2px] border-blue-500 dark:border-blue-400 ring-2 ring-green-500 dark:ring-green-400";
   } else if (hasObjectA) {
     // Object A만 사용 중: 파란색
     borderClass = "border-[3px] border-blue-500 dark:border-blue-400";
@@ -268,7 +313,7 @@ const HiddenClassNode = ({ data }: { data: { label: string, properties: string[]
       <div 
         className={cn(
           // 레이아웃
-          "p-2 sm:p-3 rounded-xl transition-all duration-300 min-w-[90px] sm:min-w-[140px] shadow-lg relative",
+          "p-2 sm:p-3 rounded-md transition-all duration-300 min-w-[90px] sm:min-w-[140px] shadow-lg relative",
           // 배경
           "bg-white dark:bg-zinc-800",
           // 활성화 상태
@@ -333,7 +378,7 @@ const HiddenClassNode = ({ data }: { data: { label: string, properties: string[]
                       "bg-zinc-200/50 dark:bg-zinc-800/80",
                       "text-zinc-600 dark:text-zinc-300"
                     )}>
-                      slot {idx}
+                      offset {idx}
                     </span>
                     <span className={cn(
                       // 레이아웃
@@ -480,7 +525,7 @@ const getLayoutedElements = (
       let objectLabelColor = '';
       if (id === objectAHiddenClassId && id === objectBHiddenClassId) {
         objectLabel = 'Object A · Object B';
-        objectLabelColor = 'purple';
+        objectLabelColor = 'zinc';
       } else if (id === objectAHiddenClassId) {
         objectLabel = 'Object A';
         objectLabelColor = 'blue';
@@ -534,8 +579,6 @@ export function HiddenClassVisualizer() {
   const [objectB, setObjectB] = useState<ObjectState>({ name: 'Object B', properties: [], hiddenClassId: 'C0' });
   const [nextClassId, setNextClassId] = useState(1);
   const [logs, setLogs] = useState<LogEntry[]>([]);
-  const logsEndRef = useRef<HTMLDivElement>(null);
-  const logsContainerRef = useRef<HTMLDivElement>(null);
   
   // React Flow Instance
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
@@ -569,19 +612,6 @@ export function HiddenClassVisualizer() {
       });
     }
   }, [layoutedNodes, layoutedEdges, setNodes, setEdges, rfInstance, activeHiddenClassIds]);
-
-  // Scroll to bottom of logs only if user hasn't scrolled up (페이지 스크롤 방지)
-  useEffect(() => {
-    if (logsContainerRef.current && logs.length > 0) {
-      const container = logsContainerRef.current;
-      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
-      
-      if (isNearBottom) {
-        // scrollIntoView 대신 컨테이너 내부 스크롤만 조작
-        container.scrollTop = container.scrollHeight;
-      }
-    }
-  }, [logs]);
 
   const addLog = (message: React.ReactNode, type: 'info' | 'success' | 'warning' = 'info') => {
     setLogs(prev => [...prev, { id: Date.now(), message, type }]);
@@ -696,7 +726,7 @@ export function HiddenClassVisualizer() {
   return (
     <div className={cn(
       // 레이아웃
-      "flex flex-col gap-3 sm:gap-6 p-3 sm:p-6 rounded-xl border",
+      "flex flex-col gap-1 sm:gap-2 p-3 sm:p-6 rounded-xl border",
       // 배경 및 테두리
       "bg-zinc-50 dark:bg-zinc-900/50",
       "border-zinc-200 dark:border-zinc-800"
@@ -707,7 +737,7 @@ export function HiddenClassVisualizer() {
           "font-bold text-sm sm:text-lg",
           "text-zinc-900 dark:text-zinc-100"
         )}>
-          Hidden Class 시뮬레이터
+          Hidden Class
         </h3>
         <button
           onClick={handleReset}
@@ -728,28 +758,58 @@ export function HiddenClassVisualizer() {
         </button>
       </div>
 
-      {/* Objects Panel */}
-      <div className="flex flex-row gap-2 sm:gap-4">
-        <ObjectPanel 
-          state={objectA} 
-          hiddenClass={hiddenClasses[objectA.hiddenClassId]} 
-          onAddProperty={(prop) => handleAddProperty('A', prop)} 
-        />
-        <ObjectPanel 
-          state={objectB} 
-          hiddenClass={hiddenClasses[objectB.hiddenClassId]} 
-          onAddProperty={(prop) => handleAddProperty('B', prop)} 
-        />
-      </div>
+      {/* 실행 로그 (최근 1줄) */}
+      <AnimatePresence mode="wait">
+        {logs.length > 0 ? (
+          <motion.div
+            key={logs[logs.length - 1].id}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.2 }}
+            className={cn(
+              // 레이아웃
+              "px-2.5 py-1.5 sm:px-3 sm:py-2 rounded border font-mono text-[10px] sm:text-xs",
+              // 배경 및 테두리
+              "bg-zinc-100 dark:bg-zinc-800/80",
+              "border-zinc-200 dark:border-zinc-700",
+              // 텍스트 색상
+              "text-zinc-600 dark:text-zinc-300",
+              // 왼쪽 테두리 색상 (로그 타입별)
+              "border-l-2",
+              logs[logs.length - 1].type === 'info' 
+                ? "border-l-blue-500 dark:border-l-blue-400"
+                : logs[logs.length - 1].type === 'success'
+                ? "border-l-green-500 dark:border-l-green-400"
+                : "border-l-orange-500 dark:border-l-orange-400"
+            )}
+          >
+            {logs[logs.length - 1].message}
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className={cn(
+              // 레이아웃
+              "px-2.5 py-1.5 sm:px-3 sm:py-2 rounded border font-mono text-[10px] sm:text-xs italic",
+              // 배경 및 테두리
+              "bg-zinc-100 dark:bg-zinc-800/80",
+              "border-zinc-200 dark:border-zinc-700",
+              // 텍스트 색상
+              "text-zinc-400 dark:text-zinc-500"
+            )}
+          >
+            프로퍼티를 추가하여 Hidden Class 변화를 관찰해보세요.
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      
 
       {/* React Flow Visualization */}
       <div className="space-y-1.5 sm:space-y-2">
-        <h4 className={cn(
-          "text-xs sm:text-sm font-semibold",
-          "text-zinc-700 dark:text-zinc-300"
-        )}>
-          Hidden Class Transition Tree
-        </h4>
+
         <div 
           className={cn(
             // 레이아웃
@@ -782,66 +842,27 @@ export function HiddenClassVisualizer() {
                 isDarkMode ? "opacity-15" : "opacity-25"
               )} 
             />
-            <Controls 
-              showInteractive={false} 
-              className={cn(
-                // 배경 및 테두리
-                "!bg-white/90 dark:!bg-zinc-900/90",
-                "!border-zinc-300 dark:!border-zinc-700",
-                "!rounded-lg !shadow-md dark:!shadow-lg",
-                // 버튼 공통 스타일
-                "[&>button]:!border-zinc-300 dark:[&>button]:!border-zinc-600",
-                "[&>button]:!bg-white dark:[&>button]:!bg-zinc-800",
-                "[&>button]:!fill-zinc-600 dark:[&>button]:!fill-zinc-400",
-                "[&>button]:!rounded-md",
-                // 버튼 호버 효과
-                "[&>button:hover]:!bg-zinc-100 dark:[&>button:hover]:!bg-zinc-700",
-                "[&>button:hover]:!fill-zinc-900 dark:[&>button:hover]:!fill-zinc-200",
-                // 버튼 활성화 효과
-                "[&>button[aria-pressed='true']]:!bg-zinc-200 dark:[&>button[aria-pressed='true']]:!bg-zinc-600"
-              )} 
-            />
+            
           </ReactFlow>
         </div>
+        
+      </div>
+      {/* Objects Panel */}
+      <div className="flex flex-row gap-1 sm:gap-2">
+        <ObjectPanel 
+          state={objectA} 
+          hiddenClass={hiddenClasses[objectA.hiddenClassId]} 
+          onAddProperty={(prop) => handleAddProperty('A', prop)}
+          objectKey="A"
+        />
+        <ObjectPanel 
+          state={objectB} 
+          hiddenClass={hiddenClasses[objectB.hiddenClassId]} 
+          onAddProperty={(prop) => handleAddProperty('B', prop)}
+          objectKey="B"
+        />
       </div>
 
-      {/* Logs */}
-      <div className="space-y-2">
-        <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">실행 로그</h4>
-        <div 
-          ref={logsContainerRef}
-          className={cn(
-            // 레이아웃
-            "h-32 overflow-y-auto p-3 rounded-lg font-mono text-xs space-y-1.5 border",
-            // 배경 및 텍스트 색상
-            "bg-zinc-900 dark:bg-zinc-950",
-            "text-zinc-200 dark:text-zinc-300",
-            "border-zinc-800 dark:border-zinc-800"
-          )}
-        >
-          {logs.length === 0 && (
-            <div className={cn(
-              "italic",
-              "text-zinc-500 dark:text-zinc-500"
-            )}>
-              프로퍼티를 추가하여 Hidden Class 변화를 관찰해보세요.
-            </div>
-          )}
-          {logs.map(log => (
-            <div key={log.id} className={cn(
-              "border-l-2 pl-2",
-              log.type === 'info' 
-                ? "border-blue-500 dark:border-blue-400" 
-                : log.type === 'success' 
-                ? "border-green-500 dark:border-green-400" 
-                : "border-orange-500 dark:border-orange-400"
-            )}>
-              {log.message}
-            </div>
-          ))}
-          <div ref={logsEndRef} />
-        </div>
-      </div>
     </div>
   );
 }

@@ -89,7 +89,7 @@ function MemorySlot({
           : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
     )}>
       <span className="text-zinc-500 dark:text-zinc-400 w-12 sm:w-14">
-        slot {index}
+        offset {index}
       </span>
       <span className="text-zinc-400 dark:text-zinc-500">→</span>
       {isDeleted ? (
@@ -367,7 +367,7 @@ export function PropertyStorageVisualizer() {
       setProperties(prev => [...prev, { key, value, addedAt: Date.now() }]);
       addLog(
         <span>
-          <strong>obj.{key} = {value}</strong> - In-object 슬롯 {currentCount}에 직접 저장 (가장 빠름)
+          <strong>obj.{key} = {value}</strong> - In-object 오프셋 {currentCount}에 직접 저장 (가장 빠름)
         </span>,
         'success'
       );
@@ -377,7 +377,7 @@ export function PropertyStorageVisualizer() {
         triggerModeTransition();
         addLog(
           <span>
-            In-object 슬롯이 가득 찼습니다. <strong>PropertyArray</strong>로 확장합니다.
+            In-object 오프셋이 가득 찼습니다. <strong>PropertyArray</strong>로 확장합니다.
           </span>,
           'warning'
         );
@@ -424,7 +424,7 @@ export function PropertyStorageVisualizer() {
         triggerModeTransition();
       }
     } else if (isInObjectSlot) {
-      // 중간 in-object 슬롯 삭제 → Dictionary mode 전환!
+      // 중간 in-object 오프셋 삭제 → Dictionary mode 전환!
       setIsShaking(true);
       setMode('dictionary');
       triggerModeTransition();

@@ -6,6 +6,7 @@ author: 'Jiwon Park'
 tags: ['v8', 'javascript', 'object', 'map', 'hidden-class', 'performance']
 series: 'V8 Deep Dives'
 seriesOrder: 3
+image: '/images/articles/v8-object-vs-map/images/og-image.png'
 # hidden: true
 ---
 
@@ -35,7 +36,7 @@ const b = {}; b.x = 10; b.y = 20;
 // a와 b는 같은 Hidden Class를 공유
 ```
 
-Hidden Class가 같으면 V8은 "x는 항상 슬롯 0"이라고 확신할 수 있다. 해시테이블처럼 이름으로 검색할 필요 없이 **해당 슬롯을 직접 읽으면 된다**. 이것이 Object가 빠른 이유다.
+Hidden Class가 같으면 V8은 "x는 항상 오프셋 0"이라고 확신할 수 있다. 해시테이블처럼 이름으로 검색할 필요 없이 **해당 오프셋을 직접 읽으면 된다**. 이것이 Object가 빠른 이유다.
 
 아래 인터랙티브 시뮬레이터로 직접 실험해보자. **Object A**와 **Object B**에 각각 프로퍼티(`x`, `y`, `z` 등)를 추가해보면 Hidden Class가 어떻게 생성되고 공유되는지 실시간으로 확인할 수 있다.
 
@@ -46,7 +47,7 @@ Hidden Class가 같으면 V8은 "x는 항상 슬롯 0"이라고 확신할 수 �
 
 Inline Cache(IC)는 프로퍼티 접근 패턴을 기록해두는 최적화 기법이다.
 
-함수가 처음 어떤 객체를 만나면 "이 Hidden Class의 x는 첫 번째 슬롯"이라고 기록한다. 이후 같은 Hidden Class의 객체가 오면 조회 없이 바로 해당 슬롯을 읽는다<Footnote>C. Payer and C. Payer, "Fast properties in V8," v8.dev, 2017. https://v8.dev/blog/fast-properties</Footnote>.
+함수가 처음 어떤 객체를 만나면 "이 Hidden Class의 x는 첫 번째 오프셋"이라고 기록한다. 이후 같은 Hidden Class의 객체가 오면 조회 없이 바로 해당 오프셋을 읽는다<Footnote>C. Payer and C. Payer, "Fast properties in V8," v8.dev, 2017. https://v8.dev/blog/fast-properties</Footnote>.
 
 **한 종류의 Hidden Class만 반복되는 상태**를 **Monomorphic**이라고 부른다. 이 상태에서 프로퍼티 접근은 최대 **60배** 빠를 수 있다<Footnote>M. Primariediev, "Understanding Monomorphism to Improve Your JS Performance up to 60x," Builder.io, 2023. https://www.builder.io/blog/monomorphic-javascript</Footnote>.
 
@@ -62,15 +63,15 @@ V8은 Object 프로퍼티를 세 가지 방식으로 저장한다.
 
 ```javascript
 function Point(x, y) {
-  this.x = x;  // in-object 슬롯 0
-  this.y = y;  // in-object 슬롯 1
+  this.x = x;  // in-object 오프셋 0
+  this.y = y;  // in-object 오프셋 1
 }
 const p = new Point(1, 2);
 ```
 
 ### 2. Fast properties
 
-In-object 슬롯이 부족하면 별도의 **PropertyArray**에 저장한다. 한 단계 간접 참조가 생기지만, 메타데이터는 여전히 Hidden Class에 있으므로 IC가 작동한다.
+In-object 오프셋이 부족하면 별도의 **PropertyArray**에 저장한다. 한 단계 간접 참조가 생기지만, 메타데이터는 여전히 Hidden Class에 있으므로 IC가 작동한다.
 
 ### 3. Slow properties (Dictionary mode)
 
@@ -86,7 +87,7 @@ delete obj.b;  // 중간 프로퍼티 삭제 → Dictionary mode 전환
 
 delete는 Hidden Class 구조를 무너뜨린다.
 
-Hidden Class에는 "a는 슬롯 0, b는 슬롯 1, c는 슬롯 2"라고 기록되어 있다. b를 삭제하면 "a는 슬롯 0, c는 슬롯 2"가 되어야 하는데, 이렇게 **중간에 빈 슬롯이 있는 Hidden Class**는 Transition Tree에서 표현할 수 없다<Footnote>"Pros and Cons of 'dictionary mode'," Stack Overflow, 2014. https://stackoverflow.com/questions/23455678/pros-and-cons-of-dictionary-mode</Footnote>.
+Hidden Class에는 "a는 오프셋 0, b는 오프셋 1, c는 오프셋 2"라고 기록되어 있다. b를 삭제하면 "a는 오프셋 0, c는 오프셋 2"가 되어야 하는데, 이렇게 **중간에 빈 오프셋이 있는 Hidden Class**는 Transition Tree에서 표현할 수 없다<Footnote>"Pros and Cons of 'dictionary mode'," Stack Overflow, 2014. https://stackoverflow.com/questions/23455678/pros-and-cons-of-dictionary-mode</Footnote>.
 
 마지막 프로퍼티를 삭제하면 이전 Hidden Class로 롤백할 수 있다. 하지만 **중간 프로퍼티를 삭제하면** V8은 Hidden Class를 포기하고 Dictionary mode로 전환한다.
 
@@ -263,7 +264,7 @@ bench('Map for-of', () => {
 
 ### 조회: Fast mode Object가 가장 빠름
 
-Fast mode Object는 슬롯 번호를 알고 있으므로 직접 읽으면 된다. Map은 `map.get(key)` 호출, 해시 계산, 버킷 탐색 과정을 거친다.
+Fast mode Object는 오프셋 번호를 알고 있으므로 직접 읽으면 된다. Map은 `map.get(key)` 호출, 해시 계산, 버킷 탐색 과정을 거친다.
 
 하지만 Object가 Dictionary mode로 전환되면 이 이점은 사라진다.
 
