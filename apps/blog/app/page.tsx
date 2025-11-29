@@ -8,6 +8,13 @@ import { AdminPasswordModal, AdminBadge } from '../components/admin';
 import { isAdminAuthenticated } from '../lib/admin';
 import { Metadata } from 'next';
 
+/**
+ * ISR(Incremental Static Regeneration) 설정
+ * - 빌드 시 정적 생성 후 1시간마다 갱신
+ * - SEO: 항상 최신 포스트 목록 제공
+ */
+export const revalidate = 3600; // 1시간 (초 단위)
+
 export const metadata: Metadata = {
   // 메인 페이지 제목
   title: "PWNZ INTERACTIVES",

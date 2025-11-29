@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "../components/theme-provider";
 import { Header } from "../components/header";
@@ -6,6 +6,7 @@ import { Footer } from "../components/footer";
 import StitchesRegistry from "../components/stitches-registry";
 import { cn } from "../lib/utils";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { WebsiteJsonLd } from "../components/json-ld";
 
 /**
  * 폰트 최적화를 위한 상수들
@@ -78,12 +79,6 @@ export const metadata: Metadata = {
     images: ["https://pwnz.kr/og-default.png"],
   },
   
-  // 메타 viewport
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-  },
-  
   // 로봇 설정
   robots: {
     index: true,
@@ -98,6 +93,20 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Viewport 설정
+ * Next.js 15에서 metadata와 분리됨
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  // 테마 색상 (브라우저 UI 색상)
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f4f5" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -106,6 +115,13 @@ export default function RootLayout({
   return (
     <html lang="ko" className="scroll-smooth" suppressHydrationWarning>
       <head>
+        {/* JSON-LD 구조화 데이터 - 검색엔진 최적화 */}
+        <WebsiteJsonLd
+          url="https://pwnz.kr"
+          name="PWNZ INTERACTIVES"
+          description="인터랙티브 컴포넌트와 함께하는 기술 블로그"
+        />
+        
         {/* DNS prefetch & preconnect - 외부 CDN 연결 사전 수립 */}
         {FONT_PRECONNECT_ORIGINS.map((origin) => (
           <link

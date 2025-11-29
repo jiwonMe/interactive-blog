@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { ReactFlow, Background, Controls, useNodesState, useEdgesState, MarkerType, Position, Handle, Node, Edge, ReactFlowInstance } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
+// ReactFlow CSS는 globals.css에서 import됨
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../../lib/utils';

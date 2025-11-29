@@ -2,16 +2,34 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { getPostBySlug, getAllPosts, getSeriesPosts } from '../../../lib/posts';
 import { CustomMDX } from '../../../components/mdx-remote';
-import { TableOfContents } from '../../../components/toc';
 import { notFound } from 'next/navigation';
 import { cn } from '../../../lib/utils';
 import { Metadata } from 'next';
 import { generateBibTeX } from '../../../lib/bibtex';
 import { BibTeXCopyButton } from '../../../components/bibtex-copy-button';
-import { ScrollTracker } from '../../../components/analytics/scroll-tracker';
-import { ReadingTimeTracker } from '../../../components/analytics/reading-time-tracker';
 import { AdminPasswordModal, AdminBadge } from '../../../components/admin';
 import { isAdminAuthenticated } from '../../../lib/admin';
+import { ArticleJsonLd, BreadcrumbJsonLd } from '../../../components/json-ld';
+import { 
+  TableOfContentsWrapper, 
+  ScrollTrackerWrapper, 
+  ReadingTimeTrackerWrapper 
+} from '../../../components/client-wrappers';
+
+/**
+ * ISR(Incremental Static Regeneration) 설정
+ * - 빌드 시 정적 생성된 페이지를 1시간마다 갱신
+ * - SEO: 검색엔진에 항상 최신 콘텐츠 제공
+ * - 성능: 정적 페이지로 빠른 응답 속도 유지
+ */
+export const revalidate = 3600; // 1시간 (초 단위)
+
+/**
+ * 동적 파라미터 허용 안함
+ * - 빌드 시 생성되지 않은 경로는 404 반환
+ * - SEO: 존재하지 않는 페이지 크롤링 방지
+ */
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const posts = getAllPosts();
@@ -125,17 +143,29 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
   }
 
   const seriesPosts = post.series ? getSeriesPosts(post.series) : [];
+  const postUrl = `https://pwnz.kr/posts/${slug}`;
 
   return (
-    <div 
-      // Main container layout
-      className={cn(
-        "max-w-7xl mx-auto px-6 py-12",
-        // Full width
-        "w-full"
-      )}
-    >
-      {/* Admin 비밀번호 모달 */}
+    <>
+      {/* SEO: JSON-LD 구조화 데이터 */}
+      <ArticleJsonLd post={post} url={postUrl} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://pwnz.kr' },
+          { name: 'Posts', url: 'https://pwnz.kr/posts' },
+          { name: post.title || post.slug, url: postUrl },
+        ]}
+      />
+      
+      <div 
+        // Main container layout
+        className={cn(
+          "max-w-7xl mx-auto px-6 py-12",
+          // Full width
+          "w-full"
+        )}
+      >
+        {/* Admin 비밀번호 모달 */}
       <Suspense fallback={null}>
         <AdminPasswordModal />
       </Suspense>
@@ -395,16 +425,17 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
         )}
       </article>
       
-      {/* TOC Sidebar - only visible on large screens */}
-      <TableOfContents toc={post.toc} articleSlug={post.slug} />
+      {/* TOC Sidebar - only visible on large screens, lazy loaded */}
+      <TableOfContentsWrapper toc={post.toc} articleSlug={post.slug} />
       
-      {/* Analytics Trackers */}
-      <ScrollTracker articleSlug={post.slug} />
-      <ReadingTimeTracker
+      {/* Analytics Trackers - Lazy loaded, no SSR */}
+      <ScrollTrackerWrapper articleSlug={post.slug} />
+      <ReadingTimeTrackerWrapper
         articleSlug={post.slug}
         articleTitle={post.title || post.slug}
       />
       </div>
     </div>
+    </>
   );
 }

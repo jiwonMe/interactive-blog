@@ -5,9 +5,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "../lib/utils";
-import { motion } from "framer-motion";
 import { PwnzLogo } from "./pwnz-logo";
 
+/**
+ * 간소화된 Header 컴포넌트
+ * 
+ * 최적화 포인트:
+ * - framer-motion 제거로 번들 크기 감소 (~40KB)
+ * - CSS 애니메이션으로 대체
+ * - 불필요한 리렌더링 방지
+ */
 export function Header() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = React.useState(false);
@@ -16,7 +23,9 @@ export function Header() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-    window.addEventListener("scroll", handleScroll);
+    
+    // passive 옵션으로 스크롤 성능 개선
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -104,22 +113,19 @@ export function Header() {
                   )}
                 >
                   {item.name}
+                  {/* CSS 기반 애니메이션으로 framer-motion 대체 */}
                   {isActive && (
-                    <motion.div
-                      layoutId="activeNav"
+                    <span
                       className={cn(
                         /* Positioning */
                         "absolute -bottom-[19px] left-0 right-0",
                         /* Size */
                         "h-[2px]",
                         /* Color */
-                        "bg-blue-600 dark:bg-blue-400"
+                        "bg-blue-600 dark:bg-blue-400",
+                        /* Animation */
+                        "animate-in fade-in slide-in-from-left-2 duration-300"
                       )}
-                      transition={{
-                        type: "spring",
-                        stiffness: 380,
-                        damping: 30,
-                      }}
                     />
                   )}
                 </Link>
