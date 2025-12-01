@@ -1,0 +1,147 @@
+---
+title: '[V8 Deep Dives] Math.random()에 대한 무질서한 생각들'
+date: '2025-12-01'
+description: 'V8 엔진이 Math.random()을 어떻게 구현했는지 살펴보고, xorshift128+ 알고리즘과 엔트로피 풀의 동작 원리를 알아봅니다.'
+author: 'Jiwon Park'
+tags: ['v8', 'javascript', 'math-random', 'prng', 'xorshift', 'internals']
+series: 'V8 Deep Dives'
+seriesOrder: 3
+---
+
+> 이 글은 Andrey Pechkurov의 원문(V8 Deep Dives: Random Thoughts on Math.random())<Footnote>https://apechkurov.medium.com/v8-deep-dives-random-thoughts-on-math-random-fb155075e9e5</Footnote>을 저자의 허락을 받고 번역한 글입니다.
+
+이 시리즈의 이전 글에서는 V8 내부의 [ES6 컬렉션](/posts/v8-map-internals)과 [배열](/posts/v8-array-internals)을 다뤘습니다. 이번에는 좀 더 가벼운 주제인 `Math.random()` 함수를 살펴보겠습니다.
+
+JavaScript 개발자라면 누구나 한 번쯤은 다양한 용도로 `Math.random()`을 써봤을 것입니다. 이 함수에 대한 일반적인 상식은 이렇습니다. **"보안 관련 작업만 아니면 뭐든 괜찮다."** 즉, 이 함수는 **CSPRNG**<Footnote>https://en.wikipedia.org/wiki/Cryptographically_secure_pseudorandom_number_generator</Footnote>(암호학적으로 안전한 의사난수 생성기)로 구현되지 않았으므로 UUID v4 생성 같은 보안 관련 작업에는 쓰면 안 된다는 뜻입니다(UUID를 그런 용도로 쓸 생각이 있다면<Footnote>https://security.stackexchange.com/a/157277</Footnote> 말이지요).
+
+오늘은 V8이 `Math.random()` 함수를 정확히 어떻게 구현하는지 알아보고, 그 내용이 앞서 언급한 상식과 맞아떨어지는지 확인해 보겠습니다.
+
+요약만 보고 싶다면 글 마지막 섹션으로 바로 넘어가도 좋습니다.
+
+**참고:** 이 글은 Node.js 최신 개발 버전(commit 52f9aaf)<Footnote>https://github.com/nodejs/node/commit/52f9aafeab02390ff78447a390651ec6ed94d166</Footnote>에 번들된 V8 9.0의 구현 세부사항입니다.<Footnote>역자 주: 2025년 기준 V8 11.4에서도 동일한 구현이 유지되고 있습니다. xorshift128+ 알고리즘과 64개 엔트로피 풀 구조는 변경되지 않았습니다.</Footnote> 늘 그렇듯이 스펙에 명시되지 않은 동작은 언제든 바뀔 수 있으니 기대하지 않는 게 좋습니다.
+
+## 스펙부터 확인하자
+
+코드를 보기 전에 ECMAScript 2020 스펙이 `Math.random()` 함수에 대해 뭐라고 하는지<Footnote>https://262.ecma-international.org/11.0/#sec-math.random</Footnote> 살펴봅시다.
+
+> 0 이상 1 미만의 양수 Number 값을 반환한다. 이 값은 해당 범위에서 대략 균등 분포를 따르도록 무작위로 또는 의사 무작위로 선택되며, 구현 종속적인 알고리즘이나 전략을 사용한다. 이 함수는 인자를 받지 않는다.
+>
+> 서로 다른 realm에서 생성된 각 Math.random 함수는 연속 호출 시 서로 다른 값 시퀀스를 생성해야 한다.
+
+음, 별 내용이 없습니다. 스펙이 구현자들(JS 엔진 같은)에게 상당한 자유도를 주고 있고, 보안 관련 측면은 아예 범위 밖입니다.
+
+스펙에서는 얻을 게 없으니, 이제 양심 편하게 V8 소스 코드로 들어가 봅시다.
+
+## 세부 구현 살펴보기
+
+Torque 언어<Footnote>https://v8.dev/docs/torque</Footnote>로 작성된 `Math.random()` 코드<Footnote>https://github.com/nodejs/node/blob/52f9aafeab02390ff78447a390651ec6ed94d166/deps/v8/src/builtins/math.tq#L439</Footnote>부터 시작합시다.
+
+```torque
+// V8의 Math.random() Torque 코드 (단순화)
+transitioning javascript builtin MathRandom(
+    js-implicit context: NativeContext)(): Number {
+  // ... RefillMathRandom 매크로 호출
+  // ... 고정 크기 배열에서 값을 반환
+}
+```
+
+여기서 `Math.random()`(코드에서는 `MathRandom`)이 다른 곳에 정의된 `RefillMathRandom` 매크로(`extern macro` 참고)를 호출하는 걸 볼 수 있습니다. 이 매크로가 뭘 하는지는 잠시 후에 살펴보겠습니다.
+
+그 다음 눈에 띄는 건, 난수 값이 직접 생성되는 게 아니라 고정 크기 배열(`array` 변수)에서 반환된다는 점입니다. 이 배열을 앞으로 **"엔트로피 풀"**(또는 그냥 "풀")이라고 부르겠습니다. 인덱스(`newSmiIndex` 정수)는 호출할 때마다 감소하고, 주기적으로 0이 되면 `RefillMathRandom` 매크로가 호출됩니다. 이름에서 짐작할 수 있듯이 풀을 다시 채우는 것 같은데, 아직 확실하진 않습니다.
+
+`MathRandom` 매크로는 `CodeStubAssembler` C++ 클래스에 정의<Footnote>https://github.com/nodejs/node/blob/52f9aafeab02390ff78447a390651ec6ed94d166/deps/v8/src/codegen/code-stub-assembler.cc#L13856</Footnote>되어 있고 특별한 건 없습니다. 그냥 외부 참조<Footnote>https://github.com/nodejs/node/blob/52f9aafeab02390ff78447a390651ec6ed94d166/deps/v8/src/codegen/external-reference.cc#L771</Footnote>를 통해 `MathRandom::RefillCache` 메서드를 호출합니다. 따라서 엔트로피 풀을 다시 채울 것으로 예상되는 코드<Footnote>https://github.com/nodejs/node/blob/52f9aafeab02390ff78447a390651ec6ed94d166/deps/v8/src/numbers/math-random.cc#L35</Footnote>는 C++로 작성되어 있으며 대략 이렇게 생겼습니다.
+
+```cpp
+// MathRandom::RefillCache (단순화)
+void MathRandom::RefillCache(Isolate* isolate, Address raw_native_context) {
+  // ...
+  // 블록 #1: 시드 초기화 (최초 1회만 실행)
+  if (IsUndefined(state.IsSeeded())) {
+    uint64_t seed = isolate->random_number_generator()->NextInt64();
+    state.SetState(murmur3(seed), murmur3(~seed));
+  }
+
+  // 블록 #2: xorshift128+로 풀 채우기
+  for (int i = 0; i < kCacheSize; i++) {
+    // xorshift128+ 알고리즘으로 난수 생성
+    cache[i] = ToDouble(xorshift128plus(state));
+  }
+}
+```
+
+위 코드는 가독성을 위해 정리하고 단순화한 것입니다. 예상대로 전체적인 로직은 엔트로피 풀(`cache` 배열)을 생성하고 다시 채우는 것입니다. 하지만 여기서 몇 가지 흥미로운 세부사항이 있습니다.
+
+### 블록 #1: 시드 초기화
+
+**블록 #1**은 이후 난수 생성에 사용할 시드를 초기화하는 부분입니다. 이 블록은 **단 한 번만 실행**되며, 현재 V8 **isolate**<Footnote>https://v8.dev/blog/embedded-builtins#isolate--and-process-independent-code</Footnote>에서 사용 가능한 PRNG를 사용해 시드를 생성합니다. 그런 다음 시드를 기반으로 **murmur3**<Footnote>https://en.wikipedia.org/wiki/MurmurHash</Footnote> 해시 코드를 계산하고 초기 상태에 저장합니다.
+
+**PRNG**<Footnote>https://github.com/nodejs/node/blob/52f9aafeab02390ff78447a390651ec6ed94d166/deps/v8/src/base/utils/random-number-generator.cc#L32</Footnote>는 Node.js나 Chromium 브라우저 같은 **임베더**가 제공할 수 있습니다. 임베더가 PRNG를 제공하지 않으면 V8은 Linux의 `/dev/urandom` 같은 시스템 종속적인 난수 소스로 폴백합니다.
+
+### 블록 #2: xorshift128+로 풀 채우기
+
+**블록 #2**는 `state` 구조체를 사용해 **xorshift128+**<Footnote>https://en.wikipedia.org/wiki/Xorshift</Footnote> 난수 생성기로 풀의 모든 `kCacheSize`개 값을 생성하고 채웁니다. 풀의 크기는 **64**입니다. 즉, `Math.random()`을 64번 호출할 때마다 풀을 다시 채워야 합니다.
+
+여기서 알 수 있는 건 이렇습니다. 첫째, `Math.random()` 함수가 사용하는 초기 시드가 암호학적으로 안전한 PRNG로 생성될 수 있음에도(이건 임베더나 OS에 따라 다릅니다), 이후의 난수 생성에는 이 PRNG가 사용되지 않습니다. 대신 빠른 난수 생성 알고리즘이지만 **암호학적으로 안전하지 않은** xorshift128+를 사용합니다. 일반적인 상식이 맞다는 증거를 찾은 셈입니다. 실제로 **V8의 `Math.random()` 구현은 보안 관련 작업에 쓰도록 설계되지 않았습니다.**
+
+둘째, 이는 동일한 초기 시드 값의 경우 생성되는 숫자 시퀀스가 **결정적(deterministic)**이라는 뜻이기도 합니다. 다행히 V8은 초기 시드를 오버라이드할 수 있는 `--random_seed` 플래그를 지원하니, 우리 생각이 맞는지 확인해 봅시다.
+
+```bash
+$ node --random_seed=42
+> Math.random()
+0.18463063820885432
+> Math.random()
+0.5765148538047498
+$ node --random_seed=42
+> Math.random()
+0.18463063820885432
+> Math.random()
+0.5765148538047498
+```
+
+예상대로 두 개의 별도 Node.js REPL<Footnote>https://nodejs.org/api/repl.html</Footnote> 세션에서 시드 값으로 42를 사용했더니, 두 번 모두 `Math.random()`이 정확히 동일한 숫자 시퀀스를 생성했습니다.
+
+이제 구현에 대해 더 잘 이해했으니, 엔트로피 풀의 성능 측면을 알아봅시다.
+
+## 간단한 벤치마크
+
+더 진행하기 전에 경고하자면, 다음 마이크로벤치마크는 완전히 비과학적이고 불공정한 벤치마크이니 가볍게 받아들이길 바랍니다. 벤치마크는 i5-8400H CPU, Ubuntu 20.04, Node.js v16.0.0-pre(commit 52f9aaf)가 설치된 개발 머신에서 수행했습니다.
+
+이번 마이크로벤치마크는 아주 단순합니다.
+
+```javascript
+const iterations = 1e9;
+const start = Date.now();
+for (let i = 0; i < iterations; i++) {
+  Math.random();
+}
+const elapsed = Date.now() - start;
+console.log(`${iterations / elapsed * 1000} ops/sec`);
+```
+
+실행하면 루프에서 `Math.random()`을 호출하고 결과 처리량을 출력합니다.
+
+이 벤치마크로 `kCacheSize=64`(기본값)와 `kCacheSize=1`(풀 없음) 빌드의 Node.js를 비교해 봅시다. 측정 결과는 다음과 같습니다.
+
+| 빌드 | 처리량 |
+|------|--------|
+| kCacheSize=64 (기본값) | ~750M ops/sec |
+| kCacheSize=1 (풀 없음) | ~580M ops/sec |
+
+벤치마크에 따르면 풀을 제거하면 `Math.random()`이 **약 22% 느려집니다.** 차이가 비교적 작지만, 풀은 매 `Math.random()` 호출마다 발생하는 **JS-to-C++ 전환 오버헤드**를 제거해 처리량을 개선합니다. 흥미롭게도 uuid<Footnote>https://github.com/uuidjs/uuid/pull/513</Footnote> npm 패키지와 이후 Node.js의 표준 함수인 `crypto.randomUUID()`<Footnote>https://github.com/nodejs/node/pull/36729</Footnote>도 엔트로피 풀을 사용하는 비슷한 접근 방식을 취합니다(차이점은 CSPRNG를 사용하고 성능 향상이 훨씬 더 크다는 것입니다).
+
+이제 정리해 봅시다.
+
+## 요약
+
+1. 모든<Footnote>http://jonasnick.github.io/blog/2015/07/08/exploiting-csgojackpots-weak-rng/</Footnote> JS<Footnote>http://ifsec.blogspot.com/2012/05/cross-domain-mathrandom-prediction.html</Footnote> 개발자가<Footnote>http://ifsec.blogspot.com/2012/09/of-html5-security-cross-domain.html</Footnote> 알듯이<Footnote>https://medium.com/@betable/tifu-by-using-math-random-f1c308c4fd9d</Footnote>, **보안 관련 작업에 `Math.random()`을 사용하는 건 나쁜 생각입니다.** 브라우저에서는 **Web Crypto API**<Footnote>https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API</Footnote>를, Node.js 사용자는 **crypto**<Footnote>https://nodejs.org/api/crypto.html</Footnote> 모듈을 사용하세요.
+
+2. `Math.random()`이 사용하는 **초기 시드**는 임베더(Node.js나 브라우저)가 제공하는 PRNG를 사용하거나 OS 종속적인 난수 소스로 폴백합니다. **반드시 안전한 소스는 아닙니다.**
+
+3. 초기 시드 값이 생성되면, 이후 값들은 **xorshift128+ 알고리즘**으로 결정적으로 생성되고 **64개 항목의 풀**에 저장되며 필요할 때 다시 채워집니다. 여기서 결정적이라는 말은 동일한 초기 시드 값의 경우 `Math.random()`에서 반환되는 숫자 시퀀스가 동일하다는 뜻입니다.
+
+---
+
+이 글을 읽어주셔서 감사합니다. V8 Deep Dives 시리즈의 다음 글에 대한 아이디어가 있다면 알려주세요. 불일치나 잘못된 가정에 대한 피드백도 환영합니다.
+
+<Footnotes />
+

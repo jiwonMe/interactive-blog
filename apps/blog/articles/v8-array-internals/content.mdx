@@ -191,7 +191,7 @@ dictionary kind는 array 기반 kind보다 약 1,000배 느립니다.
 - V8 JIT는 array 기반 kind의 루프를 잘 최적화합니다.
 - hot path에서 큰 배열을 다루는 코드를 작성할 때는, V8이 배열에 가장 구체적인 elements kind를 사용하도록 해야 합니다.
 
-배열은 단순해 보이지만, 내부에서는 꽤 많은 일이 일어납니다. hot path에서 배열을 다룬다면 elements kind를 의식하는 것이 좋습니다. 다음 글에서는 Math.random()의 내부 구현을 다뤄볼 생각입니다. 다른 주제 제안이나 잘못된 부분에 대한 피드백도 환영합니다.
+배열은 단순해 보이지만, 내부에서는 꽤 많은 일이 일어납니다. hot path에서 배열을 다룬다면 elements kind를 의식하는 것이 좋습니다. 다음 글에서는 [Math.random()의 내부 구현](/posts/v8-math-random)을 다룹니다. 다른 주제 제안이나 잘못된 부분에 대한 피드백도 환영합니다.
 
 <Footnotes />
 

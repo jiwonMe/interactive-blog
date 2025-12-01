@@ -230,6 +230,20 @@ export function createBaseComponents(slug?: string) {
     em: (props: React.HTMLAttributes<HTMLElement>) => (
       <em className="italic" {...props} />
     ),
+    // 수평선 (Divider) 컴포넌트
+    hr: (props: React.HTMLAttributes<HTMLHRElement>) => (
+      <div 
+        className={cn(
+          // layout
+          "my-12 mx-auto w-full max-w-xs h-px",
+          // gradient - 중앙에서 양쪽으로 fade
+          "bg-gradient-to-r from-transparent via-zinc-300 to-transparent",
+          "dark:via-zinc-700"
+        )}
+        role="separator"
+        {...props}
+      />
+    ),
     // 테이블 컴포넌트들
     table: (props: React.HTMLAttributes<HTMLTableElement>) => (
       <div className={cn(

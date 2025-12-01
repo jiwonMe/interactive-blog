@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useHashHighlight } from './hooks/useHashHighlight';
 
 // 각주 데이터 타입
 interface FootnoteData {
@@ -231,6 +232,9 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
     };
   }, [showTooltip]);
 
+  // 본문 참조 하이라이트
+  const isRefHighlighted = useHashHighlight(`footnote-ref-${numericId}`, 2000);
+
   if (numericId === null) {
     return null;
   }
@@ -239,10 +243,18 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
     <>
       <span
         ref={footnoteRef}
-        className="
-          relative
-          inline-block
-        "
+        className={[
+          // 레이아웃
+          "relative",
+          "inline-block",
+          // 하이라이트 트랜지션
+          "transition-all duration-500",
+          "rounded-sm px-1 -mx-1",
+          // 하이라이트 효과 (노란색 형광펜 스타일)
+          isRefHighlighted 
+            ? "bg-yellow-200/70 dark:bg-yellow-500/30" 
+            : ""
+        ].filter(Boolean).join(" ")}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
       >
@@ -262,6 +274,7 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
             className="
               no-underline
               font-medium
+              scroll-mt-[35vh]
             "
           >
             [{numericId}]
@@ -327,33 +340,44 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
  * FootnoteItem: 개별 각주 아이템 컴포넌트
  */
 function FootnoteItem({ footnote }: { footnote: FootnoteData }) {
+  // 각주 하이라이트
+  const isHighlighted = useHashHighlight(`footnote-${footnote.id}`, 2000);
+
+  // 하이라이트 스타일 (노란색 형광펜)
+  const highlightClass = isHighlighted
+    ? "bg-yellow-200/70 dark:bg-yellow-500/30 transition-all duration-500 rounded-sm px-0.5 -mx-0.5"
+    : "transition-all duration-500";
+
   return (
     <li
       id={`footnote-${footnote.id}`}
       className="
         flex gap-2
         leading-relaxed
+        scroll-mt-[35vh]
       "
     >
       {/* 각주 번호 */}
       <span
-        className="
-          flex-shrink-0
-          font-medium
-          text-blue-600 dark:text-blue-400
-        "
+        className={[
+          "flex-shrink-0",
+          "font-medium",
+          "text-blue-600 dark:text-blue-400",
+          highlightClass
+        ].join(" ")}
       >
         {footnote.id}.
       </span>
       
       {/* 각주 내용 */}
-      <div 
-        className="
-          flex-1
-          min-w-0
-          whitespace-normal
-          break-words
-        "
+      <span 
+        className={[
+          "flex-1",
+          "min-w-0",
+          "whitespace-normal",
+          "break-words",
+          highlightClass
+        ].join(" ")}
       >
         {footnote.content}
         {/* 본문으로 돌아가기 링크 */}
@@ -370,7 +394,7 @@ function FootnoteItem({ footnote }: { footnote: FootnoteData }) {
         >
           ↩
         </a>
-      </div>
+      </span>
     </li>
   );
 }
