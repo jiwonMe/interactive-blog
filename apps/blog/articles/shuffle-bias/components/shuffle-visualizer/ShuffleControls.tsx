@@ -14,6 +14,7 @@ export type ShuffleControlsProps = {
   algorithms: ShuffleControlsAlgorithm[];
   selectedAlgoId: string;
   onSelectAlgoId: (id: string) => void;
+  hideAlgorithmSelect?: boolean;
 
   algoDescription: string;
   hideDescription?: boolean;
@@ -45,6 +46,7 @@ export function ShuffleControls({
   algorithms,
   selectedAlgoId,
   onSelectAlgoId,
+  hideAlgorithmSelect = false,
   algoDescription,
   hideDescription = false,
   afterDescription,
@@ -73,24 +75,25 @@ export function ShuffleControls({
           'space-y-3',
         )}
       >
-        <div
-          className={cn(
-            /* Layout */
-            'flex items-center justify-between gap-3',
-          )}
-        >
-          <h3
+        {!hideAlgorithmSelect && (
+          <div
             className={cn(
-              /* Typography */
-              'text-sm font-semibold',
-              /* Color */
-              'text-zinc-600 dark:text-zinc-400',
+              /* Layout */
+              'flex items-center justify-between gap-3',
             )}
           >
-            알고리즘
-          </h3>
+            <h3
+              className={cn(
+                /* Typography */
+                'text-sm font-semibold',
+                /* Color */
+                'text-zinc-600 dark:text-zinc-400',
+              )}
+            >
+              알고리즘
+            </h3>
 
-          <Select.Root value={selectedAlgoId} onValueChange={onSelectAlgoId}>
+            <Select.Root value={selectedAlgoId} onValueChange={onSelectAlgoId}>
             <Select.Trigger
               aria-label="셔플 알고리즘 선택"
               className={cn(
@@ -176,7 +179,8 @@ export function ShuffleControls({
               </Select.Content>
             </Select.Portal>
           </Select.Root>
-        </div>
+          </div>
+        )}
 
         {!hideDescription && (
           <p

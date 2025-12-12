@@ -29,6 +29,8 @@ Mike Bostock의 Will It Shuffle?<Footnote>https://bost.ocks.org/mike/shuffle/com
 
 ### 1. Random Comparator (나쁜 예)
 
+<ShuffleVisualizer algorithm="random-comparator" />
+
 가장 흔한 실수가 `array.sort(() => Math.random() - 0.5)` 코드다.
 
 ```javascript
@@ -64,6 +66,8 @@ V8(Chrome/Node.js)은 TimSort를 쓰는데, 이미 정렬된 구간(run)을 활�
 
 ### 2. Naive Swap (나쁜 예)
 
+<ShuffleVisualizer algorithm="naive-swap" />
+
 또 다른 실수는 모든 요소를 임의의 위치와 교환하는 방식이다.
 
 ```javascript
@@ -84,6 +88,8 @@ function naiveSwapShuffle(array) {
 시각화에서 **Naive Swap**을 선택해보자. 언뜻 괜찮아 보여도 반복 횟수를 늘리면 미세한 편향이 드러난다.
 
 ### 3. Fisher-Yates Shuffle (좋은 예)
+
+<ShuffleVisualizer algorithm="fisher-yates" />
 
 올바른 방법은 Fisher-Yates(또는 Knuth) 셔플이다.
 

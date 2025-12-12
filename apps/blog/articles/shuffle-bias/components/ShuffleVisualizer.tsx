@@ -21,9 +21,22 @@ import { computeBiasSummary } from './shuffle-visualizer/metrics';
 import { MatrixLegend } from './shuffle-visualizer/MatrixLegend';
 import { getGithubMonacoThemeName } from './shuffle-visualizer/monacoGithubTheme';
 
-export function ShuffleVisualizer() {
+interface ShuffleVisualizerProps {
+  algorithm?: string;
+}
+
+export function ShuffleVisualizer({ algorithm }: ShuffleVisualizerProps = {}) {
   const { resolvedTheme } = useTheme();
-  const [selectedAlgoId, setSelectedAlgoId] = useState<string>(ALGORITHMS[0].id);
+  const [selectedAlgoId, setSelectedAlgoId] = useState<string>(
+    algorithm || ALGORITHMS[0].id,
+  );
+
+  // algorithm prop이 있으면 알고리즘 변경 방지
+  useEffect(() => {
+    if (algorithm && selectedAlgoId !== algorithm) {
+      setSelectedAlgoId(algorithm);
+    }
+  }, [algorithm, selectedAlgoId]);
 
   const n = 60;
   const batchSize = 500;
@@ -74,8 +87,20 @@ export function ShuffleVisualizer() {
     targetTrials: autoStop ? targetTrials : null,
   });
 
+  // algorithm prop이 있으면 자동으로 실험 시작
+  useEffect(() => {
+    if (algorithm && currentAlgo && simulation.status === 'idle' && !customError) {
+      // 약간의 지연을 두어 컴포넌트가 완전히 마운트된 후 실행
+      const timer = setTimeout(() => {
+        simulation.start();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [algorithm, currentAlgo, simulation.status, simulation.start, customError]);
+
   const canRun = Boolean(currentAlgo) && simulation.status !== 'error' && !customError;
   const isRunning = simulation.status === 'running';
+  const isFixedAlgorithm = Boolean(algorithm);
 
   const statusText = useMemo(() => {
     if (simulation.status === 'running') return '실행 중…';
@@ -146,6 +171,29 @@ export function ShuffleVisualizer() {
     </div>
   );
 
+  // algorithm prop이 있으면 그래프만 표시
+  if (isFixedAlgorithm) {
+    return (
+      <div
+        className={cn(
+          /* Layout */
+          'flex flex-col gap-2 my-8',
+        )}
+      >
+        <div
+          className={cn(
+            /* Layout */
+            'w-full mx-auto',
+            /* Size */
+            'max-w-[min(46vh,460px)]',
+          )}
+        >
+          {visualizationContent}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -198,7 +246,12 @@ export function ShuffleVisualizer() {
               { id: CUSTOM_ALGO_ID, name: 'Custom' },
             ]}
             selectedAlgoId={selectedAlgoId}
-            onSelectAlgoId={setSelectedAlgoId}
+            onSelectAlgoId={(id) => {
+              if (!isFixedAlgorithm) {
+                setSelectedAlgoId(id);
+              }
+            }}
+            hideAlgorithmSelect={isFixedAlgorithm}
             algoDescription={currentAlgo?.description || '알고리즘을 선택하세요.'}
             hideDescription={selectedAlgoId === CUSTOM_ALGO_ID}
             afterDescription={visualizationMobile}
@@ -215,7 +268,7 @@ export function ShuffleVisualizer() {
             statusText={statusText}
             errorText={customError || simulation.error}
             beforeStats={
-              selectedAlgoId === CUSTOM_ALGO_ID ? (
+              selectedAlgoId === CUSTOM_ALGO_ID && !isFixedAlgorithm ? (
                 <>
                   <CustomAlgorithmEditorHeaderRow
                     onReset={() => {
