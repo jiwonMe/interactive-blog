@@ -1,22 +1,25 @@
 'use client';
 
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { cn } from '../../../lib/utils';
 
 interface MatrixDiagramProps {
-  matrix: number[][];
+  n: number;
+  counts: Uint32Array;
   totalTrials: number;
+  revision: number;
   className?: string;
 }
 
-export function MatrixDiagram({ matrix, totalTrials, className }: MatrixDiagramProps) {
+export function MatrixDiagram({ n, counts, totalTrials, revision, className }: MatrixDiagramProps) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const n = matrix.length;
+  const cellSelectionRef = useRef<d3.Selection<SVGRectElement, number, SVGGElement, unknown> | null>(
+    null,
+  );
 
-  // D3 렌더링 로직
   useEffect(() => {
-    if (!svgRef.current || n === 0 || totalTrials === 0) return;
+    if (!svgRef.current || n <= 0) return;
 
     const svg = d3.select(svgRef.current);
     const width = 500; // 내부 좌표계 기준 너비
@@ -33,57 +36,27 @@ export function MatrixDiagram({ matrix, totalTrials, className }: MatrixDiagramP
     const x = d3.scaleLinear().domain([0, n]).range([margin.left, margin.left + n * cellSize]);
     const y = d3.scaleLinear().domain([0, n]).range([margin.top, margin.top + n * cellSize]);
 
-    // 색상 스케일
-    // 기대값: totalTrials / n
-    // 비율 r = observed / expected
-    // r = 1 -> 중립 (흰색/회색)
-    // r < 1 -> Negative Bias (Purple/Blue)
-    // r > 1 -> Positive Bias (Orange/Red)
-    const expected = totalTrials / n;
-    
-    // 색상 보간기: Purple to Orange
-    // d3.interpolatePuOr(t)에서 t=0.5가 흰색(중립).
-    // r=0 -> t=0 (Purple)
-    // r=1 -> t=0.5 (White)
-    // r=2 -> t=1 (Orange)
-    // r 값을 [0, 2] 범위에서 [0, 1]로 매핑: t = r / 2
-    // 하지만 시각적 대비를 위해 스케일을 조정할 수 있음.
-    
-    const colorScale = (value: number) => {
-      const ratio = value / expected;
-      // 편향을 더 잘 보여주기 위해 스케일 조정 (0 ~ 2 범위를 주로 사용)
-      // 0 (never) -> 0 (Purple)
-      // 1 (expected) -> 0.5 (White)
-      // 2+ (twice as often) -> 1 (Orange)
-      let t = ratio / 2;
-      t = Math.max(0, Math.min(1, t));
-      return d3.interpolatePuOr(t);
-    };
-
-    // 기존 내용 지우기 (또는 업데이트 패턴 사용 가능하지만 여기선 간단히)
+    // n 변경 시에만 전체를 재구성합니다.
     svg.selectAll('*').remove();
 
     // 그룹 생성
     const g = svg.append('g');
 
-    // 데이터 바인딩을 위한 평탄화
-    const data = [];
-    for (let i = 0; i < n; i++) {
-      for (let j = 0; j < n; j++) {
-        data.push({ i, j, count: matrix[i][j] });
-      }
-    }
+    const indices = d3.range(n * n);
 
-    // 셀 그리기
-    g.selectAll('rect')
-      .data(data)
+    const cellSelection = g
+      .selectAll<SVGRectElement, number>('rect.cell')
+      .data(indices)
       .join('rect')
-      .attr('x', d => x(d.j))
-      .attr('y', d => y(d.i))
+      .attr('class', 'cell')
+      .attr('x', (d) => x(d % n))
+      .attr('y', (d) => y(Math.floor(d / n)))
       .attr('width', cellSize)
       .attr('height', cellSize)
-      .attr('fill', d => colorScale(d.count))
-      .attr('stroke', 'none'); // 성능을 위해 stroke 제거하거나 옅게
+      .attr('fill', 'transparent')
+      .attr('stroke', 'none');
+
+    cellSelectionRef.current = cellSelection;
 
     // 외곽선
     g.append('rect')
@@ -116,16 +89,72 @@ export function MatrixDiagram({ matrix, totalTrials, className }: MatrixDiagramP
       .attr('fill', 'currentColor')
       .text('Original Position (i)');
 
-  }, [matrix, totalTrials, n]);
+  }, [n]);
+
+  useEffect(() => {
+    const cells = cellSelectionRef.current;
+    if (!cells) return;
+    if (n <= 0) return;
+    if (totalTrials <= 0) return;
+
+    const expected = totalTrials / n;
+    const colorScale = (value: number) => {
+      const ratio = expected > 0 ? value / expected : 0;
+      let t = ratio / 2;
+      t = Math.max(0, Math.min(1, t));
+      return d3.interpolatePuOr(t);
+    };
+
+    cells.attr('fill', (d) => colorScale(counts[d] ?? 0));
+  }, [counts, n, revision, totalTrials]);
 
   return (
-    <div className={cn('w-full aspect-square max-w-[500px] mx-auto', className)}>
+    <div
+      className={cn(
+        /* Layout */
+        'relative w-full aspect-square',
+        className,
+      )}
+    >
       <svg
         ref={svgRef}
         viewBox="0 0 500 500"
-        className="w-full h-full block"
+        className={cn(
+          /* Layout */
+          'w-full h-full block',
+        )}
         style={{ shapeRendering: 'crispEdges' }} // 픽셀 아트처럼 선명하게
       />
+
+      {totalTrials === 0 && (
+        <div
+          className={cn(
+            /* Layout */
+            'absolute inset-0 grid place-items-center',
+          )}
+        >
+          <div
+            className={cn(
+              /* Layout */
+              'px-4 py-3 rounded-lg text-center max-w-[22rem]',
+              /* Typography (mobile only) */
+              'text-[11px] md:text-sm',
+              /* Border (mobile only) */
+              'border-0 border-none border-transparent',
+              /* Border (desktop+) */
+              'md:border md:border-solid md:border-zinc-200 md:dark:border-zinc-700',
+              /* Color */
+              'bg-white text-zinc-700',
+              /* Dark (mobile only) */
+              'dark:bg-zinc-900/75 md:dark:bg-zinc-900',
+              /* Dark */
+              'dark:text-zinc-300',
+            )}
+          >
+            시뮬레이션을 시작하면 매트릭스가 채워집니다.
+          </div>
+        </div>
+      )}
     </div>
   );
 }
