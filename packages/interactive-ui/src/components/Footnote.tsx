@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useHashHighlight } from './hooks/useHashHighlight';
+import { normalizeFootnoteContent } from './FootnoteLinkTitle';
 
 // 각주 데이터 타입
 interface FootnoteData {
@@ -114,7 +115,8 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
     arrowOffset: number;
   } | null>(null);
   const hasRegistered = useRef(false);
-  const [content, setContent] = useState<React.ReactNode>(children);
+  const normalizedChildren = normalizeFootnoteContent(children);
+  const [content, setContent] = useState<React.ReactNode>(normalizedChildren);
   const footnoteRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
@@ -142,11 +144,11 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
     }
     
     // 새 각주 등록
-    const footnoteId = registerFootnote(children, customId);
+    const footnoteId = registerFootnote(normalizedChildren, customId);
     idRef.current = footnoteId;
     setNumericId(footnoteId);
-    setContent(children);
-  }, [registerFootnote, getFootnoteIdByCustomId, getFootnoteById, children, customId, refId]);
+    setContent(normalizedChildren);
+  }, [registerFootnote, getFootnoteIdByCustomId, getFootnoteById, normalizedChildren, customId, refId]);
 
   useEffect(() => {
     const updateTooltipPosition = () => {
