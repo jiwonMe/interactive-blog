@@ -14,7 +14,9 @@ hidden: false
 
 회사에서 점심 메뉴 룰렛을 몇 번 돌리다 보니, 슬랙에 이런 의문이 올라왔다. 처음엔 "그냥 운이겠지"라고 넘겼는데, 몇 번 더 돌려보니 정말 특정 사람들끼리 자주 뭉쳐 나온다. 셔플 알고리즘 자체에 문제가 있는 건 아닐까?
 
-Mike Bostock의 Will It Shuffle?<Footnote>https://bost.ocks.org/mike/shuffle/compare.html</Footnote>은 셔플 알고리즘의 편향성을 시각적으로 잘 설명한 글이다. 이 글에서는 D3.js와 React로 같은 시각화를 구현하고, 잘못된 셔플이 왜 문제인지, 그리고 Fisher-Yates가 왜 공정한지 눈으로 확인해본다.
+궁금해서 코드를 뜯어봤다. 범인은 `array.sort(() => Math.random() - 0.5)`. 간단해 보이지만, 이 한 줄이 편향의 원인이었다.
+
+Mike Bostock의 Will It Shuffle?<Footnote>https://bost.ocks.org/mike/shuffle/compare.html</Footnote>에서 영감을 받아, 본 글에서는 D3.js와 React로 셔플 알고리즘의 편향을 직접 시각화해본다. 잘못된 셔플이 왜 문제인지, 그리고 Fisher-Yates가 왜 공정한지 눈으로 확인해보자.
 
 ## 셔플의 공정성
 
@@ -39,7 +41,7 @@ Matrix Diagram에서는 **대각선이 진할수록** '원래 자리 근처에 �
 
 <ShuffleVisualizer algorithm="random-comparator" />
 
-가장 흔한 실수가 `array.sort(() => Math.random() - 0.5)` 코드다.
+가장 흔한 실수는 `array.sort(() => Math.random() - 0.5)` 코드다.
 
 ```javascript
 // ❌ 쓰지 말자
@@ -59,7 +61,7 @@ function randomComparatorShuffle(array) {
 <CollapsibleSection title="더 깊게 보기(선택): 비추이성(토너먼트) 설명">
   <Claim name="3원소만으로도 추이성 위반이 발생한다">
     서로 다른 세 원소 $a,b,c$에 대해, 비교 결과가 매번 독립적으로(각각 확률 $\frac{1}{2}$) 정해지는 랜덤 comparator를 쓰면
-    추이성이 깨지는(3-사이클이 생기는) 확률이 $\frac{1}{4}$이다.
+    <Highlight>추이성이 깨지는(3-사이클이 생기는) 확률이 $\frac{1}{4}$이다.</Highlight>
   </Claim>
 
   <Proof>
@@ -94,12 +96,12 @@ function randomComparatorShuffle(array) {
 | 경우 | $a$ vs $b$ | $b$ vs $c$ | $a$ vs $c$ | 판정 |
 | ---: | :---: | :---: | :---: | :--- |
 | 1 | $a \lt b$ | $b \lt c$ | $a \lt c$ | 추이적 |
-| 2 | $a \lt b$ | $b \lt c$ | $a \gt c$ | **사이클** ($a \lt b \lt c \lt a$) |
+| 2 | $a \lt b$ | $b \lt c$ | $a \gt c$ | <Highlight>**사이클** ($a \lt b \lt c \lt a$)</Highlight> |
 | 3 | $a \lt b$ | $b \gt c$ | $a \lt c$ | 추이적 |
 | 4 | $a \lt b$ | $b \gt c$ | $a \gt c$ | 추이적 |
 | 5 | $a \gt b$ | $b \lt c$ | $a \lt c$ | 추이적 |
 | 6 | $a \gt b$ | $b \lt c$ | $a \gt c$ | 추이적 |
-| 7 | $a \gt b$ | $b \gt c$ | $a \lt c$ | **사이클** ($a \gt b \gt c \gt a$) |
+| 7 | $a \gt b$ | $b \gt c$ | $a \lt c$ | <Highlight>**사이클** ($a \gt b \gt c \gt a$)</Highlight> |
 | 8 | $a \gt b$ | $b \gt c$ | $a \gt c$ | 추이적 |
 
   #### 직관: 추이적이면 '한 방향', 비추이적이면 '사이클'
@@ -118,7 +120,7 @@ function randomComparatorShuffle(array) {
   - **뒷부분 요소들**: 마지막 merge에서 상대적으로 덜 영향받음 → 역시 원래 위치에 가까이 머무름
   - **중간 요소들**: 여러 번의 merge를 거치며 더 많이 섞임 → 상대적으로 더 균일하게 분산
 
-  요약하면, **비교 횟수가 적으면 이동 확률이 낮아지고, 원래 위치 근처에 남는다**. 그래서 누적하면 가장자리에 얼룩처럼 보이는 패턴이 나타난다.
+  <Highlight>요약하면, 비교 횟수가 적으면 이동 확률이 낮아지고, 원래 위치 근처에 남는다.</Highlight> 그래서 누적하면 가장자리에 얼룩처럼 보이는 패턴이 나타난다.
 </CollapsibleSection>
 
 결국 `sort(() => Math.random() - 0.5)`는 겉보기엔 섞이는 것 같아도, **공정한 셔플이 아니다**.
@@ -139,11 +141,11 @@ function naiveSwapShuffle(array) {
 }
 ```
 
-겉보기에는 Fisher–Yates와 비슷하다. "모든 i에 대해 임의의 j를 골라 swap한다"는 말이 그럴싸해서 더 위험하다.
+겉보기에는 Fisher–Yates와 비슷하다. "모든 i에 대해 임의의 j를 골라 swap한다"는 말이 그럴싸해 보여서 더 위험하다.
 
 핵심 문제는 **무작위로 뽑는 단위(선택 경로)가 원하는 결과(순열)와 1:1 대응이 아니라는 점**이다. 여러 경로가 같은 순열로 압축되는데, 그 압축 비율이 순열마다 다르기 때문에 분포가 찌그러진다<Footnote style="harvard">https://atrium.lib.uoguelph.ca/server/api/core/bitstreams/b3244236-4cd0-47ba-a157-9abd6e6312f0/content</Footnote>.
 
-그래서 **반복 횟수를 늘리면** 행렬 다이어그램에서 **대각선(원래 위치 근처)**이 상대적으로 두드러지기 쉽다.
+이런 편향이 누적되어 행렬 다이어그램에서 **대각선(원래 위치 근처)**이 상대적으로 두드러지게 된다.
 
 <CollapsibleSection title="더 깊게 보기(선택): Naive Swap이 왜 편향되는가(증명 · 직관 · 전수조사)">
 
@@ -168,7 +170,7 @@ $$
 로 “동일”해야 한다.
 
 그런데 $N^N$이 $N!$로 나누어떨어지지 않는다면(예: $3^3=27$, $3!=6$), 위 값은 정수가 될 수 없고,  
-**정수여야 하는 ‘경로 수’가 모두 같아질 수 없으므로 균일 분포는 불가능**하다.
+<Highlight>정수여야 하는 ‘경로 수’가 모두 같아질 수 없으므로 균일 분포는 불가능하다.</Highlight>
 
 <Boxed title="핵심" variant="note">
 Naive Swap은 “경로(선택 시퀀스) → 순열”이 1:1이 아니라 **여러 경로가 같은 순열로 압축**된다.  
@@ -197,7 +199,7 @@ Naive Swap은 매 단계에서 아무 j나 고르기 때문에, 어떤 원소는
 하지만 반대로 “나눠떨어지면 항상 공정”을 뜻하는 건 아니다.
 
 공정하려면 각 순열로 가는 경로 수가 정확히 같아야 하는데, Naive Swap은 **그 구조 자체가 대칭을 충분히 보장하지 못한다**.
-그래서 실제로는 (대부분의 N에서) 분포가 균일해지지 않는다.
+그래서 실제로 대부분의 N에서 분포가 균일해지지 않는다.
 
 </CollapsibleSection>
 
@@ -205,7 +207,7 @@ Naive Swap은 매 단계에서 아무 j나 고르기 때문에, 어떤 원소는
 
 <ShuffleVisualizer algorithm="fisher-yates" />
 
-올바른 방법은 Fisher-Yates(또는 Knuth) 셔플이다.
+올바른 방법은 **Fisher-Yates(또는 Knuth) 셔플**이다.
 
 ```javascript
 // ✅ 공정한 셔플
@@ -217,7 +219,7 @@ function fisherYatesShuffle(array) {
 }
 ```
 
-이 알고리즘은 수학적으로 완벽하게 공정하다. 시각화에서 **Fisher-Yates**를 선택하면 전체가 균일한 회색 노이즈로 채워진다.
+이 알고리즘은 **수학적으로 완벽하게 공정하다**. 시각화에서 **Fisher-Yates**를 선택하면 전체가 균일한 회색 노이즈로 채워진다.
 
 <CollapsibleSection title="더 깊게 보기(선택): Fisher–Yates의 수학적 증명">
 
@@ -283,8 +285,8 @@ Fisher-Yates는 각 단계에서 **아직 배치되지 않은 요소들 중에�
 
 **핵심 규칙:**
 
-1. **`array.sort(() => Math.random() - 0.5)` 쓰지 말자**. 편향이 생긴다.
-2. **Fisher-Yates를 쓰자**. 대부분의 언어와 라이브러리에 이미 구현되어 있다.
+1. <Highlight>`array.sort(() => Math.random() - 0.5)` 쓰지 말자. 편향이 생긴다.</Highlight>
+2. <Highlight>Fisher-Yates를 쓰자. 대부분의 언어와 라이브러리에 이미 구현되어 있다.</Highlight>
 
 ### 실전에서 쓰기
 

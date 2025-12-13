@@ -1,4 +1,4 @@
-import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard, Footnote, Footnotes, Callout, CollapsibleCode } from '@repo/interactive-ui';
+import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard, Footnote, Footnotes, Callout, CollapsibleCode, Highlight } from '@repo/interactive-ui';
 import { cn } from '../../lib/utils';
 import Image from 'next/image';
 import React from 'react';
@@ -52,6 +52,8 @@ export function createBaseComponents(slug?: string) {
     CollapsibleCode: (props: any) => <CollapsibleCode {...props} />,
     // CollapsibleSection 컴포넌트 (일반 콘텐츠 접기/펼치기)
     CollapsibleSection: (props: any) => <CollapsibleSection {...props} />,
+    // Highlight 컴포넌트 (형광펜 효과)
+    Highlight: (props: any) => <Highlight {...props} />,
     // 수학/증명 구조화 컴포넌트들
     Boxed,
     Theorem,

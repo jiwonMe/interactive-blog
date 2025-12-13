@@ -301,6 +301,8 @@ export function Footnote({ children, id: customId, refId, style }: FootnoteProps
             border border-zinc-700 dark:border-zinc-300
             whitespace-normal
             break-words
+            [&_a]:text-blue-300 [&_a]:hover:text-blue-200
+            dark:[&_a]:text-blue-600 dark:[&_a]:hover:text-blue-500
           "
           style={tooltipPosition ? {
             top: `${tooltipPosition.top}px`,
