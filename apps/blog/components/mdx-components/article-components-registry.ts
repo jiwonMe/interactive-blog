@@ -11,6 +11,7 @@ import { TimerComparisonPlaygroundWrapper as TimerComparisonPlayground } from '.
 import { ShuffleVisualizer } from '../../articles/shuffle-bias/components/ShuffleVisualizer';
 import { TournamentSampler } from '../../articles/shuffle-bias/components/TournamentSampler';
 import { TransitivityDiagram } from '../../articles/shuffle-bias/components/TransitivityDiagram';
+import { NaiveSwapPathDistribution } from '../../articles/shuffle-bias/components/NaiveSwapPathDistribution';
 import { SecretaryProblem } from '../../articles/secretary-problem/components/SecretaryProblem';
 import { HiddenClassVisualizer } from '../../articles/v8-object-vs-map/components/HiddenClassVisualizer';
 import { PropertyStorageVisualizer } from '../../articles/v8-object-vs-map/components/PropertyStorageVisualizer';
@@ -30,6 +31,7 @@ export const articleComponentsRegistry: Record<string, React.ComponentType<any>>
   ShuffleVisualizer,
   TournamentSampler,
   TransitivityDiagram,
+  NaiveSwapPathDistribution,
   SecretaryProblem,
   HiddenClassVisualizer,
   PropertyStorageVisualizer,
