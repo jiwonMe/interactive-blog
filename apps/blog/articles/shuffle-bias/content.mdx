@@ -31,6 +31,8 @@ Matrix Diagram에서는 **대각선이 진할수록** '원래 자리 근처에 �
 
 아래 시각화는 셔플을 수천 번 돌리고 결과를 집계한다. 행은 원래 위치, 열은 셔플 후 위치다. **균일한 회색**이면 공정하고, **패턴이 보이면** 편향이 있다.
 
+드롭다운에서 알고리즘을 바꿔가며 비교해보자. 어떤 알고리즘이 공정하고, 어떤 알고리즘이 편향되어 있는지 눈으로 확인할 수 있다.
+
 <ShuffleVisualizer />
 
 ### 1. Random Comparator (나쁜 예)
@@ -112,11 +114,11 @@ function randomComparatorShuffle(array) {
 <CollapsibleSection title="더 깊게 보기(선택): V8 TimSort 패턴(왜 가장자리가 얼룩처럼 보이나)">
   V8(Chrome/Node.js)은 TimSort를 쓴다<Footnote>https://v8.dev/blog/array-sort</Footnote>. TimSort는 배열을 스캔하며 이미 정렬된 구간(run)을 찾고, 이 run들을 병합(merge)하는 방식으로 동작한다. 랜덤 comparator를 쓰면 이 과정이 교란된다:
 
-  - **앞부분 요소들**: 첫 run에 묶여 비교 횟수가 적음
-  - **뒷부분 요소들**: 마지막 merge에서 상대적으로 덜 영향받음  
-  - **중간 요소들**: 여러 번의 merge를 거치며 더 많이 섞임
+  - **앞부분 요소들**: 첫 run에 묶여 비교 횟수가 적음 → 이동 기회가 적어 원래 위치 근처에 남기 쉬움
+  - **뒷부분 요소들**: 마지막 merge에서 상대적으로 덜 영향받음 → 역시 원래 위치에 가까이 머무름
+  - **중간 요소들**: 여러 번의 merge를 거치며 더 많이 섞임 → 상대적으로 더 균일하게 분산
 
-  그래서 누적하면 가장자리에 얼룩처럼 보이는 패턴이 나타나고, 배열의 앞뒤 요소들이 원래 위치 근처에 남아있을 확률이 상대적으로 높아진다.
+  요약하면, **비교 횟수가 적으면 이동 확률이 낮아지고, 원래 위치 근처에 남는다**. 그래서 누적하면 가장자리에 얼룩처럼 보이는 패턴이 나타난다.
 </CollapsibleSection>
 
 결국 `sort(() => Math.random() - 0.5)`는 겉보기엔 섞이는 것 같아도, **공정한 셔플이 아니다**.
@@ -130,19 +132,18 @@ function randomComparatorShuffle(array) {
 ```javascript
 // ❌ 미묘하게 편향된다
 function naiveSwapShuffle(array) {
-  const n = array.length;
-  for (let i = 0; i < n; i++) {
-    const j = Math.floor(Math.random() * n); // 아무 인덱스나
-    swap(array, i, j);
+  for (let i = 0; i < array.length; i++) {
+    const j = randomInt(0, array.length - 1); // 전체 배열에서 아무 위치나
+    [array[i], array[j]] = [array[j], array[i]]; // swap
   }
 }
 ```
 
-겉보기에는 Fisher–Yates와 비슷하다. “모든 i에 대해 임의의 j를 골라 swap한다”는 말이 그럴싸해서 더 위험하다.
+겉보기에는 Fisher–Yates와 비슷하다. "모든 i에 대해 임의의 j를 골라 swap한다"는 말이 그럴싸해서 더 위험하다.
+
+핵심 문제는 **무작위로 뽑는 단위(선택 경로)가 원하는 결과(순열)와 1:1 대응이 아니라는 점**이다. 여러 경로가 같은 순열로 압축되는데, 그 압축 비율이 순열마다 다르기 때문에 분포가 찌그러진다<Footnote style="harvard">https://atrium.lib.uoguelph.ca/server/api/core/bitstreams/b3244236-4cd0-47ba-a157-9abd6e6312f0/content</Footnote>.
 
 그래서 **반복 횟수를 늘리면** 행렬 다이어그램에서 **대각선(원래 위치 근처)**이 상대적으로 두드러지기 쉽다.
-
-이 편향은 직관적으로 “사다리타기(아미다쿠지, ladder lottery)”에서 느끼는 불공정과 비슷하다. 겉으로는 막대를 무작위로 추가/이동하면 매번 다른 결과가 나오지만, “사다리(구조) → 최종 매칭(순열)”로 가는 대응이 1:1이 아니면 어떤 순열은 더 많은 구조에 의해 만들어지고(=더 자주), 어떤 순열은 덜 만들어진다(=덜 자주). 즉 **무작위로 뽑는 단위가 ‘원하는 결과(순열)’와 다르면** 분포가 쉽게 찌그러진다<Footnote style="harvard">https://atrium.lib.uoguelph.ca/server/api/core/bitstreams/b3244236-4cd0-47ba-a157-9abd6e6312f0/content</Footnote>.
 
 <CollapsibleSection title="더 깊게 보기(선택): Naive Swap이 왜 편향되는가(증명 · 직관 · 전수조사)">
 
@@ -209,14 +210,10 @@ Naive Swap은 매 단계에서 아무 j나 고르기 때문에, 어떤 원소는
 ```javascript
 // ✅ 공정한 셔플
 function fisherYatesShuffle(array) {
-  let m = array.length, t, i;
-  while (m) {
-    i = Math.floor(Math.random() * m--); // 남은 요소 중에서 선택
-    t = array[m];
-    array[m] = array[i];
-    array[i] = t;
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = randomInt(0, i); // 아직 섞지 않은 구간에서만 선택
+    [array[i], array[j]] = [array[j], array[i]]; // swap
   }
-  return array;
 }
 ```
 
@@ -288,5 +285,30 @@ Fisher-Yates는 각 단계에서 **아직 배치되지 않은 요소들 중에�
 
 1. **`array.sort(() => Math.random() - 0.5)` 쓰지 말자**. 편향이 생긴다.
 2. **Fisher-Yates를 쓰자**. 대부분의 언어와 라이브러리에 이미 구현되어 있다.
+
+### 실전에서 쓰기
+
+직접 구현할 필요 없이, 검증된 라이브러리를 사용하면 된다.
+
+```javascript
+// JavaScript: Lodash 사용
+import { shuffle } from 'lodash';
+const shuffled = shuffle([1, 2, 3, 4, 5]);
+```
+
+```python
+# Python: 내장 random 모듈 (in-place Fisher-Yates)
+import random
+arr = [1, 2, 3, 4, 5]
+random.shuffle(arr)
+```
+
+```go
+// Go: math/rand 패키지
+import "math/rand"
+rand.Shuffle(len(arr), func(i, j int) {
+    arr[i], arr[j] = arr[j], arr[i]
+})
+```
 
 <Footnotes />
