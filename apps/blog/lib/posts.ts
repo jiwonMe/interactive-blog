@@ -56,6 +56,7 @@ export type PostData = {
   seriesOrder?: number;
   tags?: string[];
   hidden?: boolean;
+  password?: string;
 };
 
 export function getPostSlugs() {
@@ -79,6 +80,11 @@ export function getPostBySlug(slug: string): PostData | null {
   const { data, content } = matter(fileContents);
   const toc = extractTOC(content);
   
+  // password는 문자열이고 비어있지 않은 경우에만 포함
+  const password = typeof data.password === 'string' && data.password.trim().length > 0
+    ? data.password.trim()
+    : undefined;
+  
   return { 
     slug: realSlug, 
     content, 
@@ -93,6 +99,7 @@ export function getPostBySlug(slug: string): PostData | null {
     seriesOrder: data.seriesOrder,
     tags: data.tags,
     hidden: data.hidden ?? false,
+    password,
   };
 }
 

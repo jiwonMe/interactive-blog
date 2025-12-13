@@ -9,7 +9,7 @@ import { generateBibTeX } from '../../../lib/bibtex';
 import { BibTeXCopyButton } from '../../../components/bibtex-copy-button';
 import { AdminPasswordModal, AdminBadge } from '../../../components/admin';
 import { isAdminAuthenticated } from '../../../lib/admin';
-import { isPostPasswordAuthenticated, isPostPasswordEnabled } from '../../../lib/post-access';
+import { isPostPasswordAuthenticated } from '../../../lib/post-access';
 import { ArticleJsonLd, BreadcrumbJsonLd } from '../../../components/json-ld';
 import { 
   TableOfContentsWrapper, 
@@ -61,7 +61,8 @@ export async function generateMetadata({
   const isDev = process.env.NODE_ENV === 'development';
   if (post.hidden && !isDev) {
     const isAdmin = await isAdminAuthenticated();
-    const isPasswordEnabled = await isPostPasswordEnabled(slug);
+    // post 객체에서 직접 password 확인 (더 안정적)
+    const isPasswordEnabled = !!post.password;
     const isPasswordAuthed = await isPostPasswordAuthenticated(slug);
 
     const canAccessHidden = isAdmin || (isPasswordEnabled && isPasswordAuthed);
@@ -159,7 +160,8 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
   }
 
   const isDev = process.env.NODE_ENV === 'development';
-  const isPasswordEnabled = await isPostPasswordEnabled(slug);
+  // post 객체에서 직접 password 확인 (더 안정적)
+  const isPasswordEnabled = !!post.password;
   const isPasswordAuthed = await isPostPasswordAuthenticated(slug);
   const canAccessHidden = isDev || isAdmin || (isPasswordEnabled && isPasswordAuthed);
 

@@ -1,37 +1,14 @@
 'use server';
 
-import fs from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
 import { cookies } from 'next/headers';
+import { getPostBySlug } from './posts';
 
 const POST_AUTH_COOKIE_PREFIX = 'pwnz_post_auth__';
 const COOKIE_MAX_AGE = 60 * 60;
 
-type PasswordFrontmatter = {
-  password?: unknown;
-};
-
-const getArticlesDir = () => {
-  const local = path.join(process.cwd(), 'articles');
-  if (fs.existsSync(local)) return local;
-  return path.join(process.cwd(), 'apps/blog/articles');
-};
-
-const getPostContentPath = (slug: string) => path.join(getArticlesDir(), slug, 'content.mdx');
-
 const getPostPasswordFromFile = (slug: string): string | null => {
-  const fullPath = getPostContentPath(slug);
-
-  if (!fs.existsSync(fullPath)) return null;
-
-  const fileContents = fs.readFileSync(fullPath, 'utf8');
-  const { data } = matter(fileContents);
-  const password = (data as PasswordFrontmatter)?.password;
-  if (typeof password !== 'string') return null;
-  if (password.trim().length === 0) return null;
-
-  return password;
+  const post = getPostBySlug(slug);
+  return post?.password ?? null;
 };
 
 const getPostAuthCookieName = (slug: string) => `${POST_AUTH_COOKIE_PREFIX}${slug}`;
