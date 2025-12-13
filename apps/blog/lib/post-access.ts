@@ -26,9 +26,8 @@ const getPostPasswordFromFile = (slug: string): string | null => {
   if (!fs.existsSync(fullPath)) return null;
 
   const fileContents = fs.readFileSync(fullPath, 'utf8');
-  const { data } = matter<PasswordFrontmatter>(fileContents);
-
-  const password = data?.password;
+  const { data } = matter(fileContents);
+  const password = (data as PasswordFrontmatter)?.password;
   if (typeof password !== 'string') return null;
   if (password.trim().length === 0) return null;
 
