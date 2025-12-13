@@ -9,12 +9,14 @@ import { generateBibTeX } from '../../../lib/bibtex';
 import { BibTeXCopyButton } from '../../../components/bibtex-copy-button';
 import { AdminPasswordModal, AdminBadge } from '../../../components/admin';
 import { isAdminAuthenticated } from '../../../lib/admin';
+import { isPostPasswordAuthenticated, isPostPasswordEnabled } from '../../../lib/post-access';
 import { ArticleJsonLd, BreadcrumbJsonLd } from '../../../components/json-ld';
 import { 
   TableOfContentsWrapper, 
   ScrollTrackerWrapper, 
   ReadingTimeTrackerWrapper 
 } from '../../../components/client-wrappers';
+import { ProtectedPost } from './protected-post';
 
 /**
  * ISR(Incremental Static Regeneration) 설정
@@ -32,12 +34,10 @@ export const revalidate = 3600; // 1시간 (초 단위)
 export const dynamicParams = false;
 
 export async function generateStaticParams() {
-  const posts = getAllPosts();
-  // 프로덕션 빌드 시 hidden 포스트 제외
-  const isDev = process.env.NODE_ENV === 'development';
-  const filteredPosts = isDev ? posts : posts.filter(post => !post.hidden);
-  
-  return filteredPosts.map((post) => ({
+  // hidden 포스트도 라우트는 생성(접근은 서버에서 가드)
+  const posts = getAllPosts(true);
+
+  return posts.map((post) => ({
     slug: post.slug,
   }));
 }
@@ -54,6 +54,27 @@ export async function generateMetadata({
     return {
       title: '포스트를 찾을 수 없습니다',
     };
+  }
+
+  // hidden 포스트는 인증 전엔 noindex 처리(메타데이터로 노출 최소화)
+  const isDev = process.env.NODE_ENV === 'development';
+  if (post.hidden && !isDev) {
+    const isAdmin = await isAdminAuthenticated();
+    const isPasswordEnabled = await isPostPasswordEnabled(slug);
+    const isPasswordAuthed = await isPostPasswordAuthenticated(slug);
+
+    const canAccessHidden = isAdmin || (isPasswordEnabled && isPasswordAuthed);
+
+    if (!canAccessHidden) {
+      return {
+        title: '비공개 포스트',
+        description: '비밀번호가 필요한 포스트입니다.',
+        robots: {
+          index: false,
+          follow: false,
+        },
+      };
+    }
   }
 
   const title = post.title || post.slug.replace(/-/g, ' ');
@@ -136,9 +157,16 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
     notFound();
   }
 
-  // 프로덕션에서 hidden 포스트 접근 시: admin 인증 필요
   const isDev = process.env.NODE_ENV === 'development';
-  if (post.hidden && !isDev && !isAdmin) {
+  const isPasswordEnabled = await isPostPasswordEnabled(slug);
+  const isPasswordAuthed = await isPostPasswordAuthenticated(slug);
+  const canAccessHidden = isDev || isAdmin || (isPasswordEnabled && isPasswordAuthed);
+
+  // 프로덕션에서 hidden 포스트 접근 시: admin 또는 글 비밀번호 인증 필요
+  if (post.hidden && !canAccessHidden) {
+    if (isPasswordEnabled) {
+      return <ProtectedPost slug={slug} title={post.title} />;
+    }
     notFound();
   }
 
@@ -229,7 +257,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             </div>
           )}
           {/* Hidden 포스트 경고 배너 (개발 모드 또는 Admin 모드에서만 표시) */}
-          {post.hidden && (isDev || isAdmin) && (
+          {post.hidden && (isDev || isAdmin || isPasswordAuthed) && (
             <div
               className={cn(
                 // layout
