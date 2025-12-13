@@ -28,6 +28,36 @@ Mike Bostock의 Will It Shuffle?<Footnote>https://bost.ocks.org/mike/shuffle/com
 
 아래 시각화는 셔플을 수천 번 돌리고 결과를 집계한다. 행은 원래 위치, 열은 셔플 후 위치다. **균일한 회색**이면 공정하고, **패턴이 보이면** 편향이 있다.
 
+<Boxed title="직접 테스트하기: Custom 코드로 시각화 실험" variant="note">
+  이 글에서 **코드를 직접 작성해 시각화를 테스트**할 수 있다. 아래 첫 번째 시각화(컨트롤 패널이 있는 버전)에서 오른쪽의 **알고리즘 → Custom**을 선택하면, 코드 에디터가 나타난다.
+
+  - 에디터에는 “함수”를 새로 선언하는 게 아니라, **함수 본문(body)** 을 작성한다. 입력 배열은 `array` 변수로 주어진다.
+  - **반드시 배열을 `return`** 해야 하고, **길이는 원본과 같아야** 한다. (권장: `const copy = [...array]`로 복사 후 수정)
+  - 작성 후 **시뮬레이션 시작**을 누르면, 분포가 행렬 다이어그램에 누적된다.
+
+  아래는 그대로 붙여넣어 바로 실험할 수 있는 예시다(일부러 편향을 만드는 “앞 10개만 섞기”):
+</Boxed>
+
+```javascript
+// ✅ 예시: 일부러 편향을 만드는 "앞 10개만 섞기"
+// - array: [0, 1, 2, ...] 형태의 입력 배열
+// - 반드시 같은 길이의 배열을 return 해야 함
+
+const copy = [...array];
+const m = Math.min(10, copy.length);
+
+for (let i = m - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  const t = copy[i];
+  copy[i] = copy[j];
+  copy[j] = t;
+}
+
+return copy;
+```
+
+> 참고: 아래에서 다시 등장하는 `algorithm="..."`이 붙은 시각화들은 “설명용 고정 버전”이라서, Custom 에디터/알고리즘 선택 UI가 표시되지 않는다.
+
 <ShuffleVisualizer />
 
 ### 1. Random Comparator (나쁜 예)
