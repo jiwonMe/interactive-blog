@@ -221,8 +221,8 @@ export function createBaseComponents(slug?: string) {
       <li className="leading-7" {...props} />
     ),
     // 코드 블록
-    pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
-      <CodeBlock {...props} />
+    pre: ({ children, ...props }: React.HTMLAttributes<HTMLPreElement>) => (
+      <CodeBlock {...props}>{children}</CodeBlock>
     ),
     // 인용구
     blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (

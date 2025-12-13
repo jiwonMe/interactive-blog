@@ -52,7 +52,9 @@ function fallbackTitle(url: URL) {
 
 function getKnownCitation(url: URL): LinkTitleResponse | null {
   const urlString = url.toString();
-  const known = KNOWN_CITATIONS[urlString];
+  // 패키지에서 `as const`로 내보내는 객체는 string 인덱싱이 막혀있을 수 있어,
+  // 런타임 동작을 유지하면서 타입만 안전하게 완화한다.
+  const known = (KNOWN_CITATIONS as Record<string, { title: string; apa: string; harvard: string }>)[urlString];
   
   if (!known) {
     return null;

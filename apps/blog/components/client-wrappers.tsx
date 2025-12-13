@@ -50,6 +50,12 @@ const LazyReadingTimeTracker = dynamic(
   { ssr: false }
 );
 
+// ArticleFeedback - 피드백 UI, 클라이언트 사이드에서만 렌더링
+const LazyArticleFeedback = dynamic(
+  () => import('./analytics/article-feedback').then(mod => ({ default: mod.ArticleFeedback })),
+  { ssr: false }
+);
+
 // Props 타입 정의
 interface TableOfContentsWrapperProps {
   toc: TOCItem[];
@@ -61,6 +67,11 @@ interface ScrollTrackerWrapperProps {
 }
 
 interface ReadingTimeTrackerWrapperProps {
+  articleSlug: string;
+  articleTitle: string;
+}
+
+interface ArticleFeedbackWrapperProps {
   articleSlug: string;
   articleTitle: string;
 }
@@ -84,5 +95,12 @@ export function ScrollTrackerWrapper({ articleSlug }: ScrollTrackerWrapperProps)
  */
 export function ReadingTimeTrackerWrapper({ articleSlug, articleTitle }: ReadingTimeTrackerWrapperProps) {
   return <LazyReadingTimeTracker articleSlug={articleSlug} articleTitle={articleTitle} />;
+}
+
+/**
+ * ArticleFeedback 래퍼 컴포넌트
+ */
+export function ArticleFeedbackWrapper({ articleSlug, articleTitle }: ArticleFeedbackWrapperProps) {
+  return <LazyArticleFeedback articleSlug={articleSlug} articleTitle={articleTitle} />;
 }
 

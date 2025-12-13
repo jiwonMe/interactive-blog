@@ -44,9 +44,15 @@ function FootnoteDemo() {
             )}
           >
             이 문장에는 각주가 달려있습니다
-            <Footnote id="react-docs">React 공식 문서: `https://react.dev`</Footnote>.
+            <Footnote id="react-docs" refId={undefined} style={undefined}>
+              React 공식 문서: `https://react.dev`
+            </Footnote>
+            .
             그리고 같은 각주를 재사용할 수도 있어요
-            <Footnote refId="react-docs" />.
+            <Footnote id={undefined} refId="react-docs" style={undefined}>
+              {null}
+            </Footnote>
+            .
           </p>
 
           <p
@@ -58,7 +64,10 @@ function FootnoteDemo() {
             )}
           >
             포인터를 올리면 툴팁이 뜨고, 클릭하면 하단 각주 목록으로 이동합니다
-            <Footnote>이건 두 번째 각주입니다.</Footnote>.
+            <Footnote id={undefined} refId={undefined} style={undefined}>
+              이건 두 번째 각주입니다.
+            </Footnote>
+            .
           </p>
         </div>
 
