@@ -80,10 +80,10 @@ export function getPostBySlug(slug: string): PostData | null {
   const { data, content } = matter(fileContents);
   const toc = extractTOC(content);
   
-  // password는 문자열이고 비어있지 않은 경우에만 포함
-  const password = typeof data.password === 'string' && data.password.trim().length > 0
-    ? data.password.trim()
-    : undefined;
+  // password는 문자열 또는 숫자이고 비어있지 않은 경우에만 포함
+  // YAML에서 숫자로 파싱될 수 있으므로 문자열로 변환
+  const passwordValue = data.password != null ? String(data.password).trim() : '';
+  const password = passwordValue.length > 0 ? passwordValue : undefined;
   
   return { 
     slug: realSlug, 
