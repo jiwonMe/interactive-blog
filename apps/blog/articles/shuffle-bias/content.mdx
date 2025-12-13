@@ -40,7 +40,7 @@ function randomComparatorShuffle(array) {
 }
 ```
 
-시각화에서 **Random Comparator**를 선택해보자. 대각선 패턴이 뚜렷하게 나타난다. 요소들이 원래 위치 근처에 머무르거나, 특정 위치로 쏠린다는 뜻이다.
+시각화에서 **Random Comparator**를 선택해보자. 가장자리에 얼룩이 묻은 듯한 불규칙한 패턴이 나타난다. 특히 배열의 앞부분과 끝부분 요소들이 특정 위치로 쏠리는 경향을 볼 수 있다.
 
 #### 왜 실패하는가
 
@@ -60,7 +60,13 @@ function randomComparatorShuffle(array) {
 
 비교 결과가 일관되지 않으니 정렬 알고리즘 동작이 예측 불가능해진다.
 
-V8(Chrome/Node.js)은 TimSort를 쓰는데, 이미 정렬된 구간(run)을 활용해 빠르게 정렬한다. 랜덤 comparator를 쓰면 이 최적화 흔적이 남아서 **요소가 원래 위치 근처에 머무르는 경향**이 생긴다<Footnote>https://v8.dev/blog/array-sort</Footnote>. 시각화에서 대각선이 진하게 보이는 이유다.
+V8(Chrome/Node.js)은 TimSort를 쓴다<Footnote>https://v8.dev/blog/array-sort</Footnote>. TimSort는 배열을 스캔하며 이미 정렬된 구간(run)을 찾고, 이 run들을 병합(merge)하는 방식으로 동작한다. 랜덤 comparator를 쓰면 이 과정이 교란된다:
+
+- **앞부분 요소들**: 첫 run에 묶여 비교 횟수가 적음
+- **뒷부분 요소들**: 마지막 merge에서 상대적으로 덜 영향받음  
+- **중간 요소들**: 여러 번의 merge를 거치며 더 많이 섞임
+
+시각화에서 가장자리에 얼룩처럼 보이는 패턴이 나타나는 이유다. 배열의 앞뒤 요소들이 원래 위치 근처에 남아있을 확률이 높다.
 
 결국 `sort(() => Math.random() - 0.5)`는 겉보기엔 섞이는 것 같아도, **공정한 셔플이 아니다**.
 
@@ -85,7 +91,7 @@ function naiveSwapShuffle(array) {
 
 비유하자면, 이 알고리즘은 $N$번의 무작위 선택을 하고 그 결과를 하나의 순열로 "압축"하는 구조다. 문제는 여러 선택 경로가 같은 순열로 압축되는데, 그 개수가 순열마다 다르다는 점이다.
 
-시각화에서 **Naive Swap**을 선택해보자. 언뜻 괜찮아 보여도 반복 횟수를 늘리면 미세한 편향이 드러난다.
+시각화에서 **Naive Swap**을 선택해보자. 언뜻 균일해 보이지만 반복 횟수를 늘리면 **대각선 패턴**이 희미하게 드러난다. 각 요소가 자기 자신과 swap될 확률이 $1/N$이고, swap 이후에도 다시 원래 위치로 돌아올 수 있어서 원래 위치 근처에 머무르는 경향이 생긴다.
 
 ### 3. Fisher-Yates Shuffle (좋은 예)
 
