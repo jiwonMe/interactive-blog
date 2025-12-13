@@ -9,6 +9,8 @@ import { TimerAccuracyTesterWrapper as TimerAccuracyTester } from '../../article
 import { MemoryLeakVisualizerWrapper as MemoryLeakVisualizer } from '../../articles/settimeout-vs-setinterval/components/MemoryLeakVisualizerWrapper';
 import { TimerComparisonPlaygroundWrapper as TimerComparisonPlayground } from '../../articles/settimeout-vs-setinterval/components/TimerComparisonPlaygroundWrapper';
 import { ShuffleVisualizer } from '../../articles/shuffle-bias/components/ShuffleVisualizer';
+import { TournamentSampler } from '../../articles/shuffle-bias/components/TournamentSampler';
+import { TransitivityDiagram } from '../../articles/shuffle-bias/components/TransitivityDiagram';
 import { SecretaryProblem } from '../../articles/secretary-problem/components/SecretaryProblem';
 import { HiddenClassVisualizer } from '../../articles/v8-object-vs-map/components/HiddenClassVisualizer';
 import { PropertyStorageVisualizer } from '../../articles/v8-object-vs-map/components/PropertyStorageVisualizer';
@@ -26,6 +28,8 @@ export const articleComponentsRegistry: Record<string, React.ComponentType<any>>
   MemoryLeakVisualizer,
   TimerComparisonPlayground,
   ShuffleVisualizer,
+  TournamentSampler,
+  TransitivityDiagram,
   SecretaryProblem,
   HiddenClassVisualizer,
   PropertyStorageVisualizer,

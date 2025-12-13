@@ -54,3 +54,4 @@ export function useHashHighlight(targetId: string, duration: number = 2000): boo
   return isHighlighted;
 }
 
+

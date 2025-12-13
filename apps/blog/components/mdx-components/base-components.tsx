@@ -3,6 +3,8 @@ import { cn } from '../../lib/utils';
 import Image from 'next/image';
 import React from 'react';
 import { articleComponentsRegistry } from './article-components-registry';
+import { Boxed, Claim, Definition, Lemma, Proof, ProofStep, ProofSteps, Theorem } from "./proof-components";
+import { CollapsibleSection } from './CollapsibleSection';
 
 // 이미지 src를 재작성하는 헬퍼 함수
 const createImageSrcRewriter = (slug?: string) => {
@@ -48,6 +50,17 @@ export function createBaseComponents(slug?: string) {
     Callout: (props: any) => <Callout {...props} />,
     // CollapsibleCode 컴포넌트
     CollapsibleCode: (props: any) => <CollapsibleCode {...props} />,
+    // CollapsibleSection 컴포넌트 (일반 콘텐츠 접기/펼치기)
+    CollapsibleSection: (props: any) => <CollapsibleSection {...props} />,
+    // 수학/증명 구조화 컴포넌트들
+    Boxed,
+    Theorem,
+    Lemma,
+    Claim,
+    Definition,
+    Proof,
+    ProofSteps,
+    ProofStep,
     LinkCard: (props: any) => {
       // MDX에서 전달되는 props를 적절한 타입으로 변환
       // 빈 문자열이나 undefined인 경우 undefined로 처리

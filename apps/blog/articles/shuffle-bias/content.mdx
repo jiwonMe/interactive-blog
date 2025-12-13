@@ -18,7 +18,7 @@ Mike Bostock의 Will It Shuffle?<Footnote>https://bost.ocks.org/mike/shuffle/com
 
 ## 셔플의 공정성
 
-완벽한 셔플이라면 모든 요소가 모든 위치에 동일한 확률로 배치되어야 한다. $N$개 요소가 있다면 특정 요소가 특정 위치에 올 확률은 정확히 $1/N$이다.
+완벽한 셔플이라면 모든 요소가 모든 위치에 동일한 확률로 배치되어야 한다. $N$개 요소가 있다면 특정 요소가 특정 위치에 올 확률은 정확히 $\frac{1}{N}$이다.
 
 이 조건을 만족하지 못하면 **편향(Bias)**이 있다고 한다.
 
@@ -35,7 +35,7 @@ Mike Bostock의 Will It Shuffle?<Footnote>https://bost.ocks.org/mike/shuffle/com
 가장 흔한 실수가 `array.sort(() => Math.random() - 0.5)` 코드다.
 
 ```javascript
-// ❌ 쓰지 마라
+// ❌ 쓰지 말자
 function randomComparatorShuffle(array) {
   return array.sort(() => Math.random() - 0.5);
 }
@@ -60,6 +60,61 @@ function randomComparatorShuffle(array) {
 - 세 번째 비교: $c < a$ (확률 0.5) ← 모순!
 
 비교 결과가 일관되지 않으니 정렬 알고리즘 동작이 예측 불가능해진다.
+
+<CollapsibleSection title="랜덤 comparator는 왜 추이성을 깨는가">
+  <Claim name="3원소만으로도 추이성 위반이 발생한다">
+    서로 다른 세 원소 $a,b,c$에 대해, 비교 결과가 매번 독립적으로(각각 확률 $\frac{1}{2}$) 정해지는 랜덤 comparator를 쓰면
+    추이성이 깨지는(3-사이클이 생기는) 확률이 $\frac{1}{4}$이다.
+  </Claim>
+
+  <Proof>
+    <ProofSteps>
+      <ProofStep label="모델링:">
+        세 쌍 $(a,b)$, $(b,c)$, $(a,c)$에 대해 비교 결과를 각각 하나의 방향으로 본다. 예를 들어 $a \lt b$이면 $a \rightarrow b$로 둔다.
+        `Math.random()`을 비교할 때마다 호출하면(정렬 과정에서 비교는 여러 번 발생) 이 세 결과를 단순화하여 서로 독립인 동전 던지기처럼 볼 수 있다.
+      </ProofStep>
+
+      <ProofStep label="경우의 수:">
+        세 쌍의 방향은 각 쌍마다 2가지이므로 전체 경우는 $2^3 = 8$가지다.
+      </ProofStep>
+
+      <ProofStep label="추이성 ↔ 사이클 부재:">
+        추이성은 “$a \rightarrow b$이고 $b \rightarrow c$이면 반드시 $a \rightarrow c$”를 뜻한다. 이는 곧 방향 그래프에 3-사이클이 없어야 한다는 것과 동치다.
+      </ProofStep>
+
+      <ProofStep label="사이클인 경우는 2가지:">
+        8가지 중 3-사이클이 생기는 경우는 다음 두 가지뿐이다:
+        1) $a \rightarrow b$, $b \rightarrow c$, $c \rightarrow a$  2) $a \rightarrow c$, $c \rightarrow b$, $b \rightarrow a$.
+        따라서 사이클 확률은 $\frac{2}{8}=\frac{1}{4}$이다.
+      </ProofStep>
+
+      <ProofStep label="결론:">
+        위 확률이 0이 아니므로, 이 비교 함수는 “항상 추이적”일 수 없다. 즉 정렬이 전제하는 수학적 조건(추이성)을 구조적으로 위반한다.
+      </ProofStep>
+    </ProofSteps>
+  </Proof>
+
+  #### (보충) 8가지 경우를 표로 한 번에 보기
+
+| 경우 | $a$ vs $b$ | $b$ vs $c$ | $a$ vs $c$ | 판정 |
+| ---: | :---: | :---: | :---: | :--- |
+| 1 | $a \lt b$ | $b \lt c$ | $a \lt c$ | 추이적 |
+| 2 | $a \lt b$ | $b \lt c$ | $a \gt c$ | **사이클** ($a \lt b \lt c \lt a$) |
+| 3 | $a \lt b$ | $b \gt c$ | $a \lt c$ | 추이적 |
+| 4 | $a \lt b$ | $b \gt c$ | $a \gt c$ | 추이적 |
+| 5 | $a \gt b$ | $b \lt c$ | $a \lt c$ | 추이적 |
+| 6 | $a \gt b$ | $b \lt c$ | $a \gt c$ | 추이적 |
+| 7 | $a \gt b$ | $b \gt c$ | $a \lt c$ | **사이클** ($a \gt b \gt c \gt a$) |
+| 8 | $a \gt b$ | $b \gt c$ | $a \gt c$ | 추이적 |
+
+  #### 직관: 추이적이면 '한 방향', 비추이적이면 '사이클'
+
+  <TransitivityDiagram />
+
+  #### 직접 실험: 랜덤 토너먼트에서 사이클 비율(≈ 0.25) 확인
+
+  <TournamentSampler />
+</CollapsibleSection>
 
 V8(Chrome/Node.js)은 TimSort를 쓴다<Footnote>https://v8.dev/blog/array-sort</Footnote>. TimSort는 배열을 스캔하며 이미 정렬된 구간(run)을 찾고, 이 run들을 병합(merge)하는 방식으로 동작한다. 랜덤 comparator를 쓰면 이 과정이 교란된다:
 
@@ -92,7 +147,7 @@ function naiveSwapShuffle(array) {
 
 비유하자면, 이 알고리즘은 $N$번의 무작위 선택을 하고 그 결과를 하나의 순열로 "압축"하는 구조다. 문제는 여러 선택 경로가 같은 순열로 압축되는데, 그 개수가 순열마다 다르다는 점이다.
 
-시각화에서 **Naive Swap**을 선택해보자. 언뜻 균일해 보이지만 반복 횟수를 늘리면 **대각선 패턴**이 희미하게 드러난다. 각 요소가 자기 자신과 swap될 확률이 $1/N$이고, swap 이후에도 다시 원래 위치로 돌아올 수 있어서 원래 위치 근처에 머무르는 경향이 생긴다.
+시각화에서 **Naive Swap**을 선택해보자. 언뜻 균일해 보이지만 반복 횟수를 늘리면 **대각선 패턴**이 희미하게 드러난다. 각 요소가 자기 자신과 swap될 확률이 $\frac{1}{N}$이고, swap 이후에도 다시 원래 위치로 돌아올 수 있어서 원래 위치 근처에 머무르는 경향이 생긴다.
 
 ### 3. Fisher-Yates Shuffle (좋은 예)
 
@@ -120,42 +175,42 @@ function fisherYatesShuffle(array) {
 
 Fisher-Yates가 공정한 이유를 귀납법으로 증명해보자.
 
-#### 목표
-
-$N$개 요소에 Fisher-Yates를 적용하면 $N!$개 순열이 각각 $1/N!$ 확률로 나온다.
+<Theorem name="Fisher–Yates의 공정성">
+$N$개 요소에 Fisher-Yates를 적용하면 $N!$개 순열이 각각 $\frac{1}{N!}$ 확률로 나온다.
+</Theorem>
 
 #### 알고리즘
-
 - **$k$번째 단계** ($k = N, N-1, \ldots, 1$):
-  - 인덱스 $0$부터 $k-1$ 중 하나를 무작위로 선택 (확률 $1/k$)
+  - 인덱스 $0$부터 $k-1$ 중 하나를 무작위로 선택 (확률 $\frac{1}{k}$)
   - 선택한 인덱스와 $k-1$ 위치의 요소를 교환
 
-#### 증명
-
-**기저**: $N = 1$이면 순열은 1개뿐이고 확률은 $1/1! = 1$이다.
-
-**귀납 가정**: $N = k-1$일 때 모든 $(k-1)!$개 순열이 각각 $1/(k-1)!$ 확률로 나온다고 가정하자.
-
-**귀납 단계**: $N = k$일 때를 보자.
-
-1. 마지막 위치에 올 요소를 $k$개 중 하나로 선택한다. 각 요소가 선택될 확률은 $1/k$다.
-2. 나머지 $k-1$개 요소는 귀납 가정에 의해 각 순열이 $1/(k-1)!$ 확률로 나온다.
+<Proof>
+<ProofSteps>
+  <ProofStep label="기저:">$N=1$이면 순열은 1개뿐이고 확률은 $\frac{1}{1!}=1$이다.</ProofStep>
+  <ProofStep label="귀납 가정:">$N=k-1$일 때 모든 $(k-1)!$개 순열이 각각 $\frac{1}{(k-1)!}$ 확률로 나온다고 가정하자.</ProofStep>
+  <ProofStep label="귀납 단계:">$N=k$일 때, 마지막 위치에 올 요소를 $k$개 중 하나로 고르며 각 요소가 선택될 확률은 $\frac{1}{k}$다. 나머지 $k-1$개는 귀납 가정에 의해 각 순열이 $\frac{1}{(k-1)!}$ 확률로 나온다.</ProofStep>
+</ProofSteps>
 
 따라서 특정 순열이 나올 확률은:
 
-$$\frac{1}{k} \times \frac{1}{(k-1)!} = \frac{1}{k!}$$
+$$
+\frac{1}{k} \times \frac{1}{(k-1)!} = \frac{1}{k!}
+$$
 
-$k!$개 순열 모두 같은 확률로 나온다.
+즉 $k!$개 순열 모두 같은 확률로 나온다.
+</Proof>
 
 #### 개별 위치의 확률
 
-특정 요소 $e$가 위치 $j$에 올 확률도 $1/N$이다.
+특정 요소 $e$가 위치 $j$에 올 확률은 $\frac{1}{N}$이다.
 
-$e$가 $j$에 고정되면 나머지 $N-1$개의 배치는 $(N-1)!$가지다. 각 순열 확률이 $1/N!$이므로:
+<Proof title="(보충) 위치별 확률 계산" end={false}>
+$e$가 $j$에 고정되면 나머지 $N-1$개의 배치는 $(N-1)!$가지다. 각 순열 확률이 $\frac{1}{N!}$이므로:
 
-$$(N-1)! \times \frac{1}{N!} = \frac{1}{N}$$
-
-모든 요소가 모든 위치에 $1/N$ 확률로 배치된다.
+$$
+(N-1)! \times \frac{1}{N!} = \frac{1}{N}
+$$
+</Proof>
 
 #### Naive Swap이 실패하는 이유
 
@@ -164,11 +219,11 @@ Naive Swap은 $N$번의 선택에서 매번 $N$개 중 하나를 고른다.
 - 선택 경로의 수: $N^N$
 - 가능한 순열의 수: $N!$
 
-$N^N$이 $N!$로 나누어떨어지지 않는다. 예를 들어 $3^3 = 27$이고 $3! = 6$인데, 27은 6으로 나누어떨어지지 않는다. 그래서 어떤 순열은 $5/27$, 어떤 순열은 $4/27$ 확률을 갖게 된다.
+$N^N$이 $N!$로 나누어떨어지지 않는다. 예를 들어 $3^3 = 27$이고 $3! = 6$인데, 27은 6으로 나누어떨어지지 않는다. 그래서 어떤 순열은 $\frac{5}{27}$, 어떤 순열은 $\frac{4}{27}$ 확률을 갖게 된다.
 
-#### 핵심
-
+<Boxed title="핵심" variant="note">
 Fisher-Yates는 각 단계에서 **아직 배치되지 않은 요소들 중에서만** 고르기 때문에 정확히 $N!$개 경로가 생기고, 각 경로가 하나의 순열에 1:1로 대응한다. 그래서 공정하다.
+</Boxed>
 
 ## 결론
 
@@ -176,8 +231,7 @@ Fisher-Yates는 각 단계에서 **아직 배치되지 않은 요소들 중에�
 
 **핵심 규칙:**
 
-1. **`array.sort(() => Math.random() - 0.5)` 쓰지 마라**. 편향이 생긴다.
-
-2. **Fisher-Yates를 써라**. 대부분의 언어와 라이브러리에 이미 구현되어 있다.
+1. **`array.sort(() => Math.random() - 0.5)` 쓰지 말자**. 편향이 생긴다.
+2. **Fisher-Yates를 쓰자**. 대부분의 언어와 라이브러리에 이미 구현되어 있다.
 
 <Footnotes />
