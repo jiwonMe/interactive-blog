@@ -1,11 +1,28 @@
 'use client';
 
-import React, { useId, useState } from 'react';
+import React, { useEffect, useId, useMemo, useState } from 'react';
 import { cn } from '../../lib/utils';
 
 type CollapsibleSectionProps = {
   title: string;
   defaultOpen?: boolean;
+  /**
+   * 새로고침 후에도 접기/펼치기 상태를 유지할지 여부
+   * - 기본값: true
+   */
+  persist?: boolean;
+  /**
+   * 상태 저장 위치
+   * - 'session': 탭 단위(새로고침 유지, 탭 닫으면 초기화)
+   * - 'local': 브라우저 영구 저장
+   * - 기본값: 'session'
+   */
+  storage?: 'session' | 'local';
+  /**
+   * 상태 저장 키를 직접 지정하고 싶을 때 사용
+   * - 미지정 시: URL 경로 + title 조합으로 자동 생성
+   */
+  storageKey?: string;
   className?: string;
   children: React.ReactNode;
 };
@@ -13,11 +30,55 @@ type CollapsibleSectionProps = {
 export function CollapsibleSection({
   title,
   defaultOpen = false,
+  persist = true,
+  storage = 'session',
+  storageKey,
   className,
   children,
 }: CollapsibleSectionProps) {
   const contentId = useId();
   const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  const resolvedStorageKey = useMemo(() => {
+    if (!persist) return null;
+    if (storageKey) return storageKey;
+    if (typeof window === 'undefined') return null;
+    return `collapsible:${window.location.pathname}:${title}`;
+  }, [persist, storageKey, title]);
+
+  useEffect(() => {
+    if (!persist) return;
+    if (!resolvedStorageKey) return;
+    if (typeof window === 'undefined') return;
+
+    const store = storage === 'local' ? window.localStorage : window.sessionStorage;
+
+    try {
+      const saved = store.getItem(resolvedStorageKey);
+      if (saved === '1') setIsOpen(true);
+      if (saved === '0') setIsOpen(false);
+    } catch {
+      // 스토리지 접근이 막힌 환경(프라이빗/권한 제한 등)에서는 그냥 기본 동작
+    }
+  }, [persist, resolvedStorageKey, storage]);
+
+  const toggle = () => {
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (!persist) return next;
+      if (!resolvedStorageKey) return next;
+      if (typeof window === 'undefined') return next;
+
+      const store = storage === 'local' ? window.localStorage : window.sessionStorage;
+
+      try {
+        store.setItem(resolvedStorageKey, next ? '1' : '0');
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  };
 
   return (
     <section
@@ -27,13 +88,13 @@ export function CollapsibleSection({
         /* Surface (use luminance only; no borders to avoid "stacked boxes") */
         'bg-zinc-200/60 dark:bg-zinc-900/60',
         /* Padding */
-        'px-4 py-3',
+        'px-3 py-3 sm:px-4',
         className,
       )}
     >
       <button
         type="button"
-        onClick={() => setIsOpen((v) => !v)}
+        onClick={toggle}
         aria-expanded={isOpen}
         aria-controls={contentId}
         className={cn(

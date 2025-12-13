@@ -94,7 +94,9 @@ export function Boxed({
       id={id}
       className={cn(
         /* layout */
-        "my-8 rounded-xl p-5",
+        "my-8 rounded-xl",
+        /* padding (mobile: tighter to avoid nested boxes squeezing content) */
+        "px-4 py-4 sm:p-5",
         /* border (make separation clearly visible) */
         "border border-zinc-300/80 dark:border-zinc-700/80",
         /* typography */
@@ -255,7 +257,9 @@ export function ProofSteps({ className, children }: ProofStepsProps) {
     <ol
       className={cn(
         /* layout */
-        "my-4 space-y-2 pl-6",
+        "my-4 space-y-2",
+        /* indentation (mobile: slightly smaller) */
+        "pl-5 sm:pl-6",
         /* typography */
         "list-decimal",
         className
