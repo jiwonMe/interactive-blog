@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useHashHighlight } from './hooks/useHashHighlight';
-import { normalizeFootnoteContent } from './FootnoteLinkTitle';
+import { normalizeFootnoteContentWithStyle } from './FootnoteLinkTitle';
 
 // 각주 데이터 타입
 interface FootnoteData {
@@ -93,6 +93,7 @@ interface FootnoteProps {
   children?: React.ReactNode;
   id?: string;
   refId?: string;
+  style?: 'apa' | 'harvard';
 }
 
 /**
@@ -102,7 +103,7 @@ interface FootnoteProps {
  * ID 지정: <Footnote id="react-docs">React 공식 문서</Footnote>
  * 재사용: <Footnote refId="react-docs" />
  */
-export function Footnote({ children, id: customId, refId }: FootnoteProps) {
+export function Footnote({ children, id: customId, refId, style }: FootnoteProps) {
   const { registerFootnote, getFootnoteIdByCustomId, getFootnoteById } = useFootnoteContext();
   const idRef = useRef<number | null>(null);
   const [numericId, setNumericId] = useState<number | null>(null);
@@ -115,7 +116,7 @@ export function Footnote({ children, id: customId, refId }: FootnoteProps) {
     arrowOffset: number;
   } | null>(null);
   const hasRegistered = useRef(false);
-  const normalizedChildren = normalizeFootnoteContent(children);
+  const normalizedChildren = normalizeFootnoteContentWithStyle(children, style);
   const [content, setContent] = useState<React.ReactNode>(normalizedChildren);
   const footnoteRef = useRef<HTMLSpanElement | null>(null);
 

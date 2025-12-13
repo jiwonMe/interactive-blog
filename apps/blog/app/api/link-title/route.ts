@@ -1,4 +1,11 @@
 import { NextResponse } from 'next/server';
+import { KNOWN_CITATIONS } from '@repo/interactive-ui';
+
+type LinkTitleResponse = {
+  title: string | null;
+  citationApa?: string;
+  citationHarvard?: string;
+};
 
 function isSafeHttpUrl(input: string) {
   try {
@@ -43,16 +50,36 @@ function fallbackTitle(url: URL) {
   return `${url.hostname}${path}`;
 }
 
+function getKnownCitation(url: URL): LinkTitleResponse | null {
+  const urlString = url.toString();
+  const known = KNOWN_CITATIONS[urlString];
+  
+  if (!known) {
+    return null;
+  }
+
+  return {
+    title: known.title,
+    citationApa: known.apa,
+    citationHarvard: known.harvard,
+  };
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const raw = searchParams.get('url');
   if (!raw) {
-    return NextResponse.json({ title: null }, { status: 400 });
+    return NextResponse.json({ title: null } satisfies LinkTitleResponse, { status: 400 });
   }
 
   const url = isSafeHttpUrl(raw);
   if (!url) {
-    return NextResponse.json({ title: null }, { status: 400 });
+    return NextResponse.json({ title: null } satisfies LinkTitleResponse, { status: 400 });
+  }
+
+  const known = getKnownCitation(url);
+  if (known) {
+    return NextResponse.json(known);
   }
 
   try {
@@ -69,16 +96,16 @@ export async function GET(req: Request) {
 
     const contentType = res.headers.get('content-type') ?? '';
     if (!res.ok || !contentType.toLowerCase().includes('text/html')) {
-      return NextResponse.json({ title: fallbackTitle(url) });
+      return NextResponse.json({ title: fallbackTitle(url) } satisfies LinkTitleResponse);
     }
 
     // 너무 큰 문서는 비용이 큼 → 적당히 컷 (대부분 title은 초반에 있음)
     const html = (await res.text()).slice(0, 200_000);
     const title = extractTitleFromHtml(html) ?? fallbackTitle(url);
 
-    return NextResponse.json({ title });
+    return NextResponse.json({ title } satisfies LinkTitleResponse);
   } catch {
-    return NextResponse.json({ title: fallbackTitle(url) });
+    return NextResponse.json({ title: fallbackTitle(url) } satisfies LinkTitleResponse);
   }
 }
 

@@ -18,6 +18,11 @@ function renderInlineKatex(latex: string) {
   };
 }
 
+// SSR/CSR hydration mismatch 방지:
+// - 이 컴포넌트는 Client Component지만 Next가 SSR을 수행할 수 있음
+// - useState initializer에서 Math.random()을 호출하면 서버/클라이언트 초기 렌더가 달라져 hydration mismatch 발생
+const INITIAL_SAMPLE: Sample = { ab: 1, bc: 1, ac: 1 }; // a<b, b<c, a<c (추이적)
+
 export function TournamentSampler() {
   const [state, setState] = useState<{
     last: Sample;
@@ -25,7 +30,7 @@ export function TournamentSampler() {
     cycles: number;
     points: CycleRatioPoint[];
   }>(() => {
-    const first = sampleTournament();
+    const first = INITIAL_SAMPLE;
     const c = isCycle(first) ? 1 : 0;
     return {
       last: first,

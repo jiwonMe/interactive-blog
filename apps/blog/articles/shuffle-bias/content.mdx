@@ -142,6 +142,8 @@ function naiveSwapShuffle(array) {
 
 그래서 **반복 횟수를 늘리면** 행렬 다이어그램에서 **대각선(원래 위치 근처)**이 상대적으로 두드러지기 쉽다.
 
+이 편향은 직관적으로 “사다리타기(아미다쿠지, ladder lottery)”에서 느끼는 불공정과 비슷하다. 겉으로는 막대를 무작위로 추가/이동하면 매번 다른 결과가 나오지만, “사다리(구조) → 최종 매칭(순열)”로 가는 대응이 1:1이 아니면 어떤 순열은 더 많은 구조에 의해 만들어지고(=더 자주), 어떤 순열은 덜 만들어진다(=덜 자주). 즉 **무작위로 뽑는 단위가 ‘원하는 결과(순열)’와 다르면** 분포가 쉽게 찌그러진다<Footnote style="harvard">https://atrium.lib.uoguelph.ca/server/api/core/bitstreams/b3244236-4cd0-47ba-a157-9abd6e6312f0/content</Footnote>.
+
 <CollapsibleSection title="더 깊게 보기(선택): Naive Swap이 왜 편향되는가(증명 · 직관 · 전수조사)">
 
 #### 1) ‘경로 수’로 보는 1줄짜리 증명

@@ -12,3 +12,5 @@ export { FootnoteProvider, Footnote, Footnotes } from './components/Footnote';
 export { Callout } from './components/Callout';
 export type { CalloutType } from './components/Callout';
 export { CollapsibleCode } from './components/CollapsibleCode';
+export { KNOWN_CITATIONS } from './lib/known-citations';
+export type { KnownCitation } from './lib/known-citations';
