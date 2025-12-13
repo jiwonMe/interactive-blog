@@ -1,4 +1,4 @@
-export { styled, css, theme, getCssText, keyframes, config, darkTheme, globalStyles } from './stitches.config';
+export { styled, css, theme, getCssText, keyframes, darkTheme, globalStyles } from './stitches.config';
 export { InteractivePanel } from './components/InteractivePanel';
 export { Playground } from './components/Playground';
 export { YouTube } from './components/YouTube';

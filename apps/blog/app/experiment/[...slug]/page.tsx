@@ -1,5 +1,5 @@
 import { experiments } from "../registry";
-import { ExperimentClient } from "../experiment-client";
+import { ExperimentHubClient } from "../experiment-hub/ExperimentHubClient";
 
 export async function generateStaticParams() {
   return experiments.map((exp) => ({
@@ -14,6 +14,6 @@ export default async function ExperimentPage({
 }) {
   const { slug } = await params;
   const slugString = slug.join('/');
-  
-  return <ExperimentClient slug={slugString} />;
+
+  return <ExperimentHubClient initialSlug={slugString} />;
 }
