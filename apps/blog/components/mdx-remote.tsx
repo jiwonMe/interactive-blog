@@ -6,7 +6,6 @@ import { createRehypeImageRewrite } from './mdx-plugins/rehype-image-rewrite';
 import { rehypePrettyCodeConfig } from './mdx-plugins/rehype-pretty-code-config';
 import { FootnoteProvider } from '@repo/interactive-ui';
 import rehypeSlug from 'rehype-slug';
-import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
@@ -34,7 +33,6 @@ export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
               createRehypeImageRewrite(slug),
               ...rehypePrettyCodeConfig,
               rehypeLineNumbers,
-              [rehypeAutolinkHeadings, { behavior: 'wrap' }],
               rehypeKatex,
             ],
           },

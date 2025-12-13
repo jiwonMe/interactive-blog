@@ -79,7 +79,7 @@ export function ShuffleControls({
           <div
             className={cn(
               /* Layout */
-              'flex items-center justify-between gap-3',
+              'flex flex-col justify-between gap-3',
             )}
           >
             <h3

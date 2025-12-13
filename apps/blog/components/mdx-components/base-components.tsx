@@ -5,6 +5,8 @@ import React from 'react';
 import { articleComponentsRegistry } from './article-components-registry';
 import { Boxed, Claim, Definition, Lemma, Proof, ProofStep, ProofSteps, Theorem } from "./proof-components";
 import { CollapsibleSection } from './CollapsibleSection';
+import { CodeTabs, CodeTab } from '../code-tabs';
+import { HeadingWithLink } from './heading-with-link';
 
 // 이미지 src를 재작성하는 헬퍼 함수
 const createImageSrcRewriter = (slug?: string) => {
@@ -54,6 +56,9 @@ export function createBaseComponents(slug?: string) {
     CollapsibleSection: (props: any) => <CollapsibleSection {...props} />,
     // Highlight 컴포넌트 (형광펜 효과)
     Highlight: (props: any) => <Highlight {...props} />,
+    // CodeTabs / CodeTab (rehype plugin이 주입한 탭 UI)
+    CodeTabs: (props: any) => <CodeTabs {...props} />,
+    CodeTab: (props: any) => <CodeTab {...props} />,
     // 수학/증명 구조화 컴포넌트들
     Boxed,
     Theorem,
@@ -130,7 +135,8 @@ export function createBaseComponents(slug?: string) {
     ),
     // 제목 컴포넌트들
     h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-      <h1 
+      <HeadingWithLink
+        as="h1"
         className={cn(
           // layout
           "mt-12 mb-6 pb-2 scroll-mt-24",
@@ -138,12 +144,13 @@ export function createBaseComponents(slug?: string) {
           "text-3xl font-bold tracking-tight",
           // color
           "text-zinc-900 dark:text-zinc-50"
-        )} 
-        {...props} 
+        )}
+        {...props}
       />
     ),
     h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-      <h2 
+      <HeadingWithLink
+        as="h2"
         className={cn(
           // layout
           "mt-10 mb-4 pb-2 scroll-mt-24",
@@ -152,12 +159,13 @@ export function createBaseComponents(slug?: string) {
           // color
           "text-zinc-900 border-zinc-200",
           "dark:text-zinc-50 dark:border-zinc-800"
-        )} 
-        {...props} 
+        )}
+        {...props}
       />
     ),
     h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-      <h3 
+      <HeadingWithLink
+        as="h3"
         className={cn(
           // layout
           "mt-8 mb-3 scroll-mt-24",
@@ -165,8 +173,8 @@ export function createBaseComponents(slug?: string) {
           "text-xl font-semibold",
           // color
           "text-zinc-900 dark:text-zinc-100"
-        )} 
-        {...props} 
+        )}
+        {...props}
       />
     ),
     // 텍스트 컴포넌트들

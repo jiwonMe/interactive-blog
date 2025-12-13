@@ -1,6 +1,9 @@
 import { visit } from 'unist-util-visit';
 import rehypePrettyCode from 'rehype-pretty-code';
 import type { Plugin } from 'unified';
+import { getHighlighter, type Highlighter } from 'shiki';
+import { rehypeCodeTabs } from './rehype-code-tabs';
+import { rehypeCodeLineAttributes } from './rehype-code-line-attributes';
 
 // rehype-pretty-code 전에 메타데이터를 저장하는 플러그인
 const createRehypePrettyCodeMeta = (): Plugin => {
@@ -28,6 +31,15 @@ const createRehypePrettyCodeMeta = (): Plugin => {
   };
 };
 
+let cachedHighlighter: Promise<Highlighter> | null = null;
+
+function getCachedHighlighter(options: Parameters<typeof getHighlighter>[0]) {
+  if (!cachedHighlighter) {
+    cachedHighlighter = getHighlighter(options);
+  }
+  return cachedHighlighter;
+}
+
 // rehype-pretty-code 설정
 export const rehypePrettyCodeConfig: any[] = [
   createRehypePrettyCodeMeta(),
@@ -40,6 +52,7 @@ export const rehypePrettyCodeConfig: any[] = [
         showLineNumbers: true,
       },
       keepBackground: false,
+      getHighlighter: getCachedHighlighter,
       onVisitLine(node: any) {
         // Prevent lines from collapsing in `display: grid` mode
         if (node.children.length === 0) {
@@ -54,5 +67,9 @@ export const rehypePrettyCodeConfig: any[] = [
       },
     },
   ],
+  // 연속된 titled code blocks를 탭으로 그룹화
+  rehypeCodeTabs,
+  // URL 해시(#L10-L20) 하이라이트를 위한 data-line-number 주입
+  rehypeCodeLineAttributes,
 ];
 

@@ -18,6 +18,7 @@ import { PwnzLogo } from "./pwnz-logo";
 export function Header() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = React.useState(false);
+  const [shortcutLabel, setShortcutLabel] = React.useState<'⌘ K' | 'Ctrl K'>('⌘ K');
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -27,6 +28,11 @@ export function Header() {
     // passive 옵션으로 스크롤 성능 개선
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  React.useEffect(() => {
+    const isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.platform);
+    setShortcutLabel(isMac ? '⌘ K' : 'Ctrl K');
   }, []);
 
   // main 페이지에서는 header를 숨김
@@ -141,6 +147,64 @@ export function Header() {
               "pl-6",
             )}
           >
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event('pwnz:open-search'))}
+              className={cn(
+                /* layout */
+                "inline-flex items-center gap-2 rounded-lg px-3 py-2",
+                /* border */
+                "border border-zinc-200 dark:border-zinc-800",
+                /* typography */
+                "text-sm font-medium",
+                /* color */
+                "text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-50",
+                /* background */
+                "bg-white/70 hover:bg-white dark:bg-zinc-950/60 dark:hover:bg-zinc-950",
+                /* transition */
+                "transition-colors",
+                /* focus */
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60"
+              )}
+              aria-label="검색 열기"
+            >
+              <svg
+                className={cn(
+                  /* size */
+                  "h-4 w-4",
+                  /* color */
+                  "text-inherit"
+                )}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+              <span className={cn(/* responsive */ "hidden sm:inline")}>검색</span>
+              <span
+                className={cn(
+                  /* responsive */
+                  "hidden sm:inline-flex",
+                  /* layout */
+                  "ml-1 items-center rounded-md px-2 py-1",
+                  /* typography */
+                  "text-xs font-medium",
+                  /* color */
+                  "text-zinc-500 dark:text-zinc-400",
+                  /* background */
+                  "bg-zinc-100 dark:bg-zinc-900"
+                )}
+                aria-hidden="true"
+              >
+                {shortcutLabel}
+              </span>
+            </button>
             <ThemeToggle className="border-none"/>
           </div>
         </div>

@@ -7,6 +7,8 @@ import StitchesRegistry from "../components/stitches-registry";
 import { cn } from "../lib/utils";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { WebsiteJsonLd } from "../components/json-ld";
+import { getSearchIndex } from "../lib/search";
+import { GlobalClientUI } from "../components/global-client-ui";
 
 /**
  * 폰트 최적화를 위한 상수들
@@ -112,6 +114,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const searchIndex = getSearchIndex();
+
   return (
     <html lang="ko" className="scroll-smooth" suppressHydrationWarning>
       <head>
@@ -181,6 +185,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <Header />
+            <GlobalClientUI searchIndex={searchIndex} />
             
             <div
               className={cn(

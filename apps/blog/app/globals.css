@@ -167,6 +167,14 @@
     background-color: var(--shiki-light-bg, #fff);
   }
 
+  /* Code title (```ts title="file.ts"```) */
+  [data-rehype-pretty-code-figure] [data-rehype-pretty-code-title] {
+    @apply px-4 py-2 text-xs font-medium;
+    @apply border border-b-0 border-zinc-200 dark:border-zinc-800;
+    @apply rounded-t-lg;
+    @apply bg-zinc-50 text-zinc-700 dark:bg-zinc-950/50 dark:text-zinc-300;
+  }
+
   .dark [data-rehype-pretty-code-figure] pre {
     background-color: var(--shiki-dark-bg, #09090b) !important;
   }
@@ -308,6 +316,12 @@
   /* Highlighted lines */
   pre code [data-highlighted-line] {
     @apply bg-blue-50 dark:bg-blue-900/20;
+  }
+
+  /* URL hash line highlighting (#L10 / #L10-L20) */
+  pre code [data-url-highlighted-line] {
+    @apply bg-amber-100/70 dark:bg-amber-900/25;
+    box-shadow: inset 3px 0 0 rgba(245, 158, 11, 0.9); /* amber-500 */
   }
 
   pre code [data-highlighted-chars] {
