@@ -217,6 +217,8 @@ function fisherYatesShuffle(array) {
 
 이 알고리즘은 수학적으로 완벽하게 공정하다. 시각화에서 **Fisher-Yates**를 선택하면 전체가 균일한 회색 노이즈로 채워진다.
 
+<CollapsibleSection title="더 깊게 보기(선택): Fisher–Yates의 수학적 증명">
+
 ### Fisher-Yates의 수학적 증명
 
 Fisher-Yates가 공정한 이유를 귀납법으로 증명해보자.
@@ -270,6 +272,8 @@ $N^N$이 $N!$로 나누어떨어지지 않는다. 예를 들어 $3^3 = 27$이고
 <Boxed title="핵심" variant="note">
 Fisher-Yates는 각 단계에서 **아직 배치되지 않은 요소들 중에서만** 고르기 때문에 정확히 $N!$개 경로가 생기고, 각 경로가 하나의 순열에 1:1로 대응한다. 그래서 공정하다.
 </Boxed>
+
+</CollapsibleSection>
 
 ## 결론
 
