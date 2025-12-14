@@ -101,7 +101,7 @@ Rope의 핵심 연산들을 정리하면 이렇다.
 
 ## Gap Buffer: 단순함의 미학
 
-Rope보다 훨씬 단순한 해법도 있다. Emacs가 1970년대부터 써온 Gap Buffer다.
+Rope보다 훨씬 단순한 해법도 있다. Emacs가 1970년대부터 써온 Gap Buffer<Footnote id="emacs-gap">Emacs의 Gap Buffer 구현은 40년 넘게 거의 그대로 유지되고 있다. 단순하지만 충분히 효율적이라는 증거다.</Footnote>다.
 
 아이디어는 직관적이다. 커서 위치에 빈 공간(gap)을 미리 확보해둔다.
 
@@ -207,13 +207,13 @@ VS Code는 각 piece에 줄바꿈 위치 정보를 캐싱했다. 이제 특정 �
 
 ### 다중 버퍼로 V8 한계 우회
 
-Node.js에서 파일을 읽으면 64KB 청크 단위로 전달된다. 64MB 파일이면 1000개 청크가 온다. 전통적인 구현대로라면 이걸 하나의 문자열로 합쳐서 original buffer에 저장해야 하는데, 당시 V8의 문자열 최대 길이는 256MB였다. 500MB 파일을 열면 터진다.
+Node.js에서 파일을 읽으면 64KB 청크 단위로 전달된다. 64MB 파일이면 1000개 청크가 온다. 전통적인 구현대로라면 이걸 하나의 문자열로 합쳐서 original buffer에 저장해야 하는데, V8의 문자열 최대 길이 제한<Footnote id="v8-string-limit">V8 엔진은 문자열 길이에 제한을 둔다. 2018년 당시에는 약 256MB였고, 현재는 플랫폼에 따라 512MB~1GB 정도다. 정확한 값은 `String.prototype.length`의 최댓값으로 확인할 수 있다.</Footnote> 때문에 500MB 파일을 열면 터진다.
 
 VS Code는 original buffer를 단일 문자열이 아닌 버퍼 배열로 바꿨다. 64KB 청크를 받을 때마다 그대로 배열에 push하고, piece가 이 청크들을 참조하게 했다. 문자열 연결 비용도 사라지고, V8 한계도 우회했다.
 
 ### Red-Black Tree로 탐색 속도 개선
 
-piece가 수천 개로 늘어나면 선형 탐색이 병목이 된다. VS Code는 piece 목록을 **Red-Black Tree**로 관리하도록 바꿨다. 각 노드에 왼쪽 서브트리의 텍스트 길이와 줄바꿈 개수를 캐싱해서, 오프셋이나 줄 번호로 검색할 때 $O(\log n)$을 보장한다.
+piece가 수천 개로 늘어나면 선형 탐색이 병목이 된다. VS Code는 piece 목록을 **Red-Black Tree**<Footnote id="rbtree">Red-Black Tree는 자가 균형 이진 탐색 트리의 일종이다. 삽입/삭제 시 노드 색상 규칙을 이용해 트리 높이를 $O(\log n)$으로 유지한다. AVL 트리보다 삽입/삭제가 빠르고, 일반 이진 탐색 트리처럼 한쪽으로 치우치는 문제가 없다.</Footnote>로 관리하도록 바꿨다. 각 노드에 왼쪽 서브트리의 텍스트 길이와 줄바꿈 개수를 캐싱해서, 오프셋이나 줄 번호로 검색할 때 $O(\log n)$을 보장한다.
 
 이쯤 되면 "Multiple buffer piece table with red-black tree, optimized for line model"이라고 부르는 게 정확하겠지만, VS Code 팀은 간단히 **Piece Tree**라고 불렀다.
 
@@ -259,21 +259,19 @@ Raph Levien은 Rope를 선택한 이유를 이렇게 설명했다.
 
 흥미로운 관점이다. Piece Table은 piece가 쌓이면 탐색 비용이 증가한다. VS Code는 이를 Red-Black Tree로 해결했지만, Raph Levien은 처음부터 균형 잡힌 트리 구조인 Rope를 선택하는 게 더 자연스럽다고 본 것이다.
 
-또 하나의 이유는 Rust의 불변성 모델과의 궁합이다. Rope는 불변 자료구조로 구현하기 쉽고, Rust의 copy-on-write와 잘 맞는다. 협업 편집(CRDT)을 염두에 두고 있었다면 이 특성이 중요했을 것이다.
+또 하나의 이유는 Rust의 불변성 모델과의 궁합이다. Rope는 불변 자료구조로 구현하기 쉽고, Rust의 copy-on-write<Footnote id="cow">Copy-on-write(COW)는 데이터를 복사할 때 실제로는 참조만 공유하다가, 수정이 발생할 때 비로소 복사하는 기법이다. 불변 자료구조와 결합하면 "수정"이 곧 "새 버전 생성"이 되어, 이전 버전을 안전하게 유지할 수 있다.</Footnote>와 잘 맞는다. 협업 편집(CRDT)<Footnote id="crdt">CRDT(Conflict-free Replicated Data Type)는 여러 사용자가 동시에 편집해도 충돌 없이 병합할 수 있는 자료구조다. Google Docs, Figma 같은 실시간 협업 도구의 핵심 기술이다.</Footnote>을 염두에 두고 있었다면 이 특성이 중요했을 것이다.
 
 ### Zed: SumTree 위의 Rope
 
 최근 화제가 된 Zed 에디터도 Rope를 쓴다. 하지만 일반적인 Rope가 아니다. Zed는 **SumTree**라는 B+ 트리 변형 위에 Rope를 구축했다<Footnote id="zed-rope">Zed Industries. Zed Decoded: Rope & SumTree. https://zed.dev/blog/zed-decoded-rope-sumtree</Footnote>.
 
-SumTree는 thread-safe하고 copy-on-write를 지원하는 B+ 트리다. 각 리프 노드에는 16~32바이트 크기의 텍스트 청크가 들어가고, 내부 노드는 서브트리의 요약 정보(길이, 줄바꿈 개수 등)를 저장한다. 이 구조 덕분에 오프셋↔줄/칼럼 좌표 변환이 $O(\log n)$에 가능하다.
+SumTree는 B+ 트리<Footnote id="bplus-tree">B+ 트리는 데이터베이스 인덱스에 널리 쓰이는 자료구조다. 모든 데이터가 리프 노드에 있고, 내부 노드는 검색 키만 저장한다. 디스크 I/O에 최적화되어 있지만, 메모리 내 사용에도 캐시 효율이 좋다.</Footnote> 기반으로 thread-safe하고 copy-on-write를 지원한다. 리프 노드에 16~32바이트 텍스트 청크가 들어가고, 내부 노드는 서브트리의 요약 정보를 저장해서 오프셋↔줄/칼럼 변환이 $O(\log n)$에 가능하다.
 
 더 재밌는 건 Zed가 **두 개의 Rope**를 유지한다는 점이다. 하나는 현재 버퍼 상태, 다른 하나는 삭제된 모든 텍스트. 이 두 Rope를 조합해서 과거 상태를 복원할 수 있다. Piece Table의 "원본 불변" 아이디어와 비슷하지만, 구현 방식이 다르다.
 
 ### Helix: Ropey 크레이트
 
-Helix는 Rust로 만든 모달 에디터인데, `ropey`라는 크레이트를 쓴다. 직접 구현하지 않고 라이브러리를 가져다 쓴 케이스다.
-
-`ropey`는 UTF-8 텍스트에 최적화된 Rope 구현이다. 재밌는 건 Helix 24.03 릴리즈에서 `regex-cursor`라는 스트리밍 정규식 엔진을 도입했다는 점이다. 이 엔진은 Rope의 청크 위에서 직접 동작해서, 텍스트를 일반 Rust 문자열로 변환하는 비용을 없앴다. 자료구조 선택이 나중에 어떤 최적화가 가능한지를 결정한다는 좋은 예다.
+Helix는 Rust로 만든 모달 에디터인데, `ropey`<Footnote id="ropey">ropey는 UTF-8 텍스트에 최적화된 Rust Rope 라이브러리다. https://github.com/cessen/ropey</Footnote>라는 크레이트를 쓴다. 직접 구현하지 않고 라이브러리를 가져다 쓴 케이스다. Helix 24.03에서는 `regex-cursor`라는 스트리밍 정규식 엔진을 도입해서, Rope 청크 위에서 직접 정규식을 돌린다. 자료구조 선택이 나중에 어떤 최적화가 가능한지를 결정한다는 좋은 예다.
 
 ### 에디터별 자료구조 비교
 
@@ -336,11 +334,11 @@ VS Code 블로그에서 가장 인상적인 부분은 기술적 설명이 아니
 
 **최적화할 곳을 잘못 짚었다.** Peng Lyu는 처음에 `insert`, `delete`, `search` 세 가지 기본 연산 최적화에 집중했다. 하지만 실제로 VS Code에 통합하고 프로파일링해보니, 핫스팟은 `getLineContent`였다. <Highlight>이론적으로 중요한 연산과 실제로 자주 호출되는 연산은 달랐다.</Highlight>
 
-**CRLF는 악몽이다.** Windows의 줄바꿈은 `\r\n` 두 문자다. 텍스트를 수정할 때마다 CRLF 시퀀스가 분리되는지, 새로 생기는지 체크해야 한다. 트리 구조에서 이 모든 케이스를 정확하고 빠르게 처리하는 건 여러 번의 시도가 필요한 작업이었다.
+**CRLF는 악몽이다.** Windows의 줄바꿈은 `\r\n` 두 문자다<Footnote id="crlf">Unix는 `\n`(LF), Windows는 `\r\n`(CRLF), 구형 Mac은 `\r`(CR)을 줄바꿈으로 쓴다. 텍스트 에디터는 이 세 가지를 모두 처리해야 하고, 특히 CRLF가 piece 경계에서 쪼개지는 경우가 골치 아프다.</Footnote>. 텍스트를 수정할 때마다 CRLF 시퀀스가 분리되는지, 새로 생기는지 체크해야 한다.
 
-**GC가 CPU를 잡아먹는다.** 기존 코드는 첫 글자의 charCode만 필요한 상황에서도 `getLineContent`로 전체 줄을 가져온 뒤 `charCodeAt`을 호출했다. 라인 배열 시절에는 이게 비용이 거의 없었다. 하지만 Piece Tree에서는 `getLineContent`가 서브스트링을 생성하고, 이게 바로 버려지면서 GC 부담이 된다. 불필요한 문자열 할당을 줄이는 작업이 뒤따라야 했다.
+**GC가 CPU를 잡아먹는다.** 기존 코드는 첫 글자의 charCode만 필요해도 `getLineContent`로 전체 줄을 가져왔다. Piece Tree에서는 이게 매번 서브스트링을 생성하고, 바로 버려지면서 GC 부담<Footnote id="gc-pressure">JavaScript의 가비지 컬렉터는 "사용하지 않는 객체"를 자동으로 정리한다. 하지만 객체를 많이 만들면 GC가 자주 돌고, 그 동안 메인 스레드가 멈춘다. 프레임 드랍이나 입력 지연의 원인이 된다.</Footnote>이 된다.
 
-**C++이 항상 답은 아니다.** VS Code 팀은 처음에 C++로 텍스트 버퍼를 구현하고 Node.js 네이티브 모듈로 연동하는 방법도 시도했다. 메모리 절약을 기대했지만, JavaScript와 C++ 사이의 경계를 넘나드는 비용이 너무 컸다. `getLineContent` 같은 메서드는 워낙 자주 호출되기 때문에, V8이 JavaScript끼리 인라인할 수 있는 이점을 포기하는 건 오히려 손해였다.
+**C++이 항상 답은 아니다.** VS Code 팀은 C++로 텍스트 버퍼를 구현하고 네이티브 모듈<Footnote id="native-addon">Node.js 네이티브 모듈(N-API)은 C/C++로 작성한 코드를 JavaScript에서 호출할 수 있게 해준다. 성능이 중요한 작업에 쓰이지만, JS↔C++ 경계를 넘을 때마다 오버헤드가 발생한다.</Footnote>로 연동하는 방법도 시도했다. 하지만 JS↔C++ 경계 비용이 너무 컸다. `getLineContent`처럼 자주 호출되는 메서드는 V8이 JS끼리 인라인하는 게 더 빠르다.
 
 ---
 
