@@ -11,7 +11,9 @@ export const createRehypeImageRewrite = (slug?: string): Plugin => {
           const src = node.properties.src;
           if (!src.startsWith('/') && !src.startsWith('http')) {
             const cleanSrc = src.replace(/^\.\//, '');
-            node.properties.src = `/images/articles/${slug}/${cleanSrc}`;
+            const shouldAssumeImagesFolder = cleanSrc.length > 0 && !cleanSrc.includes('/');
+            const normalizedSrc = shouldAssumeImagesFolder ? `images/${cleanSrc}` : cleanSrc;
+            node.properties.src = `/images/articles/${slug}/${normalizedSrc}`;
           }
         }
       });

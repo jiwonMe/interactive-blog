@@ -59,6 +59,20 @@ export type PostData = {
   password?: string;
 };
 
+const normalizeArticleAssetPath = (slug: string, input: string): string => {
+  const clean = input.replace(/^\.\//, '');
+  const shouldAssumeImagesFolder = clean.length > 0 && !clean.includes('/');
+  const normalized = shouldAssumeImagesFolder ? `images/${clean}` : clean;
+  return `/images/articles/${slug}/${normalized}`;
+};
+
+const normalizeFrontmatterImage = (slug: string, image: unknown): string | undefined => {
+  const raw = typeof image === 'string' ? image.trim() : image != null ? String(image).trim() : '';
+  if (raw.length === 0) return undefined;
+  if (raw.startsWith('/') || raw.startsWith('http')) return raw;
+  return normalizeArticleAssetPath(slug, raw);
+};
+
 export function getPostSlugs() {
   if (!fs.existsSync(targetDirectory)) {
     return [];
@@ -94,7 +108,7 @@ export function getPostBySlug(slug: string): PostData | null {
     description: data.description,
     author: data.author,
     affiliate: data.affiliate,
-    image: data.image,
+    image: normalizeFrontmatterImage(realSlug, data.image),
     series: data.series,
     seriesOrder: data.seriesOrder,
     tags: data.tags,

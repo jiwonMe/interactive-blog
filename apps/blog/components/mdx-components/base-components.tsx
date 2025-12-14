@@ -16,7 +16,9 @@ const createImageSrcRewriter = (slug?: string) => {
     if (src.startsWith('/') || src.startsWith('http')) return src;
     // remove ./ prefix
     const cleanSrc = src.replace(/^\.\//, '');
-    return `/images/articles/${slug}/${cleanSrc}`;
+    const shouldAssumeImagesFolder = cleanSrc.length > 0 && !cleanSrc.includes('/');
+    const normalizedSrc = shouldAssumeImagesFolder ? `images/${cleanSrc}` : cleanSrc;
+    return `/images/articles/${slug}/${normalizedSrc}`;
   };
 };
 

@@ -20,7 +20,7 @@ title: '글 제목'
 date: '2024-03-21'
 description: '글에 대한 짧은 설명 (SEO 및 Open Graph에 사용됨)'
 author: 'JIWON' (선택, 기본값: JIWON)
-image: '/images/my-post-og.png' (선택, Open Graph 이미지 경로)
+image: 'og-image.png' (선택, Open Graph 이미지 경로 - 아티클 images/ 폴더에 넣었다면 파일명만 가능)
 tags: ['tag1', 'tag2']
 series: '시리즈 이름 (선택)'
 seriesOrder: 1 (선택)
@@ -39,6 +39,7 @@ seriesOrder: 1 (선택)
 - **author** (선택): 작성자 이름. 기본값은 'JIWON'입니다.
 - **image** (선택): Open Graph 이미지 경로. SNS 공유 시 표시되는 이미지입니다.
   - 절대 경로: `/images/og-image.png` (public 폴더 기준)
+  - 아티클 이미지 파일명: `og-image.png` (해당 아티클의 `images/` 폴더 기준)
   - 외부 URL: `https://example.com/image.png`
   - 미지정 시: 기본 이미지(`/og-default.png`) 사용
   - 권장 크기: 1200x630px
@@ -63,11 +64,24 @@ seriesOrder: 1 (선택)
 ```md
 ![스크린샷 설명](images/screenshot.png)
 ```
+또는 (더 간단하게) `images/` 폴더에 넣었다면 파일명만 써도 됩니다.
+```md
+![스크린샷 설명](screenshot.png)
+```
 
 ### Image 컴포넌트 사용
 ```tsx
 <Image 
   src="./images/screenshot.png" 
+  alt="스크린샷 설명"
+  width={800}
+  height={400}
+/>
+```
+`images/` 폴더에 넣었다면 이것도 가능:
+```tsx
+<Image
+  src="screenshot.png"
   alt="스크린샷 설명"
   width={800}
   height={400}
