@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useState, useEffect } from "react";
 import { cn } from "../../../lib/utils";
 
 interface TextModelProps {
@@ -22,11 +22,48 @@ export function TextModel({
 }: TextModelProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // 로컬 텍스트 상태 (IME 조합 중에도 화면에 표시되도록)
+  const [localText, setLocalText] = useState(text);
+  // IME 조합 상태 추적 (한글, 중국어, 일본어 등)
+  const isComposingRef = useRef(false);
+
+  // 부모의 text가 변경되면 로컬 상태도 동기화 (reset 등)
+  useEffect(() => {
+    if (!isComposingRef.current) {
+      setLocalText(text);
+    }
+  }, [text]);
+
   // 텍스트 변경 핸들러
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const newText = e.target.value;
       const cursorPosition = e.target.selectionStart;
+
+      // 항상 로컬 상태는 업데이트 (화면에 표시되도록)
+      setLocalText(newText);
+
+      // IME 조합 중이면 부모에게는 알리지 않음
+      if (isComposingRef.current) return;
+
+      onTextChange(newText, cursorPosition);
+    },
+    [onTextChange]
+  );
+
+  // IME 조합 시작
+  const handleCompositionStart = useCallback(() => {
+    isComposingRef.current = true;
+  }, []);
+
+  // IME 조합 완료
+  const handleCompositionEnd = useCallback(
+    (e: React.CompositionEvent<HTMLTextAreaElement>) => {
+      isComposingRef.current = false;
+      // 조합 완료 후 텍스트 변경 처리
+      const target = e.target as HTMLTextAreaElement;
+      const newText = target.value;
+      const cursorPosition = target.selectionStart;
       onTextChange(newText, cursorPosition);
     },
     [onTextChange]
@@ -159,8 +196,10 @@ export function TextModel({
           {/* 편집 가능한 textarea (위) */}
           <textarea
             ref={textareaRef}
-            value={text}
+            value={localText}
             onChange={handleChange}
+            onCompositionStart={handleCompositionStart}
+            onCompositionEnd={handleCompositionEnd}
             spellCheck={false}
             className={cn(
               // layout
