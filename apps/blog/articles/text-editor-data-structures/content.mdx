@@ -8,12 +8,11 @@ image: '/images/articles/text-editor-data-structures/images/og-image.png'
 ---
 
 
-VS Code에서 500MB짜리 로그 파일을 열어본 적 있는가? 파일이 크다고 에디터가 멈추거나 크래시가 나지 않는다. 중간에 글자 하나를 삽입해도 지연 없이 바로 반영된다. 어떻게 가능한 걸까?
+VS Code에서 500MB짜리 로그 파일을 열어보면, 생각보다 잘 열린다. 중간에 글자를 삽입해도 버벅임이 없다.
 
+대부분의 프로그래밍 언어에서 문자열은 연속된 메모리 공간에 저장된다. 읽기엔 좋지만, 중간에 삽입하려면 뒷부분을 전부 밀어야 한다. 파일이 100MB면 한 글자 삽입에 100MB 복사가 필요하다. 그런데 왜 VS Code는 괜찮은 걸까?
 
-대부분의 프로그래밍 언어에서 문자열은 연속된 메모리 공간에 저장된다. 읽기엔 최적이지만, 중간에 무언가를 삽입하려면 이야기가 달라진다. 삽입 지점 이후의 모든 문자를 뒤로 밀어야 하고, 공간이 부족하면 전체를 새 메모리에 복사해야 한다. <Highlight>파일이 100MB라면? 한 글자 삽입에 100MB를 통째로 복사하는 셈이다.</Highlight>
-
-이 문제를 해결하기 위해 텍스트 에디터들은 저마다 다른 자료구조를 선택해왔다. Emacs는 Gap Buffer를, Xi Editor는 Rope를, VS Code는 Piece Table을 쓴다. 이 글에서는 각 자료구조가 어떤 문제를 해결하려 했고, 어떤 트레이드오프를 감수했는지 살펴본다.
+이 문제를 해결하기 위해 텍스트 에디터들은 저마다 다른 자료구조를 선택해왔다. Emacs는 Gap Buffer를, Xi Editor는 Rope를, VS Code는 Piece Table을 쓴다.
 
 <Callout title="TL;DR">
 - 일반 문자열은 중간 삽입이 $O(n)$이라 대용량 파일 편집에 부적합하다.
@@ -78,7 +77,7 @@ Rope는 문자열을 작은 조각으로 나누어 이진 트리 형태로 관�
 
 <RopeVisualizer />
 
-Rope의 핵심 연산들을 정리하면 이렇다.
+주요 연산을 보자.
 
 **연결(Concat)**: 두 Rope를 합칠 때는 새 부모 노드를 만들어 양쪽을 자식으로 연결한다. 기존 트리를 건드리지 않으므로 $O(1)$이다.
 
@@ -86,7 +85,7 @@ Rope의 핵심 연산들을 정리하면 이렇다.
 
 **삽입(Insert)**: 분할 후 연결의 조합이다. 위치 $k$에서 Split하고, 새 문자열을 중간에 끼워 Concat 두 번. 역시 $O(\log n)$이다.
 
-**인덱스 접근**: 여기서 트레이드오프가 발생한다. $k$번째 문자를 찾으려면 루트부터 시작해서 왼쪽 서브트리 길이와 비교하며 내려가야 한다. 일반 문자열의 $O(1)$ 접근이 $O(\log n)$으로 느려진다.
+**인덱스 접근**: 대신 느려지는 게 있다. $k$번째 문자를 찾으려면 루트부터 시작해서 왼쪽 서브트리 길이와 비교하며 내려가야 한다. 일반 문자열의 $O(1)$이 $O(\log n)$이 된다.
 
 | 연산 | 일반 문자열 | Rope |
 |------|-------------|------|
@@ -123,13 +122,13 @@ Rope보다 훨씬 단순한 해법도 있다. Emacs가 1970년대부터 써온 G
 
 <GapBufferVisualizer />
 
-Gap Buffer의 핵심 연산들을 정리하면 이렇다.
+연산별로 뜯어보면:
 
 **삽입(Insert)**: gap의 시작 위치에 문자를 쓰고, gap 시작 포인터를 한 칸 뒤로 옮긴다. gap이 줄어들 뿐 다른 문자를 건드리지 않는다. $O(1)$이다.
 
 **삭제(Delete)**: 커서 앞 문자를 지우려면? gap 시작 포인터를 한 칸 앞으로 옮기면 된다. 그 문자는 이제 gap의 일부가 되어 "논리적으로 삭제"된다. 역시 $O(1)$이다.
 
-**커서 이동(Move)**: 여기서 트레이드오프가 발생한다. 커서를 $k$칸 옮기려면 gap도 $k$칸 이동해야 한다. gap 앞뒤의 문자들을 하나씩 반대편으로 복사해야 하므로 $O(k)$다. <Highlight>커서를 한 칸씩 움직이면 $O(1)$이지만, 문서 끝에서 처음으로 점프하면 $O(n)$이 된다.</Highlight>
+**커서 이동(Move)**: 문제는 여기다. 커서를 $k$칸 옮기려면 gap도 $k$칸 이동해야 한다. gap 앞뒤의 문자들을 하나씩 반대편으로 복사해야 하므로 $O(k)$다. <Highlight>커서를 한 칸씩 움직이면 $O(1)$이지만, 문서 끝에서 처음으로 점프하면 $O(n)$이 된다.</Highlight>
 
 **Gap 확장**: gap이 꽉 차면 더 큰 버퍼를 할당하고 전체를 복사해야 한다. amortized $O(1)$<Footnote id="amortized">Amortized(분할 상환) 분석은 일련의 연산 전체에 걸쳐 평균 비용을 계산하는 방법이다. gap이 꽉 찰 때마다 버퍼를 2배로 늘리면, n번의 삽입 중 $O(n)$이 드는 복사는 $\log n$번만 발생한다. 총 비용이 약 $2n$이므로, 삽입 하나당 평균 $O(1)$이 된다.</Footnote>이지만, 그 순간에는 $O(n)$이 든다.
 
@@ -185,7 +184,7 @@ Piece table:
 
 <PieceTableVisualizer />
 
-이 구조가 주는 이점을 생각해보자.
+이 구조의 장점:
 
 <Highlight>**Undo가 거의 공짜다.** 버퍼 내용은 절대 삭제되지 않는다.</Highlight> 삭제한 텍스트도 original buffer에 그대로 남아있다. piece table의 이전 상태만 기억하면 되돌리기가 그냥 된다. 버퍼를 뒤져서 삭제된 내용을 복구할 필요가 없다.
 
@@ -215,7 +214,7 @@ VS Code는 original buffer를 단일 문자열이 아닌 버퍼 배열로 바꿨
 
 piece가 수천 개로 늘어나면 선형 탐색이 병목이 된다. VS Code는 piece 목록을 **Red-Black Tree**<Footnote id="rbtree">Red-Black Tree는 자가 균형 이진 탐색 트리의 일종이다. 삽입/삭제 시 노드 색상 규칙을 이용해 트리 높이를 $O(\log n)$으로 유지한다. AVL 트리보다 삽입/삭제가 빠르고, 일반 이진 탐색 트리처럼 한쪽으로 치우치는 문제가 없다.</Footnote>로 관리하도록 바꿨다. 각 노드에 왼쪽 서브트리의 텍스트 길이와 줄바꿈 개수를 캐싱해서, 오프셋이나 줄 번호로 검색할 때 $O(\log n)$을 보장한다.
 
-이쯤 되면 "Multiple buffer piece table with red-black tree, optimized for line model"이라고 부르는 게 정확하겠지만, VS Code 팀은 간단히 **Piece Tree**라고 불렀다.
+VS Code 팀은 이 구조를 **Piece Tree**라고 부른다.
 
 ### 객체 할당 최소화
 
@@ -334,11 +333,11 @@ VS Code 블로그에서 가장 인상적인 부분은 기술적 설명이 아니
 
 **최적화할 곳을 잘못 짚었다.** Peng Lyu는 처음에 `insert`, `delete`, `search` 세 가지 기본 연산 최적화에 집중했다. 하지만 실제로 VS Code에 통합하고 프로파일링해보니, 핫스팟은 `getLineContent`였다. <Highlight>이론적으로 중요한 연산과 실제로 자주 호출되는 연산은 달랐다.</Highlight>
 
-**CRLF는 악몽이다.** Windows의 줄바꿈은 `\r\n` 두 문자다<Footnote id="crlf">Unix는 `\n`(LF), Windows는 `\r\n`(CRLF), 구형 Mac은 `\r`(CR)을 줄바꿈으로 쓴다. 텍스트 에디터는 이 세 가지를 모두 처리해야 하고, 특히 CRLF가 piece 경계에서 쪼개지는 경우가 골치 아프다.</Footnote>. 텍스트를 수정할 때마다 CRLF 시퀀스가 분리되는지, 새로 생기는지 체크해야 한다.
+**CRLF 처리가 예상보다 어려웠다.** Windows의 줄바꿈은 `\r\n` 두 문자다<Footnote id="crlf">Unix는 `\n`(LF), Windows는 `\r\n`(CRLF), 구형 Mac은 `\r`(CR)을 줄바꿈으로 쓴다. 텍스트 에디터는 이 세 가지를 모두 처리해야 하고, 특히 CRLF가 piece 경계에서 쪼개지는 경우가 골치 아프다.</Footnote>. piece 경계에서 `\r`과 `\n`이 분리되면? 두 piece를 합쳐서 줄바꿈인지 확인해야 한다. 블로그에서 "여러 번의 시도가 필요했다"고 한 부분이 이해가 간다.
 
 **GC가 CPU를 잡아먹는다.** 기존 코드는 첫 글자의 charCode만 필요해도 `getLineContent`로 전체 줄을 가져왔다. Piece Tree에서는 이게 매번 서브스트링을 생성하고, 바로 버려지면서 GC 부담<Footnote id="gc-pressure">JavaScript의 가비지 컬렉터는 "사용하지 않는 객체"를 자동으로 정리한다. 하지만 객체를 많이 만들면 GC가 자주 돌고, 그 동안 메인 스레드가 멈춘다. 프레임 드랍이나 입력 지연의 원인이 된다.</Footnote>이 된다.
 
-**C++이 항상 답은 아니다.** VS Code 팀은 C++로 텍스트 버퍼를 구현하고 네이티브 모듈<Footnote id="native-addon">Node.js 네이티브 모듈(N-API)은 C/C++로 작성한 코드를 JavaScript에서 호출할 수 있게 해준다. 성능이 중요한 작업에 쓰이지만, JS↔C++ 경계를 넘을 때마다 오버헤드가 발생한다.</Footnote>로 연동하는 방법도 시도했다. 하지만 JS↔C++ 경계 비용이 너무 컸다. `getLineContent`처럼 자주 호출되는 메서드는 V8이 JS끼리 인라인하는 게 더 빠르다.
+**C++ 네이티브 모듈 시도는 실패했다.** VS Code 팀은 C++로 텍스트 버퍼를 구현하고 네이티브 모듈<Footnote id="native-addon">Node.js 네이티브 모듈(N-API)은 C/C++로 작성한 코드를 JavaScript에서 호출할 수 있게 해준다. 성능이 중요한 작업에 쓰이지만, JS↔C++ 경계를 넘을 때마다 오버헤드가 발생한다.</Footnote>로 연동하는 방법도 시도했다. 하지만 JS↔C++ 경계 비용이 너무 컸다. `getLineContent`처럼 자주 호출되는 메서드는 V8이 JS끼리 인라인하는 게 더 빠르다.
 
 ---
 
@@ -381,7 +380,7 @@ Raph Levien은 "Piece Table은 편집이 누적될수록 성능이 저하된다"
 
 ## 언제 무엇을 쓸 것인가
 
-<Highlight>각 자료구조는 서로 다른 트레이드오프를 감수한다. 정답은 없고, 상황에 맞는 선택이 있을 뿐이다.</Highlight>
+그래서 뭘 써야 할까? 상황에 따라 다르다. (뻔한 답이지만 사실이다.)
 
 **Gap Buffer**는 구현이 단순하고, 연속 타이핑에 최적화되어 있다. 커서 점프가 드물고 파일이 크지 않다면 충분히 좋은 선택이다. Emacs가 수십 년간 잘 써왔다.
 
@@ -409,7 +408,7 @@ VS Code 팀의 이야기에서 인상적인 건 최종 결과물보다 과정이
 
 이 글을 쓰면서 직접 시각화를 만들어봤는데, 만들고 나니 자료구조가 생각보다 단순하다는 걸 깨달았다. 글로 읽으면 복잡해 보이는 것들이, 손으로 조작해보면 "아, 이거구나" 싶어진다. 위에서 직접 타이핑해보면서 piece가 쪼개지고 합쳐지는 걸 눈으로 확인해보길 권한다.
 
-직접 텍스트 에디터를 만들 일은 드물겠지만, 여기서 논의한 트레이드오프의 개념은 다른 문제에도 적용된다. <Highlight>어떤 연산을 빠르게 할 것인가, 무엇을 희생할 것인가, 이론적 최적과 실제 프로파일링 결과는 왜 다른가.</Highlight> 이런 질문들은 자료구조를 선택하는 모든 상황에서 유효하다<Footnote id="finseth">Finseth, C. A. The Craft of Text Editing. https://www.finseth.com/craft/</Footnote><Footnote id="crowley">Crowley, C. Data Structures for Text Sequences. https://www.cs.unm.edu/~crowley/papers/sds.pdf</Footnote>.
+직접 텍스트 에디터를 만들 일은 드물겠지만, <Highlight>"어떤 연산을 빠르게 할 것인가, 무엇을 희생할 것인가"</Highlight>라는 질문은 어디서든 마주치게 된다. 더 파고들고 싶다면 Finseth의 The Craft of Text Editing<Footnote id="finseth">Finseth, C. A. The Craft of Text Editing. https://www.finseth.com/craft/</Footnote>이나 Crowley의 Data Structures for Text Sequences<Footnote id="crowley">Crowley, C. Data Structures for Text Sequences. https://www.cs.unm.edu/~crowley/papers/sds.pdf</Footnote>를 추천한다.
 
 다음에는 실제로 간단한 Piece Table을 구현하고 벤치마크를 돌려보는 글을 써볼까 한다. "편집이 누적되면 정말 느려지는가"에 대한 답을 직접 찾아보고 싶다.
 
