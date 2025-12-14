@@ -22,6 +22,7 @@ import { NaiveSwapPathDistribution } from "../../../../articles/shuffle-bias/com
 import { PieceTableVisualizer } from "../../../../articles/text-editor-data-structures/components/PieceTableVisualizer";
 import { StringInsertVisualizer } from "../../../../articles/text-editor-data-structures/components/StringInsertVisualizer";
 import { RopeVisualizer } from "../../../../articles/text-editor-data-structures/components/RopeVisualizer";
+import { GapBufferVisualizer } from "../../../../articles/text-editor-data-structures/components/GapBufferVisualizer";
 
 export const articleStories: ExperimentStory[] = [
   {
@@ -314,6 +315,20 @@ export const articleStories: ExperimentStory[] = [
       "apps/blog/articles/text-editor-data-structures/components/use-rope.ts",
     ],
     render: () => <RopeVisualizer />,
+    controls: {},
+  },
+  {
+    slug: "text-editor-data-structures/gap-buffer-visualizer",
+    title: "Gap Buffer 시각화",
+    description: "Gap Buffer 자료구조의 동작을 인터랙티브하게 시각화합니다.",
+    category: "Articles / text-editor-data-structures",
+    tags: ["article", "data-structure", "visualization", "animation"],
+    links: [{ href: "/posts/text-editor-data-structures", label: "글로 이동" }],
+    sourcePaths: [
+      "apps/blog/articles/text-editor-data-structures/components/GapBufferVisualizer.tsx",
+      "apps/blog/articles/text-editor-data-structures/components/use-gap-buffer.ts",
+    ],
+    render: () => <GapBufferVisualizer />,
     controls: {},
   },
 ];

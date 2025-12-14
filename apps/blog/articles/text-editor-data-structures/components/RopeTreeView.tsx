@@ -46,6 +46,57 @@ export function RopeTreeView({
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
+    // SVG 필터 정의 (최초 1회)
+    if (svg.select("defs").empty()) {
+      const defs = svg.append("defs");
+
+      // 기본 그림자
+      const shadowFilter = defs.append("filter")
+        .attr("id", "node-shadow")
+        .attr("x", "-50%")
+        .attr("y", "-50%")
+        .attr("width", "200%")
+        .attr("height", "200%");
+      shadowFilter.append("feDropShadow")
+        .attr("dx", 0)
+        .attr("dy", 1)
+        .attr("stdDeviation", 2)
+        .attr("flood-color", "#00000015");
+
+      // 탐색 글로우 효과
+      const glowFilter = defs.append("filter")
+        .attr("id", "search-glow")
+        .attr("x", "-100%")
+        .attr("y", "-100%")
+        .attr("width", "300%")
+        .attr("height", "300%");
+      glowFilter.append("feGaussianBlur")
+        .attr("stdDeviation", 4)
+        .attr("result", "blur");
+      glowFilter.append("feFlood")
+        .attr("flood-color", "#f59e0b")
+        .attr("flood-opacity", 0.4);
+      glowFilter.append("feComposite")
+        .attr("in2", "blur")
+        .attr("operator", "in");
+      const glowMerge = glowFilter.append("feMerge");
+      glowMerge.append("feMergeNode");
+      glowMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+      // 선택 그림자
+      const selectFilter = defs.append("filter")
+        .attr("id", "select-shadow")
+        .attr("x", "-50%")
+        .attr("y", "-50%")
+        .attr("width", "200%")
+        .attr("height", "200%");
+      selectFilter.append("feDropShadow")
+        .attr("dx", 0)
+        .attr("dy", 2)
+        .attr("stdDeviation", 3)
+        .attr("flood-color", "#00000025");
+    }
+
     // 최초 실행 시 그룹 생성
     if (!gRef.current) {
       gRef.current = svg
@@ -67,29 +118,36 @@ export function RopeTreeView({
 
     // 노드 색상 결정 (기본 흑백, 탐색은 amber)
     const getNodeFill = (nodeId: string) => {
-      if (isCurrentSearch(nodeId)) return "#f59e0b"; // amber-500
-      if (isInSearchPath(nodeId)) return "#fef3c7"; // amber-100
-      if (nodeId === selectedNodeId) return "#71717a"; // zinc-500
-      return "#f4f4f5"; // zinc-100
+      if (isCurrentSearch(nodeId)) return "#fbbf24"; // amber-400 (더 밝게)
+      if (isInSearchPath(nodeId)) return "#fef9c3"; // amber-50 (더 연하게)
+      if (nodeId === selectedNodeId) return "#52525b"; // zinc-600
+      return "#fafafa"; // zinc-50 (더 밝게)
     };
 
     const getNodeStroke = (nodeId: string) => {
-      if (isCurrentSearch(nodeId)) return "#d97706"; // amber-600
-      if (isInSearchPath(nodeId)) return "#fbbf24"; // amber-400
+      if (isCurrentSearch(nodeId)) return "#f59e0b"; // amber-500
+      if (isInSearchPath(nodeId)) return "#fcd34d"; // amber-300
       if (nodeId === selectedNodeId) return "#3f3f46"; // zinc-700
-      return "#a1a1aa"; // zinc-400
+      return "#e4e4e7"; // zinc-200 (더 연하게)
     };
 
     const getTextFill = (nodeId: string) => {
-      if (isCurrentSearch(nodeId)) return "#ffffff";
+      if (isCurrentSearch(nodeId)) return "#78350f"; // amber-900 (진한 텍스트)
       if (nodeId === selectedNodeId) return "#ffffff";
-      return "#3f3f46"; // zinc-700
+      return "#52525b"; // zinc-600
     };
 
     const getStrokeWidth = (nodeId: string) => {
-      if (isCurrentSearch(nodeId)) return 3;
-      if (isInSearchPath(nodeId)) return 2;
-      return 1.5;
+      if (isCurrentSearch(nodeId)) return 2;
+      if (isInSearchPath(nodeId)) return 1.5;
+      return 1;
+    };
+
+    // 필터 결정
+    const getFilter = (nodeId: string) => {
+      if (isCurrentSearch(nodeId)) return "url(#search-glow)";
+      if (nodeId === selectedNodeId) return "url(#select-shadow)";
+      return "url(#node-shadow)";
     };
 
     // 루트 위치 (새 노드 진입점)
@@ -111,17 +169,32 @@ export function RopeTreeView({
       .selectAll<SVGPathElement, d3.HierarchyPointLink<TreeNodeData>>(".link")
       .data(treeData.links(), (d) => `${d.source.data.id}-${d.target.data.id}`);
 
+    // 엣지 색상/두께 헬퍼
+    const getLinkStroke = (d: d3.HierarchyPointLink<TreeNodeData>) => {
+      const sourceInPath = isInSearchPath(d.source.data.id);
+      const targetInPath = isInSearchPath(d.target.data.id);
+      if (sourceInPath && targetInPath) return "#fcd34d"; // amber-300
+      return "#e4e4e7"; // zinc-200
+    };
+
+    const getLinkWidth = (d: d3.HierarchyPointLink<TreeNodeData>) => {
+      const sourceInPath = isInSearchPath(d.source.data.id);
+      const targetInPath = isInSearchPath(d.target.data.id);
+      if (sourceInPath && targetInPath) return 2;
+      return 1;
+    };
+
     // 새 엣지 진입
     links
       .enter()
       .append("path")
       .attr("class", "link")
       .attr("fill", "none")
-      .attr("stroke", "#d4d4d8")
-      .attr("stroke-width", 1.5)
+      .attr("stroke", "#e4e4e7")
+      .attr("stroke-width", 1)
+      .attr("stroke-linecap", "round")
       .attr("opacity", 0)
       .attr("d", (d) => {
-        // 시작점에서 시작
         const prev = getPrevPosition(d.source.data.id);
         return `M${prev.x},${prev.y}L${prev.x},${prev.y}`;
       })
@@ -129,36 +202,16 @@ export function RopeTreeView({
       .duration(ANIMATION_DURATION)
       .attr("opacity", 1)
       .attr("d", linkGenerator)
-      .attr("stroke", (d) => {
-        const sourceInPath = isInSearchPath(d.source.data.id);
-        const targetInPath = isInSearchPath(d.target.data.id);
-        if (sourceInPath && targetInPath) return "#fbbf24"; // amber-400
-        return "#d4d4d8"; // zinc-300
-      })
-      .attr("stroke-width", (d) => {
-        const sourceInPath = isInSearchPath(d.source.data.id);
-        const targetInPath = isInSearchPath(d.target.data.id);
-        if (sourceInPath && targetInPath) return 2.5;
-        return 1.5;
-      });
+      .attr("stroke", getLinkStroke)
+      .attr("stroke-width", getLinkWidth);
 
     // 기존 엣지 업데이트
     links
       .transition()
       .duration(ANIMATION_DURATION)
       .attr("d", linkGenerator)
-      .attr("stroke", (d) => {
-        const sourceInPath = isInSearchPath(d.source.data.id);
-        const targetInPath = isInSearchPath(d.target.data.id);
-        if (sourceInPath && targetInPath) return "#fbbf24"; // amber-400
-        return "#d4d4d8"; // zinc-300
-      })
-      .attr("stroke-width", (d) => {
-        const sourceInPath = isInSearchPath(d.source.data.id);
-        const targetInPath = isInSearchPath(d.target.data.id);
-        if (sourceInPath && targetInPath) return 2.5;
-        return 1.5;
-      });
+      .attr("stroke", getLinkStroke)
+      .attr("stroke-width", getLinkWidth);
 
     // 삭제되는 엣지
     links
@@ -197,9 +250,10 @@ export function RopeTreeView({
       .attr("fill", (d) => getNodeFill(d.data.id))
       .attr("stroke", (d) => getNodeStroke(d.data.id))
       .attr("stroke-width", (d) => getStrokeWidth(d.data.id))
+      .attr("filter", (d) => getFilter(d.data.id))
       .transition()
       .duration(ANIMATION_DURATION)
-      .attr("r", (d) => isCurrentSearch(d.data.id) ? 22 : 18);
+      .attr("r", 16);
 
     // 리프 노드 (사각형) - 진입
     nodesEnter
@@ -209,30 +263,33 @@ export function RopeTreeView({
       .attr("y", 0)
       .attr("width", 0)
       .attr("height", 0)
-      .attr("rx", 4)
+      .attr("rx", 6)
       .attr("fill", (d) => getNodeFill(d.data.id))
       .attr("stroke", (d) => getNodeStroke(d.data.id))
       .attr("stroke-width", (d) => getStrokeWidth(d.data.id))
+      .attr("filter", (d) => getFilter(d.data.id))
       .transition()
       .duration(ANIMATION_DURATION)
-      .attr("x", (d) => isCurrentSearch(d.data.id) ? -32 : -28)
-      .attr("y", (d) => isCurrentSearch(d.data.id) ? -18 : -14)
-      .attr("width", (d) => isCurrentSearch(d.data.id) ? 64 : 56)
-      .attr("height", (d) => isCurrentSearch(d.data.id) ? 36 : 28);
+      .attr("x", -26)
+      .attr("y", -12)
+      .attr("width", 52)
+      .attr("height", 24);
 
     // 텍스트 - 진입
     nodesEnter
       .append("text")
       .attr("dy", 4)
       .attr("text-anchor", "middle")
-      .attr("font-size", 11)
-      .attr("font-family", "monospace")
+      .attr("font-size", 10)
+      .attr("font-family", "ui-monospace, monospace")
+      .attr("font-weight", 500)
       .attr("fill", (d) => getTextFill(d.data.id))
       .attr("opacity", 0)
+      .attr("pointer-events", "none")
       .text((d) => {
         if (d.data.type === "leaf") {
           const text = d.data.text || "";
-          return text.length > 6 ? text.slice(0, 5) + "…" : text;
+          return text.length > 5 ? text.slice(0, 4) + "…" : text;
         }
         return d.data.name;
       })
@@ -256,9 +313,10 @@ export function RopeTreeView({
     // 내부 노드 업데이트
     nodes
       .select("circle")
+      .attr("filter", (d) => getFilter(d.data.id))
       .transition()
       .duration(ANIMATION_DURATION)
-      .attr("r", (d) => isCurrentSearch(d.data.id) ? 22 : 18)
+      .attr("r", 16)
       .attr("fill", (d) => getNodeFill(d.data.id))
       .attr("stroke", (d) => getNodeStroke(d.data.id))
       .attr("stroke-width", (d) => getStrokeWidth(d.data.id));
@@ -266,12 +324,13 @@ export function RopeTreeView({
     // 리프 노드 업데이트
     nodes
       .select("rect")
+      .attr("filter", (d) => getFilter(d.data.id))
       .transition()
       .duration(ANIMATION_DURATION)
-      .attr("x", (d) => isCurrentSearch(d.data.id) ? -32 : -28)
-      .attr("y", (d) => isCurrentSearch(d.data.id) ? -18 : -14)
-      .attr("width", (d) => isCurrentSearch(d.data.id) ? 64 : 56)
-      .attr("height", (d) => isCurrentSearch(d.data.id) ? 36 : 28)
+      .attr("x", -26)
+      .attr("y", -12)
+      .attr("width", 52)
+      .attr("height", 24)
       .attr("fill", (d) => getNodeFill(d.data.id))
       .attr("stroke", (d) => getNodeStroke(d.data.id))
       .attr("stroke-width", (d) => getStrokeWidth(d.data.id));
@@ -285,7 +344,7 @@ export function RopeTreeView({
       .text((d) => {
         if (d.data.type === "leaf") {
           const text = d.data.text || "";
-          return text.length > 6 ? text.slice(0, 5) + "…" : text;
+          return text.length > 5 ? text.slice(0, 4) + "…" : text;
         }
         return d.data.name;
       });
