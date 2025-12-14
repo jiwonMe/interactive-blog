@@ -2,6 +2,7 @@ import React from "react";
 import type { ExperimentStory } from "../types";
 import { Counter } from "../../../../articles/hello-world/components/counter";
 import { SecretaryProblem } from "../../../../articles/secretary-problem/components/SecretaryProblem";
+import { SecretarySimulator } from "../../../../articles/secretary-problem/components/SecretarySimulator";
 import { BuggyInputDemo } from "../../../../articles/korean-ime-bug/components/BuggyInputDemo";
 import { CompositionEventLogger } from "../../../../articles/korean-ime-bug/components/CompositionEventLogger";
 import { HangulCompositionFlow } from "../../../../articles/korean-ime-bug/components/HangulCompositionFlow";
@@ -53,6 +54,23 @@ export const articleStories: ExperimentStory[] = [
       numCandidates: { type: "number", label: "후보자 수", defaultValue: 10, min: 5, max: 100, step: 5 },
       speed: { type: "number", label: "애니메이션 속도 (ms)", defaultValue: 1000, min: 100, max: 3000, step: 100 },
       autoPlay: { type: "boolean", label: "자동 재생", defaultValue: false },
+    },
+  },
+  {
+    slug: "secretary-problem/simulator",
+    title: "비서문제 시뮬레이터 (New)",
+    description: "@repo/interactive-components를 사용한 새로운 비서문제 시뮬레이터입니다.",
+    category: "Articles / secretary-problem",
+    tags: ["article", "d3", "interactive-components", "simulation"],
+    links: [{ href: "/posts/secretary-problem", label: "글로 이동" }],
+    sourcePaths: [
+      "apps/blog/articles/secretary-problem/components/SecretarySimulator.tsx",
+      "apps/blog/articles/secretary-problem/components/SecretaryCandidateChart.tsx",
+      "apps/blog/articles/secretary-problem/lib/secretary-algorithm.ts",
+    ],
+    render: (props) => <SecretarySimulator numCandidates={props.numCandidates} />,
+    controls: {
+      numCandidates: { type: "number", label: "후보자 수", defaultValue: 10, min: 5, max: 30, step: 1 },
     },
   },
   {

@@ -13,6 +13,7 @@ import { TournamentSampler } from '../../articles/shuffle-bias/components/Tourna
 import { TransitivityDiagram } from '../../articles/shuffle-bias/components/TransitivityDiagram';
 import { NaiveSwapPathDistribution } from '../../articles/shuffle-bias/components/NaiveSwapPathDistribution';
 import { SecretaryProblem } from '../../articles/secretary-problem/components/SecretaryProblem';
+import { SecretarySimulator } from '../../articles/secretary-problem/components/SecretarySimulator';
 import { HiddenClassVisualizer } from '../../articles/v8-object-vs-map/components/HiddenClassVisualizer';
 import { PropertyStorageVisualizer } from '../../articles/v8-object-vs-map/components/PropertyStorageVisualizer';
 import { BuggyInputDemo } from '../../articles/korean-ime-bug/components/BuggyInputDemo';
@@ -33,6 +34,7 @@ export const articleComponentsRegistry: Record<string, React.ComponentType<any>>
   TransitivityDiagram,
   NaiveSwapPathDistribution,
   SecretaryProblem,
+  SecretarySimulator,
   HiddenClassVisualizer,
   PropertyStorageVisualizer,
   BuggyInputDemo,
