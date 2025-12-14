@@ -186,9 +186,9 @@ function SearchStatus({
         // layout
         "px-4 py-3 rounded-lg",
         // background
-        "bg-zinc-100 dark:bg-zinc-800",
+        "bg-amber-50 dark:bg-amber-950/30",
         // border
-        "border border-zinc-300 dark:border-zinc-600"
+        "border border-amber-200 dark:border-amber-800"
       )}
     >
       <div
@@ -203,11 +203,11 @@ function SearchStatus({
             // layout
             "px-2 py-1 rounded",
             // background
-            "bg-zinc-200 dark:bg-zinc-700",
+            "bg-amber-100 dark:bg-amber-900/50",
             // typography
             "text-xs font-bold font-mono",
             // color
-            "text-zinc-700 dark:text-zinc-300"
+            "text-amber-700 dark:text-amber-300"
           )}
         >
           {stepIndex + 1} / {totalSteps}
@@ -219,7 +219,7 @@ function SearchStatus({
             // typography
             "text-sm font-mono",
             // color
-            "text-zinc-700 dark:text-zinc-300"
+            "text-amber-800 dark:text-amber-200"
           )}
         >
           {currentStep.comparison}
@@ -231,11 +231,11 @@ function SearchStatus({
             // layout
             "ml-auto px-2 py-1 rounded",
             // background
-            "bg-zinc-200 dark:bg-zinc-700",
+            "bg-amber-100 dark:bg-amber-900/50",
             // typography
             "text-xs font-bold",
             // color
-            "text-zinc-600 dark:text-zinc-400"
+            "text-amber-700 dark:text-amber-300"
           )}
         >
           O(log n) 탐색
