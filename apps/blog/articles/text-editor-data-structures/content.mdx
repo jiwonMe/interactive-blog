@@ -94,7 +94,7 @@ Rope는 문자열을 작은 조각으로 나누어 이진 트리 형태로 관�
 | 연결 | $O(n)$ | $O(1)$ |
 | 인덱스 접근 | $O(1)$ | $O(\log n)$ |
 
-<Highlight>수정이 빈번한 상황에서는 Rope가 유리하고, 읽기가 대부분인 상황에서는 일반 문자열이 유리하다.</Highlight> 텍스트 에디터는 전자에 해당한다. 타이핑, 백스페이스, 복사-붙여넣기 모두 중간 수정이다. 그래서 Xi Editor 같은 에디터가 Rope를 선택한 것이다. Rope는 수정 연산을 빠르게 하지만, 읽기 연산의 비용이 증가한다. 텍스트 에디터처럼 수정이 빈번한 경우에는 이 트레이드오프가 합리적이다.
+<Highlight>수정이 빈번한 상황에서는 Rope가 유리하고, 읽기가 대부분인 상황에서는 일반 문자열이 유리하다.</Highlight> 텍스트 에디터는 전자에 해당한다. 타이핑, 백스페이스, 복사-붙여넣기 모두 중간 수정이다.
 
 ---
 
@@ -148,7 +148,7 @@ Emacs 시대에는 이게 합리적인 선택이었다. 마우스로 여기저�
 
 ## Piece Table: 발상의 전환
 
-여기서 질문을 던져보자. 수정이 빠르면서, 메모리도 효율적이고, Undo 구현도 쉬운 구조가 있을까?
+수정이 빠르면서, 메모리도 효율적이고, Undo 구현도 쉬운 구조가 있을까?
 
 Piece Table은 완전히 다른 관점에서 문제에 접근한다. **원본 파일을 절대 수정하지 않는다.**
 
@@ -256,7 +256,7 @@ Raph Levien은 Rope를 선택한 이유를 이렇게 설명했다.
 
 > "Rope는 기본적으로 성능이 나쁜 케이스가 없다. Piece Table은 파일을 처음 열 때는 성능이 아주 좋지만, 편집이 누적될수록 성능이 저하된다."
 
-흥미로운 관점이다. Piece Table은 piece가 쌓이면 탐색 비용이 증가한다. VS Code는 이를 Red-Black Tree로 해결했지만, Raph Levien은 처음부터 균형 잡힌 트리 구조인 Rope를 선택하는 게 더 자연스럽다고 본 것이다.
+Piece Table은 piece가 쌓이면 탐색 비용이 증가한다. VS Code는 이를 Red-Black Tree로 해결했지만, Raph Levien은 처음부터 균형 잡힌 트리 구조인 Rope를 선택하는 게 더 자연스럽다고 본 것이다.
 
 또 하나의 이유는 Rust의 불변성 모델과의 궁합이다. Rope는 불변 자료구조로 구현하기 쉽고, Rust의 copy-on-write<Footnote id="cow">Copy-on-write(COW)는 데이터를 복사할 때 실제로는 참조만 공유하다가, 수정이 발생할 때 비로소 복사하는 기법이다. 불변 자료구조와 결합하면 "수정"이 곧 "새 버전 생성"이 되어, 이전 버전을 안전하게 유지할 수 있다.</Footnote>와 잘 맞는다. 협업 편집(CRDT)<Footnote id="crdt">CRDT(Conflict-free Replicated Data Type)는 여러 사용자가 동시에 편집해도 충돌 없이 병합할 수 있는 자료구조다. Google Docs, Figma 같은 실시간 협업 도구의 핵심 기술이다.</Footnote>을 염두에 두고 있었다면 이 특성이 중요했을 것이다.
 
@@ -402,11 +402,11 @@ Raph Levien은 "Piece Table은 편집이 누적될수록 성능이 저하된다"
 
 ## 마치며
 
-이 글을 쓰면서 가장 재밌었던 건, 같은 문제를 두고 다른 팀들이 다른 답을 내놓았다는 점이다. VS Code는 Piece Table, Xi Editor는 Rope, Zed는 SumTree 위의 Rope. 모두 "텍스트 편집을 빠르게"라는 같은 목표를 향하지만, 언어 특성, 팀의 경험, 우선순위에 따라 다른 길을 걸었다.
+같은 문제를 두고 다른 팀들이 다른 답을 내놓았다. VS Code는 Piece Table, Xi Editor는 Rope, Zed는 SumTree 위의 Rope. 언어 특성, 팀의 경험, 우선순위에 따라 다른 길을 걸었다.
 
-VS Code 팀의 이야기에서 인상적인 건 최종 결과물보다 과정이다. C++ 구현을 시도했다가 포기한 것, 최적화 지점을 잘못 짚었던 것, CRLF 처리에 여러 번 실패한 것. 실제 코드를 뜯어보면 블로그에서 느끼지 못한 지저분함이 보인다. 그리고 그게 정상이다. 프로덕션 코드는 교과서처럼 깔끔할 수 없다.
+VS Code 팀의 블로그에서 인상적인 건 최종 결과물보다 과정이다. C++ 구현을 시도했다가 포기한 것, 최적화 지점을 잘못 짚었던 것, CRLF 처리에 여러 번 실패한 것. 실제 코드를 뜯어보면 블로그에서 느끼지 못한 지저분함이 보인다.
 
-이 글을 쓰면서 직접 시각화를 만들어봤는데, 만들고 나니 자료구조가 생각보다 단순하다는 걸 깨달았다. 글로 읽으면 복잡해 보이는 것들이, 손으로 조작해보면 "아, 이거구나" 싶어진다. 위에서 직접 타이핑해보면서 piece가 쪼개지고 합쳐지는 걸 눈으로 확인해보길 권한다.
+시각화를 직접 만들어보니 자료구조가 생각보다 단순하다는 걸 깨달았다. 글로 읽으면 복잡해 보이는 것들이, 손으로 조작해보면 "아, 이거구나" 싶어진다.
 
 직접 텍스트 에디터를 만들 일은 드물겠지만, <Highlight>"어떤 연산을 빠르게 할 것인가, 무엇을 희생할 것인가"</Highlight>라는 질문은 어디서든 마주치게 된다. 더 파고들고 싶다면 Finseth의 The Craft of Text Editing<Footnote id="finseth">Finseth, C. A. The Craft of Text Editing. https://www.finseth.com/craft/</Footnote>이나 Crowley의 Data Structures for Text Sequences<Footnote id="crowley">Crowley, C. Data Structures for Text Sequences. https://www.cs.unm.edu/~crowley/papers/sds.pdf</Footnote>를 추천한다.
 
