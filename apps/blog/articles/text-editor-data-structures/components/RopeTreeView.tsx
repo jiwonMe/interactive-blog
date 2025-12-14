@@ -16,12 +16,11 @@ interface RopeTreeViewProps {
   currentSearchNodeId?: string | null;
 }
 
-// 이전 노드 위치 저장 (애니메이션용)
-type NodePosition = { x: number; y: number };
-const nodePositions = new Map<string, NodePosition>();
-
 // 애니메이션 설정
 const ANIMATION_DURATION = 500;
+
+// 노드 위치 타입
+type NodePosition = { x: number; y: number };
 
 /**
  * D3.js를 이용한 Rope 트리 시각화 컴포넌트
@@ -36,7 +35,9 @@ export function RopeTreeView({
   currentSearchNodeId = null,
 }: RopeTreeViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const gRef = useRef<d3.Selection<SVGGElement, unknown, null, undefined> | null>(null);
+  // 이전 노드 위치 저장 (애니메이션용) - 컴포넌트 내부 ref로 이동
+  const nodePositionsRef = useRef<Map<string, NodePosition>>(new Map());
+  const isInitializedRef = useRef(false);
 
   useEffect(() => {
     if (!svgRef.current || !data) return;
@@ -45,9 +46,14 @@ export function RopeTreeView({
     const margin = { top: 30, right: 20, bottom: 30, left: 20 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
+    const nodePositions = nodePositionsRef.current;
 
-    // SVG 필터 정의 (최초 1회)
-    if (svg.select("defs").empty()) {
+    // 최초 초기화
+    if (!isInitializedRef.current) {
+      // 기존 내용 제거
+      svg.selectAll("*").remove();
+
+      // SVG 필터 정의
       const defs = svg.append("defs");
 
       // 기본 그림자
@@ -95,15 +101,16 @@ export function RopeTreeView({
         .attr("dy", 2)
         .attr("stdDeviation", 3)
         .attr("flood-color", "#00000025");
+
+      // 그룹 생성
+      svg.append("g")
+        .attr("class", "tree-group")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      isInitializedRef.current = true;
     }
 
-    // 최초 실행 시 그룹 생성
-    if (!gRef.current) {
-      gRef.current = svg
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
-    }
-    const g = gRef.current;
+    const g = svg.select<SVGGElement>(".tree-group");
 
     // 트리 레이아웃 생성
     const treeLayout = d3.tree<TreeNodeData>().size([innerWidth, innerHeight]);
@@ -362,7 +369,21 @@ export function RopeTreeView({
     treeData.descendants().forEach((d) => {
       nodePositions.set(d.data.id, { x: d.x, y: d.y });
     });
+
+    // cleanup
+    return () => {
+      // 진행 중인 트랜지션 취소
+      svg.selectAll("*").interrupt();
+    };
   }, [data, selectedNodeId, onNodeClick, width, height, searchPathNodeIds, currentSearchNodeId]);
+
+  // 컴포넌트 언마운트 시 초기화
+  useEffect(() => {
+    return () => {
+      nodePositionsRef.current.clear();
+      isInitializedRef.current = false;
+    };
+  }, []);
 
   return (
     <div

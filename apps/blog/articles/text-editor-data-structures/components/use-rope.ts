@@ -41,8 +41,9 @@ export interface TreeNodeData {
   children?: TreeNodeData[];
 }
 
-let nodeIdCounter = 0;
-const generateNodeId = (): string => `node-${++nodeIdCounter}`;
+// 고유 ID 생성 (전역 카운터 대신 랜덤 ID 사용)
+const generateNodeId = (): string =>
+  `node-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
 /**
  * 리프 노드 생성
@@ -395,7 +396,6 @@ export function useRope() {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-    nodeIdCounter = 0;
     setRoot(createBalancedRope(INITIAL_TEXT));
     setSelectedNodeId(null);
     setLastOperation(null);
