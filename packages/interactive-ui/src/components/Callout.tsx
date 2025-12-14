@@ -23,25 +23,25 @@ const calloutStyles: Record<CalloutType, {
   content: string;
 }> = {
   info: {
-    container: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800',
+    container: 'bg-blue-50/50 dark:bg-blue-950/20 border-l-4 border-blue-500 dark:border-blue-400 rounded-r-lg shadow-sm',
     icon: 'text-blue-600 dark:text-blue-400',
     title: 'text-blue-900 dark:text-blue-100',
     content: 'text-blue-800 dark:text-blue-200',
   },
   tip: {
-    container: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800',
+    container: 'bg-emerald-50/50 dark:bg-emerald-950/20 border-l-4 border-emerald-500 dark:border-emerald-400 rounded-r-lg shadow-sm',
     icon: 'text-emerald-600 dark:text-emerald-400',
     title: 'text-emerald-900 dark:text-emerald-100',
     content: 'text-emerald-800 dark:text-emerald-200',
   },
   warning: {
-    container: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800',
+    container: 'bg-amber-50/50 dark:bg-amber-950/20 border-l-4 border-amber-500 dark:border-amber-400 rounded-r-lg shadow-sm',
     icon: 'text-amber-600 dark:text-amber-400',
     title: 'text-amber-900 dark:text-amber-100',
     content: 'text-amber-800 dark:text-amber-200',
   },
   danger: {
-    container: 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800',
+    container: 'bg-red-50/50 dark:bg-red-950/20 border-l-4 border-red-500 dark:border-red-400 rounded-r-lg shadow-sm',
     icon: 'text-red-600 dark:text-red-400',
     title: 'text-red-900 dark:text-red-100',
     content: 'text-red-800 dark:text-red-200',
@@ -77,24 +77,24 @@ export const Callout = ({ type = 'info', title, children }: CalloutProps) => {
 
   return (
     <div className={cn(
-      "border p-4 my-6",
+      "p-5 my-6",
       styles.container
     )}>
-      <div className="flex gap-3">
-        <div className={cn("flex-shrink-0 mt-0.5", styles.icon)}>
+      <div className="flex gap-4">
+        <div className={cn("flex-shrink-0", styles.icon)}>
           {icon}
         </div>
         <div className="flex-1 min-w-0">
           {title && (
             <h4 className={cn(
-              "font-semibold mb-2",
+              "font-semibold mb-3 text-base",
               styles.title
             )}>
               {title}
             </h4>
           )}
           <div className={cn(
-            "text-sm leading-relaxed",
+            "leading-relaxed",
             styles.content
           )}>
             {children}

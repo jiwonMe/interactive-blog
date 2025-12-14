@@ -19,6 +19,7 @@ import { TournamentSampler } from "../../../../articles/shuffle-bias/components/
 import { TournamentDiagram } from "../../../../articles/shuffle-bias/components/TournamentDiagram";
 import { TransitivityDiagram } from "../../../../articles/shuffle-bias/components/TransitivityDiagram";
 import { NaiveSwapPathDistribution } from "../../../../articles/shuffle-bias/components/NaiveSwapPathDistribution";
+import { PieceTableVisualizer } from "../../../../articles/text-editor-data-structures/components/PieceTableVisualizer";
 
 export const articleStories: ExperimentStory[] = [
   {
@@ -269,6 +270,20 @@ export const articleStories: ExperimentStory[] = [
     links: [{ href: "/posts/shuffle-bias", label: "글로 이동" }],
     sourcePaths: ["apps/blog/articles/shuffle-bias/components/NaiveSwapPathDistribution.tsx"],
     render: () => <NaiveSwapPathDistribution />,
+    controls: {},
+  },
+  {
+    slug: "text-editor-data-structures/piece-table-visualizer",
+    title: "Piece Table 시각화",
+    description: "Piece Table 자료구조의 동작을 인터랙티브하게 시각화합니다.",
+    category: "Articles / text-editor-data-structures",
+    tags: ["article", "data-structure", "visualization"],
+    links: [{ href: "/posts/text-editor-data-structures", label: "글로 이동" }],
+    sourcePaths: [
+      "apps/blog/articles/text-editor-data-structures/components/PieceTableVisualizer.tsx",
+      "apps/blog/articles/text-editor-data-structures/components/use-piece-table.ts",
+    ],
+    render: () => <PieceTableVisualizer />,
     controls: {},
   },
 ];
