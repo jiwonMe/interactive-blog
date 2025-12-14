@@ -36,7 +36,7 @@ const result = s.slice(0, 5) + " Beautiful" + s.slice(5);
 
 <StringInsertVisualizer />
 
-작은 파일에서는 이 비용이 느껴지지 않는다. 하지만 파일이 커지면 문제가 드러난다. VS Code 팀은 2017년에 35MB 파일(1,370만 줄)을 열다가 Out-Of-Memory 크래시를 경험했다. 당시 VS Code는 각 줄을 별도의 객체로 저장하는 방식을 썼는데, <Highlight>줄마다 40-60바이트의 오버헤드가 붙어서 원본의 거의 **20배**에 달하는 메모리를 소비했다.</Highlight> 문제는 명확했다. 더 나은 자료구조가 필요했다.
+작은 파일에서는 이 비용이 느껴지지 않는다. 하지만 파일이 커지면 문제가 드러난다. VS Code 팀은 2016년경 35MB 파일(1,370만 줄)을 열다가 Out-Of-Memory 크래시를 경험했다<Footnote id="vscode-issue">GitHub Issue #13187: 35 MB file causes out of memory in code (2016). https://github.com/microsoft/vscode/issues/13187</Footnote>. 당시 VS Code는 각 줄을 별도의 객체로 저장하는 방식을 썼는데, <Highlight>줄마다 40-60바이트의 오버헤드가 붙어서 원본의 거의 **20배**에 달하는 메모리를 소비했다.</Highlight> 문제는 명확했다. 더 나은 자료구조가 필요했다.
 
 ---
 
@@ -177,7 +177,7 @@ Piece table:
 
 이 구조가 주는 이점을 생각해보자.
 
-<Highlight>**Undo가 거의 공짜다.** 버퍼 내용은 절대 삭제되지 않는다.</Highlight> 삭제한 텍스트도 original buffer에 그대로 남아있다. piece table의 이전 상태만 기억하면 되돌리기가 trivial해진다.
+<Highlight>**Undo가 거의 공짜다.** 버퍼 내용은 절대 삭제되지 않는다.</Highlight> 삭제한 텍스트도 original buffer에 그대로 남아있다. piece table의 이전 상태만 기억하면 되돌리기가 그냥 된다. 버퍼를 뒤져서 삭제된 내용을 복구할 필요가 없다.
 
 **메모리 효율적이다.** 100MB 파일을 열어서 한 글자만 수정해도, 추가로 필요한 메모리는 그 한 글자와 piece table 엔트리뿐이다. 원본을 복사하지 않으니까.
 
@@ -235,6 +235,91 @@ VS Code 팀이 실제로 측정한 결과를 보자. 테스트에 사용한 파�
 
 ---
 
+## 다른 에디터들은 어떤 선택을 했나
+
+VS Code만 보면 Piece Table이 정답처럼 보인다. 하지만 다른 에디터들을 보면, 각자 다른 선택을 하고 있다는 걸 알 수 있다.
+
+### Xi Editor: Rope를 선택한 이유
+
+Xi Editor는 Google의 Raph Levien이 만든 실험적 에디터다<Footnote id="xi-retrospective">Levien, R. (2020). Xi-Editor Retrospective. https://raphlinus.github.io/xi/2020/06/27/xi-retrospective.html</Footnote>. 프로젝트는 2020년에 중단됐지만, 그 과정에서 나온 기술적 결정들은 여전히 참고할 가치가 있다.
+
+Raph Levien은 Rope를 선택한 이유를 이렇게 설명했다.
+
+> "Rope는 기본적으로 성능이 나쁜 케이스가 없다. Piece Table은 파일을 처음 열 때는 성능이 아주 좋지만, 편집이 누적될수록 성능이 저하된다."
+
+흥미로운 관점이다. Piece Table은 piece가 쌓이면 탐색 비용이 증가한다. VS Code는 이를 Red-Black Tree로 해결했지만, Raph Levien은 처음부터 균형 잡힌 트리 구조인 Rope를 선택하는 게 더 자연스럽다고 본 것이다.
+
+또 하나의 이유는 Rust의 불변성 모델과의 궁합이다. Rope는 불변 자료구조로 구현하기 쉽고, Rust의 copy-on-write와 잘 맞는다. 협업 편집(CRDT)을 염두에 두고 있었다면 이 특성이 중요했을 것이다.
+
+### Zed: SumTree 위의 Rope
+
+최근 화제가 된 Zed 에디터도 Rope를 쓴다. 하지만 일반적인 Rope가 아니다. Zed는 **SumTree**라는 B+ 트리 변형 위에 Rope를 구축했다<Footnote id="zed-rope">Zed Industries. Zed Decoded: Rope & SumTree. https://zed.dev/blog/zed-decoded-rope-sumtree</Footnote>.
+
+SumTree는 thread-safe하고 copy-on-write를 지원하는 B+ 트리다. 각 리프 노드에는 16~32바이트 크기의 텍스트 청크가 들어가고, 내부 노드는 서브트리의 요약 정보(길이, 줄바꿈 개수 등)를 저장한다. 이 구조 덕분에 오프셋↔줄/칼럼 좌표 변환이 $O(\log n)$에 가능하다.
+
+더 재밌는 건 Zed가 **두 개의 Rope**를 유지한다는 점이다. 하나는 현재 버퍼 상태, 다른 하나는 삭제된 모든 텍스트. 이 두 Rope를 조합해서 과거 상태를 복원할 수 있다. Piece Table의 "원본 불변" 아이디어와 비슷하지만, 구현 방식이 다르다.
+
+### Helix: Ropey 크레이트
+
+Helix는 Rust로 만든 모달 에디터인데, `ropey`라는 크레이트를 쓴다. 직접 구현하지 않고 라이브러리를 가져다 쓴 케이스다.
+
+`ropey`는 UTF-8 텍스트에 최적화된 Rope 구현이다. 재밌는 건 Helix 24.03 릴리즈에서 `regex-cursor`라는 스트리밍 정규식 엔진을 도입했다는 점이다. 이 엔진은 Rope의 청크 위에서 직접 동작해서, 텍스트를 일반 Rust 문자열로 변환하는 비용을 없앴다. 자료구조 선택이 나중에 어떤 최적화가 가능한지를 결정한다는 좋은 예다.
+
+### 에디터별 자료구조 비교
+
+| 에디터 | 자료구조 | 언어 | 비고 |
+|--------|----------|------|------|
+| VS Code | Piece Tree | TypeScript | Red-Black Tree + 줄바꿈 캐싱 |
+| Xi Editor | Rope | Rust | 불변성, CRDT 고려 |
+| Zed | Rope (SumTree) | Rust | 이중 Rope로 히스토리 관리 |
+| Helix | Rope (ropey) | Rust | 외부 라이브러리 사용 |
+| Emacs | Gap Buffer | C/Lisp | 1970년대부터 사용 |
+| Sublime Text | 비공개 | C++ | 구현 공개 안 됨 |
+
+Rust 진영에서 Rope가 인기 있는 건 우연이 아니다. Rust의 소유권 모델과 불변 자료구조가 잘 맞기 때문이다. 반면 VS Code는 JavaScript/TypeScript 환경에서 GC 부담을 줄이기 위해 Piece Table을 선택했다. 언어와 런타임 특성이 자료구조 선택에 영향을 준다.
+
+---
+
+## 2024년 VS Code 코드를 뜯어보니
+
+블로그 글은 2018년에 쓰였다. 6년이 지난 지금, 실제 코드는 어떻게 생겼을까?
+
+VS Code의 Piece Tree 구현은 `src/vs/editor/common/model/pieceTreeTextBuffer/` 디렉토리에 있다. 핵심 파일인 `pieceTreeBase.ts`를 열어보면 약 1,500줄 정도 된다<Footnote id="vscode-github">Microsoft. VS Code Source Code. https://github.com/microsoft/vscode/blob/main/src/vs/editor/common/model/pieceTreeTextBuffer/pieceTreeBase.ts</Footnote>.
+
+몇 가지 눈에 띄는 점이 있다.
+
+**1. 노드 색상이 숫자로 정의되어 있다**
+
+```typescript
+const enum NodeColor {
+  Black = 0,
+  Red = 1,
+}
+```
+
+Red-Black Tree 구현이 실제로 들어있다. `leftRotate`, `rightRotate` 같은 메서드들이 교과서 그대로다.
+
+**2. CRLF 처리 코드가 상당히 복잡하다**
+
+`_normalizeCRLF`라는 메서드가 있는데, 블로그에서 "CRLF는 악몽"이라고 한 이유를 알 것 같다. 줄바꿈이 `\r\n`인 경우를 처리하는 조건문이 여러 곳에 흩어져 있다.
+
+**3. 성능 최적화 흔적이 곳곳에**
+
+```typescript
+// pieceTreeBase.ts에서 발췌
+// We intentionally create objects as late as possible
+```
+
+객체 생성을 최대한 미루는 패턴이 보인다. GC 부담을 줄이기 위한 것으로 보인다. 블로그에서 언급한 "불필요한 문자열 할당 줄이기" 작업의 흔적이다.
+
+**4. 테스트 케이스가 방대하다**
+
+같은 디렉토리에 `pieceTreeTextBuffer.test.ts`가 있는데, 엣지 케이스 테스트가 수백 개다. 특히 CRLF, 유니코드, 큰 파일 관련 테스트가 많다. 실제로 버그를 많이 겪었다는 증거다.
+
+코드를 읽으면 알겠지만 역시나 실제 구현은 아이디어를 표현한 코드에 비해 훨씬 지저분하다.
+
+---
+
 ## 실전에서 배운 것들
 
 VS Code 블로그에서 가장 인상적인 부분은 기술적 설명이 아니라, 팀이 겪은 시행착오다.
@@ -246,6 +331,43 @@ VS Code 블로그에서 가장 인상적인 부분은 기술적 설명이 아니
 **GC가 CPU를 잡아먹는다.** 기존 코드는 첫 글자의 charCode만 필요한 상황에서도 `getLineContent`로 전체 줄을 가져온 뒤 `charCodeAt`을 호출했다. 라인 배열 시절에는 이게 비용이 거의 없었다. 하지만 Piece Tree에서는 `getLineContent`가 서브스트링을 생성하고, 이게 바로 버려지면서 GC 부담이 된다. 불필요한 문자열 할당을 줄이는 작업이 뒤따라야 했다.
 
 **C++이 항상 답은 아니다.** VS Code 팀은 처음에 C++로 텍스트 버퍼를 구현하고 Node.js 네이티브 모듈로 연동하는 방법도 시도했다. 메모리 절약을 기대했지만, JavaScript와 C++ 사이의 경계를 넘나드는 비용이 너무 컸다. `getLineContent` 같은 메서드는 워낙 자주 호출되기 때문에, V8이 JavaScript끼리 인라인할 수 있는 이점을 포기하는 건 오히려 손해였다.
+
+---
+
+## + 아직 모르겠는 것들
+
+이 주제를 파다 보니 오히려 질문이 늘었다. 답을 찾으면 글을 업데이트하겠다.
+
+**1. VS Code는 왜 Rope가 아니라 Piece Table을 선택했을까?**
+
+Peng Lyu의 블로그에는 "Piece Table을 선택했다"고만 나온다. Rope도 $O(\log n)$ 삽입이 가능하고, Xi Editor나 Zed처럼 잘 쓰는 에디터도 있는데 왜 Piece Table이었을까?
+
+내 추측은 이렇다:
+- Piece Table은 파일을 열 때 original buffer에 그대로 올리면 된다. Rope는 트리를 구축해야 하므로 초기 로딩이 더 느리다.
+- JavaScript 환경에서는 불변 자료구조의 이점이 Rust만큼 크지 않다. GC가 알아서 해주니까.
+- 이미 있던 라인 배열 구조에서 마이그레이션하기에 Piece Table이 더 수월했을 수도 있다.
+
+하지만 확실한 건 아니다. VS Code 팀 누군가가 이 글을 보고 답해주면 좋겠다.
+
+**2. getLineContent가 정말 병목이었다면, 어떤 시나리오에서?**
+
+렌더링은 보이는 줄만 하면 된다. 토큰화도 변경된 줄 근처만 하면 된다. 그런데 `getLineContent`가 "가장 뜨거운 메서드"였다고 한다. 도대체 어떤 기능이 그렇게 많이 호출하는 걸까?
+
+추측 가능한 시나리오:
+- Find & Replace (전체 파일 스캔)
+- 포맷팅 (전체 파일을 읽어서 다시 쓰기)
+- 대용량 파일의 diff 계산
+- LSP 서버와의 통신 (전체 문서를 보내는 경우)
+
+실제로 VS Code를 프로파일링해보면 알 수 있을 것 같다. 언젠가 해봐야지.
+
+**3. 편집이 누적되면 Piece Table 성능이 정말 저하될까?**
+
+Raph Levien은 "Piece Table은 편집이 누적될수록 성능이 저하된다"고 했다. VS Code는 Red-Black Tree로 $O(\log n)$ 탐색을 보장하니까 괜찮다고 하지만, 정말 그럴까?
+
+예를 들어 piece가 10만 개가 되면 어떨까? 트리 높이는 $\log_2(100000) \approx 17$ 정도다. 17번의 비교 연산이 매 `getLineContent` 호출마다 필요하다. 작아 보이지만, 초당 수천 번 호출되면 무시할 수 없을 것 같기도 하다.
+
+직접 벤치마크를 돌려봐야 답이 나올 것 같다.
 
 ---
 
@@ -273,11 +395,15 @@ VS Code 블로그에서 가장 인상적인 부분은 기술적 설명이 아니
 
 ## 마치며
 
-텍스트 에디터의 핵심 자료구조를 살펴봤다. 단순해 보이는 "문자열 편집"이라는 문제 뒤에 수십 년간 축적된 고민이 있다.
+이 글을 쓰면서 가장 재밌었던 건, 같은 문제를 두고 다른 팀들이 다른 답을 내놓았다는 점이다. VS Code는 Piece Table, Xi Editor는 Rope, Zed는 SumTree 위의 Rope. 모두 "텍스트 편집을 빠르게"라는 같은 목표를 향하지만, 언어 특성, 팀의 경험, 우선순위에 따라 다른 길을 걸었다.
 
-VS Code 팀의 이야기에서 인상적인 건, 최종 결과물보다 과정이다. C++ 구현을 시도했다가 포기한 것, 최적화 지점을 잘못 짚었던 것, CRLF 처리에 여러 번 실패한 것. 실제 엔지니어링은 교과서처럼 깔끔하지 않다.
+VS Code 팀의 이야기에서 인상적인 건 최종 결과물보다 과정이다. C++ 구현을 시도했다가 포기한 것, 최적화 지점을 잘못 짚었던 것, CRLF 처리에 여러 번 실패한 것. 실제 코드를 뜯어보면 블로그에서 느끼지 못한 지저분함이 보인다. 그리고 그게 정상이다. 프로덕션 코드는 교과서처럼 깔끔할 수 없다.
+
+이 글을 쓰면서 직접 시각화를 만들어봤는데, 만들고 나니 자료구조가 생각보다 단순하다는 걸 깨달았다. 글로 읽으면 복잡해 보이는 것들이, 손으로 조작해보면 "아, 이거구나" 싶어진다. 위에서 직접 타이핑해보면서 piece가 쪼개지고 합쳐지는 걸 눈으로 확인해보길 권한다.
 
 직접 텍스트 에디터를 만들 일은 드물겠지만, 여기서 논의한 트레이드오프의 개념은 다른 문제에도 적용된다. <Highlight>어떤 연산을 빠르게 할 것인가, 무엇을 희생할 것인가, 이론적 최적과 실제 프로파일링 결과는 왜 다른가.</Highlight> 이런 질문들은 자료구조를 선택하는 모든 상황에서 유효하다<Footnote id="finseth">Finseth, C. A. The Craft of Text Editing. https://www.finseth.com/craft/</Footnote><Footnote id="crowley">Crowley, C. Data Structures for Text Sequences. https://www.cs.unm.edu/~crowley/papers/sds.pdf</Footnote>.
+
+다음에는 실제로 간단한 Piece Table을 구현하고 벤치마크를 돌려보는 글을 써볼까 한다. "편집이 누적되면 정말 느려지는가"에 대한 답을 직접 찾아보고 싶다.
 
 ---
 
