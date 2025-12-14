@@ -5,9 +5,14 @@ import { cn } from "../../../lib/utils";
 import type { ExperimentStory } from "../registry";
 import { ExperimentViewer } from "../experiment-viewer";
 import { CodeBlock, CollapsibleCode } from "@repo/interactive-ui";
+import { ViewportSelector, VIEWPORT_SIZES, type ViewportSize } from "../viewport-selector";
+import { ViewportFrame } from "../viewport-frame";
 
 type ExperimentDetailProps = {
   story: ExperimentStory | null;
+  values: Record<string, any>;
+  viewport: ViewportSize;
+  onViewportChange: (viewport: ViewportSize) => void;
 };
 
 function getControlDefaults(story: ExperimentStory) {
@@ -18,20 +23,27 @@ function getControlDefaults(story: ExperimentStory) {
   return defaults;
 }
 
-export function ExperimentDetail({ story }: ExperimentDetailProps) {
+export function ExperimentDetail({ story, values, viewport, onViewportChange }: ExperimentDetailProps) {
+  const viewportWidth = VIEWPORT_SIZES[viewport].width;
   return (
     <main
       className={cn(
-        /* 레이아웃 */
+        /* 레이아웃 - posts 페이지와 동일한 환경 */
         "min-w-0",
-        "rounded-2xl p-5 lg:p-6",
-        /* 배경 및 테두리 */
-        "bg-white dark:bg-zinc-950",
-        "border border-zinc-200 dark:border-zinc-800"
+        "flex justify-center",
+        /* Spacing */
+        "px-6 py-8"
       )}
     >
       {story ? (
-        <>
+        <div
+          className={cn(
+            /* Layout - posts 페이지 article과 동일 */
+            "w-full max-w-3xl",
+            /* Overflow 방지 */
+            "overflow-x-hidden"
+          )}
+        >
           <header
             className={cn(
               /* 레이아웃 */
@@ -230,8 +242,35 @@ export function ExperimentDetail({ story }: ExperimentDetailProps) {
             ) : null}
           </header>
 
-          <ExperimentViewer render={story.render} controls={story.controls} />
-        </>
+          {/* Viewport 선택기 */}
+          <div
+            className={cn(
+              /* Layout */
+              "flex items-center justify-between gap-4 mb-4",
+              /* Border */
+              "pb-4 border-b border-zinc-200 dark:border-zinc-800"
+            )}
+          >
+            <ViewportSelector value={viewport} onChange={onViewportChange} />
+            {viewportWidth && (
+              <span
+                className={cn(
+                  /* Typography */
+                  "text-xs font-mono",
+                  /* Color */
+                  "text-zinc-400 dark:text-zinc-500"
+                )}
+              >
+                {viewportWidth}px
+              </span>
+            )}
+          </div>
+
+          {/* Preview Area */}
+          <ViewportFrame width={viewportWidth}>
+            <ExperimentViewer render={story.render} values={values} />
+          </ViewportFrame>
+        </div>
       ) : (
         <div
           className={cn(
