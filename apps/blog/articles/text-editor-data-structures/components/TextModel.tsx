@@ -1,19 +1,25 @@
 "use client";
 
-import React, { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useCallback } from "react";
 import { cn } from "../../../lib/utils";
 
 interface TextModelProps {
   text: string;
   lines: string[];
+  highlightRange: { start: number; end: number; buffer: "original" | "add" } | null;
   onTextChange: (newText: string, cursorPosition: number) => void;
 }
 
 /**
  * 결과 텍스트를 줄 번호와 함께 표시하는 컴포넌트
- * 편집 가능한 영역 포함
+ * 편집 가능한 영역 포함, 선택된 piece 하이라이트 지원
  */
-export function TextModel({ text, lines, onTextChange }: TextModelProps) {
+export function TextModel({
+  text,
+  lines,
+  highlightRange,
+  onTextChange,
+}: TextModelProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 텍스트 변경 핸들러
@@ -25,6 +31,40 @@ export function TextModel({ text, lines, onTextChange }: TextModelProps) {
     },
     [onTextChange]
   );
+
+  // 하이라이트가 적용된 텍스트 렌더링
+  const renderHighlightedText = () => {
+    if (!highlightRange) {
+      return <span>{text || "\u00A0"}</span>;
+    }
+
+    const { start, end, buffer } = highlightRange;
+    const before = text.slice(0, start);
+    const highlighted = text.slice(start, end);
+    const after = text.slice(end);
+
+    // add 버퍼는 붉은색, original 버퍼는 파란색
+    const isAdd = buffer === "add";
+
+    return (
+      <>
+        <span>{before}</span>
+        <span
+          className={cn(
+            // background (add: 붉은색, original: 파란색)
+            isAdd
+              ? "bg-red-200 dark:bg-red-800/60"
+              : "bg-blue-200 dark:bg-blue-800/60",
+            // border
+            "rounded-sm"
+          )}
+        >
+          {highlighted}
+        </span>
+        <span>{after}</span>
+      </>
+    );
+  };
 
   return (
     <div
@@ -94,13 +134,29 @@ export function TextModel({ text, lines, onTextChange }: TextModelProps) {
           ))}
         </div>
 
-        {/* 텍스트 영역 */}
+        {/* 텍스트 영역 (오버레이 방식으로 하이라이트 표시) */}
         <div
           className={cn(
             // layout
             "flex-1 relative"
           )}
         >
+          {/* 하이라이트 레이어 (아래) */}
+          <div
+            aria-hidden="true"
+            className={cn(
+              // layout
+              "absolute inset-0 py-3 px-3 overflow-hidden pointer-events-none",
+              // typography (textarea와 동일하게)
+              "text-sm font-mono leading-6 whitespace-pre-wrap break-words",
+              // color (투명 - 하이라이트만 보이도록)
+              "text-transparent"
+            )}
+          >
+            {renderHighlightedText()}
+          </div>
+
+          {/* 편집 가능한 textarea (위) */}
           <textarea
             ref={textareaRef}
             value={text}
@@ -108,13 +164,15 @@ export function TextModel({ text, lines, onTextChange }: TextModelProps) {
             spellCheck={false}
             className={cn(
               // layout
-              "w-full h-full py-3 px-3 resize-none",
+              "w-full h-full py-3 px-3 resize-none relative z-10",
               // typography
               "text-sm font-mono leading-6",
-              // background
+              // background (투명하게 해서 하이라이트가 보이도록)
               "bg-transparent",
               // color
               "text-zinc-700 dark:text-zinc-300",
+              // caret
+              "caret-zinc-700 dark:caret-zinc-300",
               // focus
               "outline-none",
               // placeholder

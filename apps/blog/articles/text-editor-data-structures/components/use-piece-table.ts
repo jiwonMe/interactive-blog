@@ -263,6 +263,26 @@ export function usePieceTable(initialText: string = "Hello World") {
   }, [state.pieces, state.selectedPieceId]);
 
   /**
+   * 선택된 piece의 텍스트 내 시작/끝 위치 및 버퍼 타입 계산
+   */
+  const selectedTextRange = useMemo((): {
+    start: number;
+    end: number;
+    buffer: "original" | "add";
+  } | null => {
+    if (!state.selectedPieceId) return null;
+
+    let start = 0;
+    for (const piece of state.pieces) {
+      if (piece.id === state.selectedPieceId) {
+        return { start, end: start + piece.length, buffer: piece.buffer };
+      }
+      start += piece.length;
+    }
+    return null;
+  }, [state.pieces, state.selectedPieceId]);
+
+  /**
    * 각 piece가 참조하는 실제 텍스트
    */
   const getPieceText = useCallback(
@@ -282,6 +302,7 @@ export function usePieceTable(initialText: string = "Hello World") {
     pieces: state.pieces,
     selectedPieceId: state.selectedPieceId,
     selectedPiece,
+    selectedTextRange,
     // 계산된 값
     text: getText(),
     lines: getLines(),

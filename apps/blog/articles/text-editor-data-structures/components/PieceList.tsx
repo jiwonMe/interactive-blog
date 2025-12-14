@@ -117,6 +117,9 @@ function PieceCard({
   // 줄바꿈을 시각적으로 표시
   const displayText = previewText.replace(/\n/g, "↵");
 
+  // add 버퍼는 붉은색, original 버퍼는 파란색
+  const isAdd = piece.buffer === "add";
+
   return (
     <button
       onClick={onClick}
@@ -130,7 +133,9 @@ function PieceCard({
         // border
         "border-2",
         isSelected
-          ? "border-blue-500 dark:border-blue-400"
+          ? isAdd
+            ? "border-red-500 dark:border-red-400"
+            : "border-blue-500 dark:border-blue-400"
           : "border-transparent",
         // hover
         "hover:bg-zinc-200 dark:hover:bg-zinc-700",
@@ -153,13 +158,13 @@ function PieceCard({
             "shrink-0 px-1.5 py-0.5 rounded",
             // typography
             "text-xs font-mono font-medium",
-            // background & color
-            piece.buffer === "original"
-              ? "bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
-              : "bg-zinc-300 text-zinc-700 dark:bg-zinc-600 dark:text-zinc-200"
+            // background & color (add: 붉은색, original: 파란색)
+            isAdd
+              ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400"
+              : "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400"
           )}
         >
-          {piece.buffer === "original" ? "orig" : "add"}
+          {isAdd ? "add" : "orig"}
         </span>
 
         {/* 메타데이터 */}
@@ -182,9 +187,11 @@ function PieceCard({
           "mt-1 pl-1",
           // typography
           "font-mono text-xs truncate",
-          // color
+          // color (add: 붉은색, original: 파란색)
           isSelected
-            ? "text-blue-600 dark:text-blue-400"
+            ? isAdd
+              ? "text-red-600 dark:text-red-400"
+              : "text-blue-600 dark:text-blue-400"
             : "text-zinc-600 dark:text-zinc-400"
         )}
       >

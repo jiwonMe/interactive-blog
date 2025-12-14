@@ -134,6 +134,7 @@ function BufferSection({
             text={buffer}
             highlightStart={highlightStart}
             highlightEnd={highlightEnd}
+            isAdd={!isOriginal}
           />
         )}
       </div>
@@ -145,12 +146,18 @@ interface BufferTextProps {
   text: string;
   highlightStart: number;
   highlightEnd: number;
+  isAdd: boolean;
 }
 
 /**
  * 버퍼 텍스트 렌더링 (하이라이트 포함)
  */
-function BufferText({ text, highlightStart, highlightEnd }: BufferTextProps) {
+function BufferText({
+  text,
+  highlightStart,
+  highlightEnd,
+  isAdd,
+}: BufferTextProps) {
   // 하이라이트가 없으면 일반 텍스트
   if (highlightStart < 0 || highlightEnd < 0) {
     return (
@@ -188,10 +195,14 @@ function BufferText({ text, highlightStart, highlightEnd }: BufferTextProps) {
       {before}
       <span
         className={cn(
-          // background
-          "bg-blue-100 dark:bg-blue-900/40",
-          // color
-          "text-blue-700 dark:text-blue-300",
+          // background (add: 붉은색, original: 파란색)
+          isAdd
+            ? "bg-red-100 dark:bg-red-900/40"
+            : "bg-blue-100 dark:bg-blue-900/40",
+          // color (add: 붉은색, original: 파란색)
+          isAdd
+            ? "text-red-700 dark:text-red-300"
+            : "text-blue-700 dark:text-blue-300",
           // border
           "rounded px-0.5"
         )}

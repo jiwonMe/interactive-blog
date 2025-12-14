@@ -19,6 +19,7 @@ export function PieceTableVisualizer() {
     pieces,
     selectedPieceId,
     selectedPiece,
+    selectedTextRange,
     text,
     lines,
     insert,
@@ -162,6 +163,7 @@ export function PieceTableVisualizer() {
             <TextModel
               text={text}
               lines={lines}
+              highlightRange={selectedTextRange}
               onTextChange={handleTextChange}
             />
           </div>
