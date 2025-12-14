@@ -21,6 +21,7 @@ import { TransitivityDiagram } from "../../../../articles/shuffle-bias/component
 import { NaiveSwapPathDistribution } from "../../../../articles/shuffle-bias/components/NaiveSwapPathDistribution";
 import { PieceTableVisualizer } from "../../../../articles/text-editor-data-structures/components/PieceTableVisualizer";
 import { StringInsertVisualizer } from "../../../../articles/text-editor-data-structures/components/StringInsertVisualizer";
+import { RopeVisualizer } from "../../../../articles/text-editor-data-structures/components/RopeVisualizer";
 
 export const articleStories: ExperimentStory[] = [
   {
@@ -299,6 +300,20 @@ export const articleStories: ExperimentStory[] = [
       "apps/blog/articles/text-editor-data-structures/components/use-string-insert.ts",
     ],
     render: () => <StringInsertVisualizer />,
+    controls: {},
+  },
+  {
+    slug: "text-editor-data-structures/rope-visualizer",
+    title: "Rope 트리 시각화",
+    description: "Rope 자료구조의 트리 구조와 삽입/연결 연산을 D3.js로 시각화합니다.",
+    category: "Articles / text-editor-data-structures",
+    tags: ["article", "data-structure", "visualization", "d3"],
+    links: [{ href: "/posts/text-editor-data-structures", label: "글로 이동" }],
+    sourcePaths: [
+      "apps/blog/articles/text-editor-data-structures/components/RopeVisualizer.tsx",
+      "apps/blog/articles/text-editor-data-structures/components/use-rope.ts",
+    ],
+    render: () => <RopeVisualizer />,
     controls: {},
   },
 ];
