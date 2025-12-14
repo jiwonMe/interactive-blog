@@ -341,43 +341,6 @@ VS Code 블로그에서 가장 인상적인 부분은 기술적 설명이 아니
 
 ---
 
-## + 아직 모르겠는 것들
-
-이 주제를 파다 보니 오히려 질문이 늘었다. 답을 찾으면 글을 업데이트하겠다.
-
-**1. VS Code는 왜 Rope가 아니라 Piece Table을 선택했을까?**
-
-Peng Lyu의 블로그에는 "Piece Table을 선택했다"고만 나온다. Rope도 $O(\log n)$ 삽입이 가능하고, Xi Editor나 Zed처럼 잘 쓰는 에디터도 있는데 왜 Piece Table이었을까?
-
-내 추측은 이렇다:
-- Piece Table은 파일을 열 때 original buffer에 그대로 올리면 된다. Rope는 트리를 구축해야 하므로 초기 로딩이 더 느리다.
-- JavaScript 환경에서는 불변 자료구조의 이점이 Rust만큼 크지 않다. GC가 알아서 해주니까.
-- 이미 있던 라인 배열 구조에서 마이그레이션하기에 Piece Table이 더 수월했을 수도 있다.
-
-하지만 확실한 건 아니다. VS Code 팀 누군가가 이 글을 보고 답해주면 좋겠다.
-
-**2. getLineContent가 정말 병목이었다면, 어떤 시나리오에서?**
-
-렌더링은 보이는 줄만 하면 된다. 토큰화도 변경된 줄 근처만 하면 된다. 그런데 `getLineContent`가 "가장 뜨거운 메서드"였다고 한다. 도대체 어떤 기능이 그렇게 많이 호출하는 걸까?
-
-추측 가능한 시나리오:
-- Find & Replace (전체 파일 스캔)
-- 포맷팅 (전체 파일을 읽어서 다시 쓰기)
-- 대용량 파일의 diff 계산
-- LSP 서버와의 통신 (전체 문서를 보내는 경우)
-
-실제로 VS Code를 프로파일링해보면 알 수 있을 것 같다. 언젠가 해봐야지.
-
-**3. 편집이 누적되면 Piece Table 성능이 정말 저하될까?**
-
-Raph Levien은 "Piece Table은 편집이 누적될수록 성능이 저하된다"고 했다. VS Code는 Red-Black Tree로 $O(\log n)$ 탐색을 보장하니까 괜찮다고 하지만, 정말 그럴까?
-
-예를 들어 piece가 10만 개가 되면 어떨까? 트리 높이는 $\log_2(100000) \approx 17$ 정도다. 17번의 비교 연산이 매 `getLineContent` 호출마다 필요하다. 작아 보이지만, 초당 수천 번 호출되면 무시할 수 없을 것 같기도 하다.
-
-직접 벤치마크를 돌려봐야 답이 나올 것 같다.
-
----
-
 ## 언제 무엇을 쓸 것인가
 
 그래서 뭘 써야 할까? 상황에 따라 다르다. (뻔한 답이지만 사실이다.)
@@ -410,7 +373,17 @@ VS Code 팀의 블로그에서 인상적인 건 최종 결과물보다 과정이
 
 직접 텍스트 에디터를 만들 일은 드물겠지만, <Highlight>"어떤 연산을 빠르게 할 것인가, 무엇을 희생할 것인가"</Highlight>라는 질문은 어디서든 마주치게 된다. 더 파고들고 싶다면 Finseth의 The Craft of Text Editing<Footnote id="finseth">Finseth, C. A. The Craft of Text Editing. https://www.finseth.com/craft/</Footnote>이나 Crowley의 Data Structures for Text Sequences<Footnote id="crowley">Crowley, C. Data Structures for Text Sequences. https://www.cs.unm.edu/~crowley/papers/sds.pdf</Footnote>를 추천한다.
 
-다음에는 실제로 간단한 Piece Table을 구현하고 벤치마크를 돌려보는 글을 써볼까 한다. "편집이 누적되면 정말 느려지는가"에 대한 답을 직접 찾아보고 싶다.
+---
+
+## + 더 파고들 거리
+
+이 주제를 파다 보니 오히려 질문이 늘었다.
+
+**VS Code는 왜 Rope가 아니라 Piece Table을 선택했을까?** Rope도 $O(\log n)$ 삽입이 가능하고, Xi Editor나 Zed처럼 잘 쓰는 에디터도 있다. 내 추측은 초기 로딩 속도(Piece Table은 파일을 그대로 올리면 됨)와 기존 라인 배열에서의 마이그레이션 용이성인데, 확실하진 않다.
+
+**getLineContent가 왜 병목이었을까?** 렌더링은 보이는 줄만, 토큰화도 변경된 줄 근처만 하면 되는데, 어떤 기능이 그렇게 많이 호출하는 걸까? Find & Replace, 포맷팅, diff 계산, LSP 통신이 후보다.
+
+**편집이 누적되면 Piece Table 성능이 정말 저하될까?** piece가 10만 개면 트리 높이가 17 정도. 작아 보이지만 초당 수천 번 호출되면? 직접 벤치마크를 돌려봐야 답이 나올 것 같다. 다음 글에서 해볼 예정이다.
 
 ---
 
