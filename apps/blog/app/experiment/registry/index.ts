@@ -1,6 +1,7 @@
 import type { ExperimentStory } from "./types";
 import { articleStories } from "./stories/articles";
 import { blogMdxStories } from "./stories/blog-mdx";
+import { interactiveComponentsStories } from "./stories/interactive-components";
 import { interactiveUiMdxStories } from "./stories/interactive-ui-mdx";
 import { uiStories } from "./stories/ui";
 
@@ -9,6 +10,7 @@ export type { ControlType, ExperimentStory, StoryLink } from "./types";
 export const experiments: ExperimentStory[] = [
   ...uiStories,
   ...interactiveUiMdxStories,
+  ...interactiveComponentsStories,
   ...blogMdxStories,
   ...articleStories,
 ].sort(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ControlType } from "./registry";
 import { cn } from "../../lib/utils";
@@ -20,7 +20,13 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
     return defaults;
   });
 
-  const [isControlsOpen, setIsControlsOpen] = useState(true);
+  // 모바일에서는 기본 닫힘(프리뷰 폭 유지), 데스크탑에서는 기본 열림
+  const [isControlsOpen, setIsControlsOpen] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+    setIsControlsOpen(isDesktop);
+  }, []);
 
   const handleChange = (key: string, value: any) => {
     setValues(prev => ({ ...prev, [key]: value }));
@@ -31,15 +37,22 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
   return (
     <div className="relative w-full min-h-[600px]">
       {/* Main Preview Area */}
-      <div className={cn(
-        "w-full flex flex-col justify-center py-10 transition-all duration-300",
-        // CONTROL Panel이 열려있을 때 약간 왼쪽으로 조정
-        hasControls && isControlsOpen 
-          ? "items-center pl-4 pr-[320px]" 
-          : "items-center px-4",
-        // 반응형: 모바일에서는 중앙 정렬
-        "max-md:items-center max-md:px-4 max-md:pr-4"
-      )}>
+      <div
+        className={cn(
+          /* Layout */
+          "w-full flex flex-col justify-center",
+          /* Spacing */
+          "py-10",
+          /* Motion */
+          "transition-all duration-300",
+          /* Align */
+          "items-center",
+          /* Padding (기본) */
+          "px-4",
+          /* Desktop only: controls 패널 열려있으면 오른쪽 여백 확보 */
+          hasControls && isControlsOpen && "lg:pr-[320px] lg:pl-4",
+        )}
+      >
         <motion.div 
           className="w-full max-w-3xl flex items-center justify-center relative bg-transparent p-4 min-h-[300px]"
           layout
@@ -53,13 +66,22 @@ export function ExperimentViewer({ render, controls }: ExperimentViewerProps) {
       {hasControls && (
         <motion.div 
           className={cn(
-            "fixed top-24 right-6 z-50 rounded-lg border shadow-lg overflow-hidden max-h-[calc(100vh-120px)] flex flex-col",
+            /* Layout */
+            "fixed z-50 rounded-lg border shadow-lg overflow-hidden flex flex-col",
+            /* Position */
+            "top-24 right-6",
+            /* Responsive */
+            "max-lg:right-4",
+            /* Size */
+            "max-h-[calc(100vh-120px)]",
+            /* Background */
             "bg-white/90 backdrop-blur-md border-zinc-200",
-            "dark:bg-zinc-900/90 dark:border-zinc-700"
+            /* Dark */
+            "dark:bg-zinc-900/90 dark:border-zinc-700",
           )}
           initial={false}
           animate={{ 
-            width: isControlsOpen ? '280px' : '40px',
+            width: isControlsOpen ? 'min(280px, calc(100vw - 24px))' : '40px',
             height: isControlsOpen ? 'auto' : '40px'
           }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}

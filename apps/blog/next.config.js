@@ -1,10 +1,13 @@
 /** @type {import('next').NextConfig} */
 const CopyPlugin = require("copy-webpack-plugin");
 const path = require("path");
+const { createVanillaExtractPlugin } = require("@vanilla-extract/next-plugin");
+
+const withVanillaExtract = createVanillaExtractPlugin();
 
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@repo/interactive-ui"],
+  transpilePackages: ["@repo/interactive-ui", "@repo/interactive-components"],
   
   // 이미지 최적화 설정
   images: {
@@ -134,4 +137,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = withVanillaExtract(nextConfig);

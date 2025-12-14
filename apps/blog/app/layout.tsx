@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "@repo/interactive-components/dist/index.css";
 import { ThemeProvider } from "../components/theme-provider";
 import { Header } from "../components/header";
 import { Footer } from "../components/footer";

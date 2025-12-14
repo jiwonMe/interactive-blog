@@ -1,4 +1,5 @@
 import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard, Footnote, Footnotes, Callout, CollapsibleCode, Highlight } from '@repo/interactive-ui';
+import { AreaChart, BarChart, LineChart, ScatterPlot, SimulationPanel, PlaybackControls, StatsDisplay, Button, NumberInput, Select, Slider, Toggle, RechartsLineChart, RechartsHistogram } from '@repo/interactive-components';
 import { cn } from '../../lib/utils';
 import Image from 'next/image';
 import React from 'react';
@@ -24,6 +25,103 @@ export function createBaseComponents(slug?: string) {
   const rewriteSrc = createImageSrcRewriter(slug);
 
   return {
+    // Atomic interactive components (vanilla-extract 기반)
+    LineChart: (props: any) => (
+      <div
+        className={cn(
+          /* spacing */
+          'my-8',
+        )}
+      >
+        <LineChart {...props} />
+      </div>
+    ),
+    BarChart: (props: any) => (
+      <div
+        className={cn(
+          /* spacing */
+          'my-8',
+        )}
+      >
+        <BarChart {...props} />
+      </div>
+    ),
+    ScatterPlot: (props: any) => (
+      <div
+        className={cn(
+          /* spacing */
+          'my-8',
+        )}
+      >
+        <ScatterPlot {...props} />
+      </div>
+    ),
+    AreaChart: (props: any) => (
+      <div
+        className={cn(
+          /* spacing */
+          'my-8',
+        )}
+      >
+        <AreaChart {...props} />
+      </div>
+    ),
+    RechartsLineChart: (props: any) => (
+      <div
+        className={cn(
+          /* spacing */
+          'my-8',
+        )}
+      >
+        <RechartsLineChart {...props} />
+      </div>
+    ),
+    RechartsHistogram: (props: any) => (
+      <div
+        className={cn(
+          /* spacing */
+          'my-8',
+        )}
+      >
+        <RechartsHistogram {...props} />
+      </div>
+    ),
+    SimulationPanel: (props: any) => (
+      <div
+        className={cn(
+          /* spacing */
+          'my-8',
+        )}
+      >
+        <SimulationPanel {...props} />
+      </div>
+    ),
+    PlaybackControls: (props: any) => (
+      <div
+        className={cn(
+          /* spacing */
+          'my-8',
+        )}
+      >
+        <PlaybackControls {...props} />
+      </div>
+    ),
+    StatsDisplay: (props: any) => (
+      <div
+        className={cn(
+          /* spacing */
+          'my-8',
+        )}
+      >
+        <StatsDisplay {...props} />
+      </div>
+    ),
+    // Controls primitives (MDX에서 바로 조합 가능)
+    Button,
+    Slider,
+    Select,
+    Toggle,
+    NumberInput,
     // 인터랙티브 UI 컴포넌트들
     InteractivePanel: (props: any) => (
       <div className="my-8">

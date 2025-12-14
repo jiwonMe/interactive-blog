@@ -23,6 +23,11 @@ export type StoryLink = {
   label: string;
 };
 
+export type StorySnippet = {
+  label: string;
+  getCode: (defaults: Record<string, any>) => string;
+};
+
 export type ExperimentStory = {
   slug: string;
   title: string;
@@ -30,6 +35,7 @@ export type ExperimentStory = {
   category: string;
   tags: string[];
   links?: StoryLink[];
+  snippets?: StorySnippet[];
   /**
    * 코드/컴포넌트 원본 경로 (리포지토리 내부 경로)
    * - Storybook의 "source" 역할

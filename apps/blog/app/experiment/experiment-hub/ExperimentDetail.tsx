@@ -4,10 +4,19 @@ import Link from "next/link";
 import { cn } from "../../../lib/utils";
 import type { ExperimentStory } from "../registry";
 import { ExperimentViewer } from "../experiment-viewer";
+import { CodeBlock, CollapsibleCode } from "@repo/interactive-ui";
 
 type ExperimentDetailProps = {
   story: ExperimentStory | null;
 };
+
+function getControlDefaults(story: ExperimentStory) {
+  const defaults: Record<string, any> = {};
+  Object.entries(story.controls).forEach(([key, control]) => {
+    defaults[key] = control.defaultValue;
+  });
+  return defaults;
+}
 
 export function ExperimentDetail({ story }: ExperimentDetailProps) {
   return (
@@ -183,6 +192,42 @@ export function ExperimentDetail({ story }: ExperimentDetailProps) {
                 ) : null}
               </div>
             )}
+
+            {story.snippets?.length ? (
+              <div
+                className={cn(
+                  /* 레이아웃 */
+                  "rounded-xl p-4 space-y-3",
+                  /* 배경 및 테두리 */
+                  "bg-zinc-50 dark:bg-zinc-900",
+                  "border border-zinc-200 dark:border-zinc-800"
+                )}
+              >
+                <div
+                  className={cn(
+                    /* 타이포 */
+                    "text-xs font-bold uppercase tracking-wider",
+                    /* 색상 */
+                    "text-zinc-500 dark:text-zinc-400"
+                  )}
+                >
+                  Templates
+                </div>
+
+                <div className="space-y-3">
+                  {story.snippets.map((snip) => {
+                    const code = snip.getCode(getControlDefaults(story));
+                    return (
+                      <CollapsibleCode key={snip.label} title={snip.label} defaultOpen={false}>
+                        <CodeBlock>
+                          <code>{code}</code>
+                        </CodeBlock>
+                      </CollapsibleCode>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
           </header>
 
           <ExperimentViewer render={story.render} controls={story.controls} />
