@@ -20,6 +20,7 @@ import { TournamentDiagram } from "../../../../articles/shuffle-bias/components/
 import { TransitivityDiagram } from "../../../../articles/shuffle-bias/components/TransitivityDiagram";
 import { NaiveSwapPathDistribution } from "../../../../articles/shuffle-bias/components/NaiveSwapPathDistribution";
 import { PieceTableVisualizer } from "../../../../articles/text-editor-data-structures/components/PieceTableVisualizer";
+import { StringInsertVisualizer } from "../../../../articles/text-editor-data-structures/components/StringInsertVisualizer";
 
 export const articleStories: ExperimentStory[] = [
   {
@@ -284,6 +285,20 @@ export const articleStories: ExperimentStory[] = [
       "apps/blog/articles/text-editor-data-structures/components/use-piece-table.ts",
     ],
     render: () => <PieceTableVisualizer />,
+    controls: {},
+  },
+  {
+    slug: "text-editor-data-structures/string-insert-visualizer",
+    title: "일반 문자열 삽입 시각화",
+    description: "일반 문자열 중간 삽입이 O(n)인 이유를 애니메이션으로 보여줍니다.",
+    category: "Articles / text-editor-data-structures",
+    tags: ["article", "data-structure", "visualization", "animation"],
+    links: [{ href: "/posts/text-editor-data-structures", label: "글로 이동" }],
+    sourcePaths: [
+      "apps/blog/articles/text-editor-data-structures/components/StringInsertVisualizer.tsx",
+      "apps/blog/articles/text-editor-data-structures/components/use-string-insert.ts",
+    ],
+    render: () => <StringInsertVisualizer />,
     controls: {},
   },
 ];

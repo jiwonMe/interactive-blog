@@ -20,6 +20,7 @@ import { BuggyInputDemo } from '../../articles/korean-ime-bug/components/BuggyIn
 import { CompositionEventLogger } from '../../articles/korean-ime-bug/components/CompositionEventLogger';
 import { HangulCompositionFlow } from '../../articles/korean-ime-bug/components/HangulCompositionFlow';
 import { PieceTableVisualizer } from '../../articles/text-editor-data-structures/components/PieceTableVisualizer';
+import { StringInsertVisualizer } from '../../articles/text-editor-data-structures/components/StringInsertVisualizer';
 
 // 컴포넌트 이름과 컴포넌트를 매핑하는 레지스트리
 export const articleComponentsRegistry: Record<string, React.ComponentType<any>> = {
@@ -42,6 +43,7 @@ export const articleComponentsRegistry: Record<string, React.ComponentType<any>>
   CompositionEventLogger,
   HangulCompositionFlow,
   PieceTableVisualizer,
+  StringInsertVisualizer,
 };
 
 // 컴포넌트를 동적으로 가져오는 함수

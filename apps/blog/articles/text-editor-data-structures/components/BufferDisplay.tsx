@@ -168,7 +168,9 @@ function BufferText({
           // typography
           "text-sm font-mono whitespace-pre-wrap break-all",
           // color
-          "text-zinc-700 dark:text-zinc-300"
+          "text-zinc-700 dark:text-zinc-300",
+          //border
+          "border-0"
         )}
       >
         {text}
@@ -189,7 +191,9 @@ function BufferText({
         // typography
         "text-sm font-mono whitespace-pre-wrap break-all",
         // color
-        "text-zinc-700 dark:text-zinc-300"
+        "text-zinc-700 dark:text-zinc-300",
+        //border
+        "border-0"
       )}
     >
       {before}
