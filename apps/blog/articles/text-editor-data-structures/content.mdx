@@ -10,6 +10,15 @@ image: '/images/articles/text-editor-data-structures/images/og-image.png'
 
 VS Code에서 500MB짜리 로그 파일을 열어본 적 있는가? 파일이 크다고 에디터가 멈추거나 크래시가 나지 않는다. 중간에 글자 하나를 삽입해도 지연 없이 바로 반영된다. 어떻게 가능한 걸까?
 
+<Callout title="TL;DR">
+- 일반 문자열은 중간 삽입이 $O(n)$이라 대용량 파일 편집에 부적합하다.
+- **Gap Buffer**는 커서 위치에 빈 공간을 두어 연속 타이핑을 $O(1)$로 만든다. 단, 커서 점프가 느리다.
+- **Rope**는 문자열을 트리로 쪼개 삽입/삭제를 $O(\log n)$으로 만든다. Xi Editor, Zed, Helix가 사용한다.
+- **Piece Table**은 원본을 수정하지 않고 "조각 목록"만 관리한다. Undo가 쉽고 메모리 효율적이다.
+- VS Code는 Piece Table에 Red-Black Tree, 줄바꿈 캐싱 등을 더한 **Piece Tree**를 사용한다.
+- 언어/런타임 특성이 자료구조 선택에 영향을 준다. Rust 에디터들은 Rope를, JS 기반 VS Code는 Piece Table을 선택했다.
+</Callout>
+
 대부분의 프로그래밍 언어에서 문자열은 연속된 메모리 공간에 저장된다. 읽기엔 최적이지만, 중간에 무언가를 삽입하려면 이야기가 달라진다. 삽입 지점 이후의 모든 문자를 뒤로 밀어야 하고, 공간이 부족하면 전체를 새 메모리에 복사해야 한다. <Highlight>파일이 100MB라면? 한 글자 삽입에 100MB를 통째로 복사하는 셈이다.</Highlight>
 
 이 문제를 해결하기 위해 텍스트 에디터들은 저마다 다른 자료구조를 선택해왔다. Emacs는 Gap Buffer를, Xi Editor는 Rope를, VS Code는 Piece Table을 쓴다. 이 글에서는 각 자료구조가 어떤 문제를 해결하려 했고, 어떤 트레이드오프를 감수했는지 살펴본다.
@@ -280,9 +289,9 @@ Rust 진영에서 Rope가 인기 있는 건 우연이 아니다. Rust의 소유�
 
 ---
 
-## 2024년 VS Code 코드를 뜯어보니
+## 2025년 VS Code 코드를 뜯어보니
 
-블로그 글은 2018년에 쓰였다. 6년이 지난 지금, 실제 코드는 어떻게 생겼을까?
+블로그 글은 2018년에 쓰였다. 7년이 지난 지금, 실제 코드는 어떻게 생겼을까?
 
 VS Code의 Piece Tree 구현은 `src/vs/editor/common/model/pieceTreeTextBuffer/` 디렉토리에 있다. 핵심 파일인 `pieceTreeBase.ts`를 열어보면 약 1,500줄 정도 된다<Footnote id="vscode-github">Microsoft. VS Code Source Code. https://github.com/microsoft/vscode/blob/main/src/vs/editor/common/model/pieceTreeTextBuffer/pieceTreeBase.ts</Footnote>.
 
