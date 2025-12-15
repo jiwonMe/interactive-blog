@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { getAllPosts, isTranslatedPost } from '../lib/posts';
+import { getAllPosts } from '../lib/posts';
 import { cn } from '../lib/utils';
 import { PwnzLogo } from '../components/pwnz-logo';
 import { ThemeToggle } from '../components/theme-toggle';
@@ -195,28 +195,6 @@ export default async function Home() {
                           )}
                         >
                           {post.title || post.slug.replace(/-/g, ' ')}
-                          {isTranslatedPost(post) && (
-                            <span
-                              className={cn(
-                                /* Layout */
-                                "ml-2 inline-flex items-center",
-                                /* Typography */
-                                "text-xs font-semibold",
-                                /* Color */
-                                "text-blue-700 dark:text-blue-300",
-                                /* Background */
-                                "bg-blue-100/70 dark:bg-blue-900/30",
-                                /* Shape */
-                                "rounded-full",
-                                /* Spacing */
-                                "px-2 py-0.5",
-                                /* Border: none (persisted from browser preview) */
-                                "border-0"
-                              )}
-                            >
-                              번역
-                            </span>
-                          )}
                           <span className="flex-shrink-0 opacity-0 
                       group-hover:opacity-100 transition-opacity w-6 duration-200">
                           {' '}→</span>

@@ -6,7 +6,9 @@ import { SVGFilteredImage, type SVGFilteredImageProps } from "./SVGFilteredImage
 
 type DarkPreset = "invert-hue-180";
 
-export type DarkmodeImageProps = Omit<SVGFilteredImageProps, "preset"> & {
+type DistributiveOmit<T, K extends PropertyKey> = T extends any ? Omit<T, K> : never;
+
+export type DarkmodeImageProps = DistributiveOmit<SVGFilteredImageProps, "preset"> & {
   /**
    * 다크모드일 때 적용할 preset
    */

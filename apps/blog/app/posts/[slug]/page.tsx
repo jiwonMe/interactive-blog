@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { getPostBySlug, getAllPosts, getSeriesPosts, isTranslatedPost } from '../../../lib/posts';
+import { getPostBySlug, getAllPosts, getSeriesPosts } from '../../../lib/posts';
 import { CustomMDX } from '../../../components/mdx-remote';
 import { notFound } from 'next/navigation';
 import { cn } from '../../../lib/utils';
@@ -287,28 +287,6 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                 🔒 이 포스트는 Hidden 상태입니다. 프로덕션에서는 보이지 않습니다.
               </div>
             </div>
-          )}
-          {isTranslatedPost(post) && (
-            <span
-              className={cn(
-                /* Layout */
-                "ml-3 inline-flex items-center align-middle",
-                /* Typography */
-                "text-sm font-semibold",
-                /* Color */
-                "text-blue-700 dark:text-blue-300",
-                /* Background */
-                "bg-blue-100/70 dark:bg-blue-900/30",
-                /* Shape */
-                "rounded-full",
-                /* Spacing */
-                "px-3 py-1",
-                /* Border: none */
-                "border-0"
-              )}
-            >
-              번역
-            </span>
           )}
           <h1 
             className={cn(
