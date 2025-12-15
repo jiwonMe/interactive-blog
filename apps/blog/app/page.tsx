@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { getAllPosts } from '../lib/posts';
+import { getAllPosts, isTranslatedPost } from '../lib/posts';
 import { cn } from '../lib/utils';
 import { PwnzLogo } from '../components/pwnz-logo';
 import { ThemeToggle } from '../components/theme-toggle';
@@ -94,8 +94,27 @@ export default async function Home() {
           )}
         />
       </div>
-      <div className="dark:bg-zinc-950 w-full py-6 sm:py-12 px-3 sm:px-6 border-dashed border-b border-zinc-300 dark:border-zinc-700">
-        <div className="max-w-3xl mx-auto px-6">
+      <div
+        className={cn(
+          /* Background */
+          "dark:bg-zinc-950",
+          /* Layout */
+          "w-full",
+          /* Spacing */
+          "py-6 sm:py-12",
+          "px-4 sm:px-6",
+          /* Border */
+          "border-dashed border-b border-zinc-300 dark:border-zinc-700",
+        )}
+      >
+        <div
+          className={cn(
+            /* Container */
+            "max-w-3xl mx-auto",
+            /* Spacing */
+            "px-0",
+          )}
+        >
           <MainTitle />
           <p
             className={cn(
@@ -107,8 +126,25 @@ export default async function Home() {
           </p>
         </div>
       </div>
-      <div className="dark:bg-zinc-950 w-full py-6 sm:py-10 px-3 sm:px-6">
-        <div className="max-w-3xl mx-auto px-6">
+      <div
+        className={cn(
+          /* Background */
+          "dark:bg-zinc-950",
+          /* Layout */
+          "w-full",
+          /* Spacing */
+          "py-6 sm:py-10",
+          "px-4 sm:px-6",
+        )}
+      >
+        <div
+          className={cn(
+            /* Container */
+            "max-w-3xl mx-auto",
+            /* Spacing */
+            "px-0",
+          )}
+        >
           <section className="mb-20">
             {/* <h2
               className={cn(
@@ -130,7 +166,13 @@ export default async function Home() {
                       post.hidden && "relative pl-4 border-l-2 border-dashed border-amber-500 dark:border-amber-400"
                     )}
                   >
-                    <Link href={`/posts/${post.slug}`} className="group flex">
+                    <Link
+                      href={`/posts/${post.slug}`}
+                      className={cn(
+                        /* Layout */
+                        "group flex"
+                      )}
+                    >
                     
                     <div className="flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -153,6 +195,28 @@ export default async function Home() {
                           )}
                         >
                           {post.title || post.slug.replace(/-/g, ' ')}
+                          {isTranslatedPost(post) && (
+                            <span
+                              className={cn(
+                                /* Layout */
+                                "ml-2 inline-flex items-center",
+                                /* Typography */
+                                "text-xs font-semibold",
+                                /* Color */
+                                "text-blue-700 dark:text-blue-300",
+                                /* Background */
+                                "bg-blue-100/70 dark:bg-blue-900/30",
+                                /* Shape */
+                                "rounded-full",
+                                /* Spacing */
+                                "px-2 py-0.5",
+                                /* Border: none (persisted from browser preview) */
+                                "border-0"
+                              )}
+                            >
+                              번역
+                            </span>
+                          )}
                           <span className="flex-shrink-0 opacity-0 
                       group-hover:opacity-100 transition-opacity w-6 duration-200">
                           {' '}→</span>

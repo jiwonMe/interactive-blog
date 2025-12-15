@@ -59,6 +59,10 @@ export type PostData = {
   password?: string;
 };
 
+export function isTranslatedPost(post: Pick<PostData, 'content'>): boolean {
+  return post.content.includes('번역한 글');
+}
+
 const normalizeArticleAssetPath = (slug: string, input: string): string => {
   const clean = input.replace(/^\.\//, '');
   const shouldAssumeImagesFolder = clean.length > 0 && !clean.includes('/');

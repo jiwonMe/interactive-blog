@@ -67,7 +67,7 @@ export function Header() {
           /* Layout & Sizing */
           "mx-auto h-16 flex items-center justify-between",
           /* Spacing */
-          "px-6"
+          "px-4 sm:px-6"
         )}
       >
         {/* Logo */}

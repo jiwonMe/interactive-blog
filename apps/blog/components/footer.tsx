@@ -56,7 +56,7 @@ export function Footer() {
           /* Container */
           "max-w-6xl mx-auto",
           /* Spacing */
-          "px-6",
+          "px-4 sm:px-6",
           /* Layout - Mobile: column, Desktop: row */
           "flex flex-col md:flex-row",
           "justify-between items-center",

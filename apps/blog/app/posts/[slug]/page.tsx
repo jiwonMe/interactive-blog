@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { getPostBySlug, getAllPosts, getSeriesPosts } from '../../../lib/posts';
+import { getPostBySlug, getAllPosts, getSeriesPosts, isTranslatedPost } from '../../../lib/posts';
 import { CustomMDX } from '../../../components/mdx-remote';
 import { notFound } from 'next/navigation';
 import { cn } from '../../../lib/utils';
@@ -191,7 +191,10 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
       <div 
         // Main container layout
         className={cn(
-          "max-w-7xl mx-auto px-6 py-12",
+          /* Layout */
+          "max-w-7xl mx-auto",
+          /* Spacing */
+          "px-4 sm:px-6 py-12",
           // Full width
           "w-full"
         )}
@@ -285,10 +288,32 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
               </div>
             </div>
           )}
+          {isTranslatedPost(post) && (
+            <span
+              className={cn(
+                /* Layout */
+                "ml-3 inline-flex items-center align-middle",
+                /* Typography */
+                "text-sm font-semibold",
+                /* Color */
+                "text-blue-700 dark:text-blue-300",
+                /* Background */
+                "bg-blue-100/70 dark:bg-blue-900/30",
+                /* Shape */
+                "rounded-full",
+                /* Spacing */
+                "px-3 py-1",
+                /* Border: none */
+                "border-0"
+              )}
+            >
+              번역
+            </span>
+          )}
           <h1 
             className={cn(
               // Title typography
-              "text-4xl md:text-5xl font-extrabold mb-4 tracking-tight leading-tight",
+              "text-4xl md:text-5xl font-extrabold mb-4 tracking-tight leading-[52px]",
               // Text colors
               "text-zinc-900 dark:text-zinc-50",
               // Balanced text wrapping

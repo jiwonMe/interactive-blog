@@ -17,7 +17,7 @@ export function ProtectedPost({ slug, title }: ProtectedPostProps) {
         // flex center
         "flex items-center justify-center",
         // padding
-        "px-6 py-16"
+        "px-4 sm:px-6 py-16"
       )}
     >
       {/* 글 비밀번호 입력 모달: 기본 오픈 */}
