@@ -293,7 +293,7 @@ export function SVGFilteredImage(props: SVGFilteredImageProps) {
           /* border & shadow */
           'border shadow-sm',
           /* border color */
-          'border-zinc-200 dark:border-zinc-800',
+          'border-zinc-200 dark:border-white/10',
           className,
         )}
         alt={alt}
