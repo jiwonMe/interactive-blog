@@ -10,6 +10,7 @@ import { CodeTabs, CodeTab } from '../code-tabs';
 import { HeadingWithLink } from './heading-with-link';
 import { SVGFilteredImage } from './SVGFilteredImage';
 import { DarkmodeImage } from './DarkmodeImage';
+import { DarkmodeOklchImage } from './DarkmodeOklchImage';
 
 // 이미지 src를 재작성하는 헬퍼 함수
 const createImageSrcRewriter = (slug?: string) => {
@@ -231,6 +232,13 @@ export function createBaseComponents(slug?: string) {
     // 다크모드일 때만 preset을 켜는 이미지 컴포넌트
     DarkmodeImage: (props: any) => (
       <DarkmodeImage
+        rewriteSrc={rewriteSrc}
+        {...props}
+      />
+    ),
+    // 다크모드일 때 OKLCH 기반으로 픽셀 변환하는 이미지 컴포넌트 (canvas)
+    DarkmodeOklchImage: (props: any) => (
+      <DarkmodeOklchImage
         rewriteSrc={rewriteSrc}
         {...props}
       />
