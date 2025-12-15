@@ -14,8 +14,7 @@ import { ArticleJsonLd, BreadcrumbJsonLd } from '../../../components/json-ld';
 import { 
   TableOfContentsWrapper, 
   ScrollTrackerWrapper, 
-  ReadingTimeTrackerWrapper,
-  ArticleFeedbackWrapper
+  ReadingTimeTrackerWrapper
 } from '../../../components/client-wrappers';
 import { ProtectedPost } from './protected-post';
 
@@ -404,12 +403,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
           </div>
         )}
 
-        <CustomMDX source={post.content} slug={post.slug} />
-
-        <ArticleFeedbackWrapper
-          articleSlug={post.slug}
-          articleTitle={post.title || post.slug}
-        />
+        <CustomMDX source={post.content} slug={post.slug} title={post.title} />
 
         {post.series && seriesPosts.length > 0 && (
            <div 

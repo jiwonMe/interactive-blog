@@ -11,9 +11,15 @@ import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 // KaTeX CSS는 layout.tsx에서 CDN으로 로드 (font-display: swap 적용)
 
-export function CustomMDX({ source, slug }: { source: string; slug?: string }) {
+interface CustomMDXProps {
+  source: string;
+  slug?: string;
+  title?: string;
+}
+
+export function CustomMDX({ source, slug, title }: CustomMDXProps) {
   // 기본 컴포넌트와 아티클 컴포넌트를 합쳐서 최종 컴포넌트 맵 생성
-  const baseComponents = createBaseComponents(slug);
+  const baseComponents = createBaseComponents(slug, title);
   const articleComponents = createArticleComponents();
   const components = {
     ...baseComponents,

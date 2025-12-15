@@ -1,4 +1,4 @@
-import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard, Footnote, Footnotes, Callout, CollapsibleCode, Highlight } from '@repo/interactive-ui';
+import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard, Footnote, Footnotes as OriginalFootnotes, Callout, CollapsibleCode, Highlight } from '@repo/interactive-ui';
 import { AreaChart, BarChart, LineChart, ScatterPlot, SimulationPanel, PlaybackControls, StatsDisplay, Button, NumberInput, Select, Slider, Toggle, RechartsLineChart, RechartsHistogram } from '@repo/interactive-components';
 import { cn } from '../../lib/utils';
 import Image from 'next/image';
@@ -11,6 +11,7 @@ import { HeadingWithLink } from './heading-with-link';
 import { SVGFilteredImage } from './SVGFilteredImage';
 import { DarkmodeImage } from './DarkmodeImage';
 import { DarkmodeOklchImage } from './DarkmodeOklchImage';
+import { ArticleFeedback } from '../analytics/article-feedback';
 
 // 이미지 src를 재작성하는 헬퍼 함수
 const createImageSrcRewriter = (slug?: string) => {
@@ -26,7 +27,7 @@ const createImageSrcRewriter = (slug?: string) => {
 };
 
 // 기본 MDX 컴포넌트들을 생성하는 함수
-export function createBaseComponents(slug?: string) {
+export function createBaseComponents(slug?: string, title?: string) {
   const rewriteSrc = createImageSrcRewriter(slug);
 
   return {
@@ -150,7 +151,18 @@ export function createBaseComponents(slug?: string) {
     YouTube,
     // 각주 컴포넌트
     Footnote,
-    Footnotes,
+    // Footnotes를 래핑하여 ArticleFeedback을 그 위에 렌더링
+    Footnotes: () => (
+      <>
+        {slug && (
+          <ArticleFeedback
+            articleSlug={slug}
+            articleTitle={title || slug}
+          />
+        )}
+        <OriginalFootnotes />
+      </>
+    ),
     // Callout 컴포넌트
     Callout: (props: any) => <Callout {...props} />,
     // CollapsibleCode 컴포넌트
