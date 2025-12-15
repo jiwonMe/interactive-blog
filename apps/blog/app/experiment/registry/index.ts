@@ -1,6 +1,7 @@
 import type { ExperimentStory } from "./types";
 import { articleStories } from "./stories/articles";
 import { blogMdxStories } from "./stories/blog-mdx";
+import { blogMdxDarkmodeImageStories } from "./stories/blog-mdx-darkmode-image";
 import { interactiveComponentsStories } from "./stories/interactive-components";
 import { interactiveUiMdxStories } from "./stories/interactive-ui-mdx";
 import { uiStories } from "./stories/ui";
@@ -12,6 +13,7 @@ export const experiments: ExperimentStory[] = [
   ...interactiveUiMdxStories,
   ...interactiveComponentsStories,
   ...blogMdxStories,
+  ...blogMdxDarkmodeImageStories,
   ...articleStories,
 ].sort(
   (a, b) => {

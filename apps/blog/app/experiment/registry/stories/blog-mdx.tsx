@@ -15,6 +15,25 @@ import {
   Theorem,
 } from "../../../../components/mdx-components/proof-components";
 import { HeadingWithLink } from "../../../../components/mdx-components/heading-with-link";
+import { SVGFilteredImage } from "../../../../components/mdx-components/SVGFilteredImage";
+
+const EXPERIMENT_IMAGE_POOL = [
+  "/images/og-default.png",
+  "/images/articles/shuffle-bias/images/og-image.png",
+  "/images/articles/shuffle-bias/images/shuffle-image.png",
+  "/images/articles/text-editor-data-structures/images/og-image.png",
+  "/images/articles/v8-array-internals/images/og-image.png",
+  "/images/articles/v8-map-internals/images/og-image.png",
+  "/images/articles/v8-map-internals/images/memory-layout.webp",
+  "/images/articles/v8-math-random/images/og-image.png",
+  "/images/articles/v8-object-vs-map/images/og-image.png",
+] as const;
+
+function pickFromPoolBySeed(seed: number) {
+  const safeSeed = Number.isFinite(seed) ? seed : 0;
+  const idx = Math.abs(Math.floor(safeSeed)) % EXPERIMENT_IMAGE_POOL.length;
+  return EXPERIMENT_IMAGE_POOL[idx] ?? "/images/og-default.png";
+}
 
 function MdxCollapsibleSectionDemo() {
   return (
@@ -226,6 +245,139 @@ function MdxHeadingWithLinkDemo() {
   );
 }
 
+function MdxSvgFilteredImageDemo(props: {
+  src: string;
+  srcMode: string;
+  randomSeed: number;
+  mode: string;
+  preset: string;
+  customType: string;
+  blurStdDeviation: number;
+  turbulenceFrequency: number;
+  turbulenceOctaves: number;
+  displacementScale: number;
+  enableColor: boolean;
+  hueRotate: number;
+  saturate: number;
+  grayscale: number;
+  sepia: number;
+  brightness: number;
+  contrast: number;
+  invert: number;
+  caption: string;
+}) {
+  const isCustom = props.mode === "custom";
+  const finalSrc =
+    props.srcMode === "random"
+      ? pickFromPoolBySeed(props.randomSeed)
+      : props.src;
+
+  const customPrimitives =
+    props.customType === "blur" ? (
+      <feGaussianBlur stdDeviation={props.blurStdDeviation} />
+    ) : props.customType === "noise" ? (
+      <>
+        <feTurbulence
+          type="fractalNoise"
+          baseFrequency={props.turbulenceFrequency}
+          numOctaves={props.turbulenceOctaves}
+          seed={2}
+        />
+        <feDisplacementMap in="SourceGraphic" scale={props.displacementScale} />
+      </>
+    ) : props.customType === "duotone" ? (
+      <>
+        <feColorMatrix
+          type="matrix"
+          values="
+            0.2126 0.7152 0.0722 0 0
+            0.2126 0.7152 0.0722 0 0
+            0.2126 0.7152 0.0722 0 0
+            0      0      0      1 0
+          "
+        />
+        <feComponentTransfer>
+          <feFuncR type="gamma" amplitude="1.0" exponent="0.9" offset="0.05" />
+          <feFuncG type="gamma" amplitude="1.0" exponent="0.9" offset="0.02" />
+          <feFuncB type="gamma" amplitude="1.0" exponent="0.9" offset="0.12" />
+        </feComponentTransfer>
+      </>
+    ) : null;
+
+  const preset =
+    props.preset === "none" ||
+    props.preset === "blur" ||
+    props.preset === "noise" ||
+    props.preset === "duotone"
+      ? (props.preset as "none" | "blur" | "noise" | "duotone")
+      : "none";
+
+  return (
+    <div
+      className={cn(
+        /* 레이아웃 */
+        "w-full max-w-3xl",
+        "rounded-2xl p-6",
+        /* 배경 및 테두리 */
+        "bg-white dark:bg-zinc-950",
+        "border border-zinc-200 dark:border-zinc-800"
+      )}
+    >
+      <h3
+        className={cn(
+          /* 타이포 */
+          "text-lg font-bold",
+          /* 색상 */
+          "text-zinc-900 dark:text-zinc-100"
+        )}
+      >
+        SVGFilteredImage (Experiment)
+      </h3>
+      <p
+        className={cn(
+          /* 레이아웃 */
+          "mt-2",
+          /* 타이포 */
+          "text-sm leading-relaxed",
+          /* 색상 */
+          "text-zinc-600 dark:text-zinc-400"
+        )}
+      >
+        CSS <code>filter: url(#id)</code>로 SVG <code>&lt;filter /&gt;</code>를 이미지 위에
+        적용합니다. 아래 컨트롤로 preset/custom 및 파라미터를 바꿔보세요.
+      </p>
+
+      <div
+        className={cn(
+          /* 레이아웃 */
+          "mt-6"
+        )}
+      >
+        <SVGFilteredImage
+          src={finalSrc}
+          alt="SVGFilteredImage demo"
+          width={1200}
+          height={630}
+          preset={isCustom ? "none" : preset}
+          enableColor={props.enableColor}
+          color={{
+            hueRotate: props.hueRotate,
+            saturate: props.saturate,
+            grayscale: props.grayscale,
+            sepia: props.sepia,
+            brightness: props.brightness,
+            contrast: props.contrast,
+            invert: props.invert,
+          }}
+          caption={props.caption}
+        >
+          {isCustom ? customPrimitives : null}
+        </SVGFilteredImage>
+      </div>
+    </div>
+  );
+}
+
 export const blogMdxStories: ExperimentStory[] = [
   {
     slug: "blog-mdx/collapsible-section",
@@ -266,6 +418,143 @@ export const blogMdxStories: ExperimentStory[] = [
     sourcePaths: ["apps/blog/components/mdx-components/heading-with-link.tsx"],
     render: () => <MdxHeadingWithLinkDemo />,
     controls: {},
+  },
+  {
+    slug: "blog-mdx/svg-filtered-image",
+    title: "SVGFilteredImage",
+    description: "이미지 위에 SVG filter를 적용하는 MDX용 컴포넌트 데모입니다.",
+    category: "Blog / MDX",
+    tags: ["blog", "mdx", "image", "svg", "filter"],
+    sourcePaths: [
+      "apps/blog/components/mdx-components/SVGFilteredImage.tsx",
+      "apps/blog/components/mdx-components/base-components.tsx",
+    ],
+    render: (props) => <MdxSvgFilteredImageDemo {...props} />,
+    controls: {
+      srcMode: {
+        type: "select",
+        label: "이미지 소스",
+        defaultValue: "random",
+        options: ["random", "manual"],
+      },
+      randomSeed: {
+        type: "number",
+        label: "랜덤 seed (이미지 선택)",
+        defaultValue: 0,
+        min: 0,
+        max: 500,
+        step: 1,
+      },
+      src: { type: "text", label: "이미지 src (manual)", defaultValue: "/images/og-default.png" },
+      mode: {
+        type: "select",
+        label: "모드",
+        defaultValue: "preset",
+        options: ["preset", "custom"],
+      },
+      preset: {
+        type: "select",
+        label: "Preset (mode=preset)",
+        defaultValue: "noise",
+        options: ["none", "blur", "noise", "duotone", "invert-hue-180"],
+      },
+      customType: {
+        type: "select",
+        label: "Custom 타입 (mode=custom)",
+        defaultValue: "noise",
+        options: ["blur", "noise", "duotone"],
+      },
+      blurStdDeviation: {
+        type: "number",
+        label: "Blur stdDeviation",
+        defaultValue: 2,
+        min: 0,
+        max: 12,
+        step: 0.25,
+      },
+      turbulenceFrequency: {
+        type: "number",
+        label: "Noise baseFrequency",
+        defaultValue: 0.8,
+        min: 0,
+        max: 2,
+        step: 0.05,
+      },
+      turbulenceOctaves: {
+        type: "number",
+        label: "Noise numOctaves",
+        defaultValue: 2,
+        min: 1,
+        max: 6,
+        step: 1,
+      },
+      displacementScale: {
+        type: "number",
+        label: "Noise displacement scale",
+        defaultValue: 8,
+        min: 0,
+        max: 40,
+        step: 1,
+      },
+      enableColor: { type: "boolean", label: "색상 필터 활성화", defaultValue: true },
+      hueRotate: {
+        type: "number",
+        label: "Hue rotate (deg)",
+        defaultValue: 0,
+        min: -180,
+        max: 180,
+        step: 1,
+      },
+      saturate: {
+        type: "number",
+        label: "Saturate",
+        defaultValue: 1,
+        min: 0,
+        max: 3,
+        step: 0.05,
+      },
+      grayscale: {
+        type: "number",
+        label: "Grayscale (0~1)",
+        defaultValue: 0,
+        min: 0,
+        max: 1,
+        step: 0.05,
+      },
+      sepia: {
+        type: "number",
+        label: "Sepia (0~1)",
+        defaultValue: 0,
+        min: 0,
+        max: 1,
+        step: 0.05,
+      },
+      brightness: {
+        type: "number",
+        label: "Brightness",
+        defaultValue: 1,
+        min: 0,
+        max: 2,
+        step: 0.05,
+      },
+      contrast: {
+        type: "number",
+        label: "Contrast",
+        defaultValue: 1,
+        min: 0,
+        max: 2,
+        step: 0.05,
+      },
+      invert: {
+        type: "number",
+        label: "Invert (0~1)",
+        defaultValue: 0,
+        min: 0,
+        max: 1,
+        step: 0.05,
+      },
+      caption: { type: "text", label: "caption (빈 값이면 숨김)", defaultValue: "SVG filter 데모" },
+    },
   },
 ];
 

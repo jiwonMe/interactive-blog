@@ -8,6 +8,8 @@ import { Boxed, Claim, Definition, Lemma, Proof, ProofStep, ProofSteps, Theorem 
 import { CollapsibleSection } from './CollapsibleSection';
 import { CodeTabs, CodeTab } from '../code-tabs';
 import { HeadingWithLink } from './heading-with-link';
+import { SVGFilteredImage } from './SVGFilteredImage';
+import { DarkmodeImage } from './DarkmodeImage';
 
 // 이미지 src를 재작성하는 헬퍼 함수
 const createImageSrcRewriter = (slug?: string) => {
@@ -219,6 +221,20 @@ export function createBaseComponents(slug?: string) {
         </div>
       );
     },
+    // SVG filter를 이미지에 적용하는 컴포넌트
+    SVGFilteredImage: (props: any) => (
+      <SVGFilteredImage
+        rewriteSrc={rewriteSrc}
+        {...props}
+      />
+    ),
+    // 다크모드일 때만 preset을 켜는 이미지 컴포넌트
+    DarkmodeImage: (props: any) => (
+      <DarkmodeImage
+        rewriteSrc={rewriteSrc}
+        {...props}
+      />
+    ),
     img: (props: any) => (
       // Fallback for standard markdown image syntax if not using <Image /> component
       // Note: Next.js Image requires width/height for remote images unless fill is used.

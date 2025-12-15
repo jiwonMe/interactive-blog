@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTheme } from "next-themes";
-import { CodeBlock } from "@repo/interactive-ui";
 import { cn } from "../../lib/utils";
-import { codeToHtml } from 'shiki';
 
 type CodeHighlightingDemoProps = {
   code: string;
@@ -12,10 +9,22 @@ type CodeHighlightingDemoProps = {
   showLineNumbers: boolean;
 };
 
+type ShikiHighlightResponse =
+  | { ok: true; html: string }
+  | { ok: false; error: string };
+
+function escapeHtml(input: string) {
+  return input
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export function CodeHighlightingDemo({ code, language, showLineNumbers }: CodeHighlightingDemoProps) {
   const [highlightedHtml, setHighlightedHtml] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
-  const { theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -36,13 +45,20 @@ console.log(message);`;
     async function highlightCode() {
       setIsLoading(true);
       try {
-        const html = await codeToHtml(displayCode, {
-          lang: language,
-          themes: {
-            light: 'github-light',
-            dark: 'github-dark',
-          },
+        const res = await fetch("/api/shiki", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            code: displayCode,
+            language,
+          }),
         });
+
+        const data = (await res.json()) as ShikiHighlightResponse;
+        if (!data.ok) {
+          throw new Error(data.error);
+        }
+        const html = data.html;
         
         if (!cancelled) {
           // shiki가 생성한 HTML 구조를 파싱하여 수정
@@ -116,7 +132,7 @@ console.log(message);`;
         console.error('Failed to highlight code:', error);
         if (!cancelled) {
           // 하이라이팅 실패 시 기본 텍스트 표시
-          const fallbackHtml = `<pre class="shiki"><code>${displayCode.replace(/\n/g, '<br>')}</code></pre>`;
+          const fallbackHtml = `<pre class="shiki"><code>${escapeHtml(displayCode).replace(/\n/g, "<br />")}</code></pre>`;
           setHighlightedHtml(fallbackHtml);
           setIsLoading(false);
         }
@@ -128,20 +144,59 @@ console.log(message);`;
     return () => {
       cancelled = true;
     };
-  }, [displayCode, language, showLineNumbers, resolvedTheme]);
+  }, [displayCode, language, showLineNumbers]);
   
   return (
-    <div className="w-full max-w-4xl">
+    <div
+      className={cn(
+        /* 레이아웃 */
+        "w-full",
+        /* 크기 */
+        "max-w-4xl"
+      )}
+    >
       {!code.trim() && (
-        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
+        <div
+          className={cn(
+            /* 레이아웃 */
+            "mb-6",
+            "p-4",
+            /* 배경 */
+            "bg-blue-50",
+            "dark:bg-blue-900/20",
+            /* 테두리 */
+            "border",
+            "border-blue-200",
+            "dark:border-blue-800",
+            /* 모서리 */
+            "rounded-lg"
+          )}
+        >
+          <p
+            className={cn(
+              /* 텍스트 */
+              "text-sm",
+              "text-blue-800",
+              "dark:text-blue-200"
+            )}
+          >
             코드를 입력하면 코드 블록 컴포넌트가 표시됩니다. 기본 예시가 표시되고 있습니다.
           </p>
         </div>
       )}
       
       {!mounted || isLoading ? (
-        <div className="p-4 text-center text-zinc-500 dark:text-zinc-400">
+        <div
+          className={cn(
+            /* 레이아웃 */
+            "p-4",
+            /* 정렬 */
+            "text-center",
+            /* 텍스트 */
+            "text-zinc-500",
+            "dark:text-zinc-400"
+          )}
+        >
           하이라이팅 중...
         </div>
       ) : (
@@ -168,14 +223,34 @@ console.log(message);`;
         </figure>
       )}
       
-      <div className="mt-4 text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
+      <div
+        className={cn(
+          /* 여백 */
+          "mt-4",
+          /* 텍스트 */
+          "text-sm",
+          "text-zinc-600",
+          "dark:text-zinc-400",
+          /* 레이아웃 */
+          "space-y-1"
+        )}
+      >
         <p>
           <strong>언어:</strong> {language}
         </p>
         <p>
           <strong>줄 번호:</strong> {showLineNumbers ? '표시됨' : '숨김'}
         </p>
-        <p className="text-xs mt-2 text-zinc-500 dark:text-zinc-500">
+        <p
+          className={cn(
+            /* 텍스트 */
+            "text-xs",
+            "text-zinc-500",
+            "dark:text-zinc-500",
+            /* 여백 */
+            "mt-2"
+          )}
+        >
           💡 CodeBlock 컴포넌트를 테스트하고 있습니다. 코드를 입력하고 언어를 변경해보세요.
         </p>
       </div>
