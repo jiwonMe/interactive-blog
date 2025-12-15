@@ -223,26 +223,40 @@ export function createBaseComponents(slug?: string) {
       );
     },
     // SVG filter를 이미지에 적용하는 컴포넌트
-    SVGFilteredImage: (props: any) => (
-      <SVGFilteredImage
-        rewriteSrc={rewriteSrc}
-        {...props}
-      />
-    ),
+    SVGFilteredImage: (props: any) => {
+      // Server -> Client 경계에서 함수 prop(rewriteSrc)를 넘기면 Next.js가 막습니다.
+      // 따라서 여기서 src를 문자열로 rewrite한 뒤, Client Component에는 값만 전달합니다.
+      const { src: rawSrc, ...rest } = props ?? {};
+      const rewrittenSrc = rewriteSrc(rawSrc) ?? rawSrc;
+      return (
+        <SVGFilteredImage
+          {...rest}
+          src={rewrittenSrc}
+        />
+      );
+    },
     // 다크모드일 때만 preset을 켜는 이미지 컴포넌트
-    DarkmodeImage: (props: any) => (
-      <DarkmodeImage
-        rewriteSrc={rewriteSrc}
-        {...props}
-      />
-    ),
+    DarkmodeImage: (props: any) => {
+      const { src: rawSrc, ...rest } = props ?? {};
+      const rewrittenSrc = rewriteSrc(rawSrc) ?? rawSrc;
+      return (
+        <DarkmodeImage
+          {...rest}
+          src={rewrittenSrc}
+        />
+      );
+    },
     // 다크모드일 때 OKLCH 기반으로 픽셀 변환하는 이미지 컴포넌트 (canvas)
-    DarkmodeOklchImage: (props: any) => (
-      <DarkmodeOklchImage
-        rewriteSrc={rewriteSrc}
-        {...props}
-      />
-    ),
+    DarkmodeOklchImage: (props: any) => {
+      const { src: rawSrc, ...rest } = props ?? {};
+      const rewrittenSrc = rewriteSrc(rawSrc) ?? rawSrc;
+      return (
+        <DarkmodeOklchImage
+          {...rest}
+          src={rewrittenSrc}
+        />
+      );
+    },
     img: (props: any) => (
       // Fallback for standard markdown image syntax if not using <Image /> component
       // Note: Next.js Image requires width/height for remote images unless fill is used.

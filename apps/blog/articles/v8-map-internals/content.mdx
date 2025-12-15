@@ -213,7 +213,12 @@ V8이 키의 해시 코드를 어떻게 계산하는지도 알아두면 좋습�
 
 해시 테이블은 힙의 backing store에 저장됩니다. 여기서 흥미로운 점은 테이블 전체가 고정 길이 배열 하나에 들어간다는 것입니다. 레이아웃은 다음과 같습니다:
 
-<Image src="images/memory-layout.webp" alt="Memory Layout" width={1000} height={1000} style={{ backgroundColor: 'white' }} />
+<DarkmodeImage
+  src="images/memory-layout.webp"
+  alt="Memory Layout"
+  width={1000}
+  height={1000}
+/>
 
 헤더에는 버킷 수, 삭제된 entry 수 같은 메타 정보가 들어갑니다. 각 entry는 배열 원소 3개를 차지합니다: 키, 값, 체인 포인터.
 
