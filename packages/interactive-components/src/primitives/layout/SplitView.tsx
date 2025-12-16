@@ -13,3 +13,4 @@ export function SplitView(props: SplitViewProps) {
   return <div className={cx(splitView({ variant }), className)}>{children}</div>;
 }
 
+

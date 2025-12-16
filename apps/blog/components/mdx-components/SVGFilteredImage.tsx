@@ -59,7 +59,7 @@ type CommonProps = {
    * preset을 쓰면 children 없이도 기본 SVG filter가 적용됩니다.
    * children을 주면 preset보다 children이 우선합니다.
    */
-  preset?: 'none' | 'blur' | 'noise' | 'duotone' | 'invert-hue-180';
+  preset?: 'none' | 'blur' | 'noise' | 'duotone' | 'invert' | 'invert-hue-180' | 'luma-invert';
   /**
    * <filter> 내부에 들어갈 SVG filter primitives를 children으로 전달하세요.
    * 예) <feGaussianBlur stdDeviation="2" />
@@ -93,17 +93,44 @@ const renderPresetFilterPrimitives = (preset: NonNullable<CommonProps['preset']>
     return <feGaussianBlur stdDeviation="2" />;
   }
 
+  if (preset === 'invert') {
+    // 단순 invert: RGB -> (1-R, 1-G, 1-B)
+    // 색상(Hue)까지 보색으로 바뀜
+    return (
+      <feComponentTransfer>
+        <feFuncR type="linear" slope={-1} intercept={1} />
+        <feFuncG type="linear" slope={-1} intercept={1} />
+        <feFuncB type="linear" slope={-1} intercept={1} />
+      </feComponentTransfer>
+    );
+  }
+
   if (preset === 'invert-hue-180') {
+    // invert(1) hue-rotate(180deg) 순서로 적용
+    // 1. invert: RGB -> (1-R, 1-G, 1-B)
+    // 2. hue-rotate(180): 색상을 180도 회전
     return (
       <>
-        <feColorMatrix type="hueRotate" values="180" />
         <feComponentTransfer>
           {/* invert: x -> 1 - x */}
           <feFuncR type="linear" slope={-1} intercept={1} />
           <feFuncG type="linear" slope={-1} intercept={1} />
           <feFuncB type="linear" slope={-1} intercept={1} />
         </feComponentTransfer>
+        <feColorMatrix type="hueRotate" values="180" />
       </>
+    );
+  }
+
+  if (preset === 'luma-invert') {
+    // 휘도(luminance) 기반 반전: Y = 0.2126R + 0.7152G + 0.0722B
+    // RGB' = RGB + (1 - 2Y) → 밝기만 뒤집고 색상(Hue) 성분은 최대한 유지
+    // 행렬: [R', G', B', A'] = M * [R, G, B, A, 1]
+    return (
+      <feColorMatrix
+        type="matrix"
+        values="0.5748 -1.4304 -0.1444 0 1 -0.4252 -0.4304 -0.1444 0 1 -0.4252 -1.4304 0.8556 0 1 0 0 0 1 0"
+      />
     );
   }
 

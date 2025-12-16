@@ -23,6 +23,11 @@ import { PieceTableVisualizer } from '../../articles/text-editor-data-structures
 import { StringInsertVisualizer } from '../../articles/text-editor-data-structures/components/StringInsertVisualizer';
 import { RopeVisualizer } from '../../articles/text-editor-data-structures/components/RopeVisualizer';
 import { GapBufferVisualizer } from '../../articles/text-editor-data-structures/components/GapBufferVisualizer';
+import { DarkmodeImageLab } from '../../articles/darkmode-images/components/DarkmodeImageLab';
+import { ComparisonGrid } from '../../articles/darkmode-images/components/ComparisonGrid';
+import { ImageComparisonSlider } from '../../articles/darkmode-images/components/ImageComparisonSlider';
+import { DualImageComparison } from '../../articles/darkmode-images/components/DualImageComparison';
+import { FeColorMatrixLab } from '../../articles/darkmode-images/components/FeColorMatrixLab';
 
 // 컴포넌트 이름과 컴포넌트를 매핑하는 레지스트리
 export const articleComponentsRegistry: Record<string, React.ComponentType<any>> = {
@@ -48,6 +53,11 @@ export const articleComponentsRegistry: Record<string, React.ComponentType<any>>
   StringInsertVisualizer,
   RopeVisualizer,
   GapBufferVisualizer,
+  DarkmodeImageLab,
+  ComparisonGrid,
+  ImageComparisonSlider,
+  DualImageComparison,
+  FeColorMatrixLab,
 };
 
 // 컴포넌트를 동적으로 가져오는 함수

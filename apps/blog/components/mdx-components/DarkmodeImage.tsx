@@ -4,7 +4,7 @@ import React from "react";
 import { useTheme } from "next-themes";
 import { SVGFilteredImage, type SVGFilteredImageProps } from "./SVGFilteredImage";
 
-type DarkPreset = "invert-hue-180";
+type DarkPreset = "invert-hue-180" | "luma-invert";
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends any ? Omit<T, K> : never;
 

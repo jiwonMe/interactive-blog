@@ -60,3 +60,4 @@ const baseProperties = defineProperties({
 export const sprinkles = createSprinkles(responsiveProperties, baseProperties);
 export type Sprinkles = Parameters<typeof sprinkles>[0];
 
+
