@@ -25,7 +25,7 @@ export interface ImageSelectorProps {
   options: readonly ImageOption[];
   selectedValue: string;
   onValueChange: (value: string) => void;
-  onImageSelect?: (image: ImageInfo) => void;
+  onImageSelect?: (image: ImageInfo | null) => void;
   label?: string;
   className?: string;
 }
@@ -53,7 +53,7 @@ export function ImageSelector({
 
   React.useEffect(() => {
     if (onImageSelect) {
-      onImageSelect(customImage || null);
+      onImageSelect(customImage);
     }
   }, [customImage, onImageSelect]);
 
