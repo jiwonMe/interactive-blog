@@ -140,7 +140,7 @@ export const Callout = ({ type = 'info', title, children }: CalloutProps) => {
         <div
           className={cn(
             /* Layout */
-            "flex-1 min-w-0"
+            "flex-1 min-w-0",
           )}
         >
           {title && (

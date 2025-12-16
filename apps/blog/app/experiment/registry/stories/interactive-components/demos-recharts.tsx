@@ -43,3 +43,4 @@ export function RechartsHistogramDemo(props: RechartsHistogramDemoProps) {
 
 
 
+

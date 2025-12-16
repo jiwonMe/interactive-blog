@@ -16,6 +16,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
     ],
     // 이미지 포맷 최적화 (WebP, AVIF 자동 변환)
     formats: ['image/avif', 'image/webp'],

@@ -3,6 +3,8 @@
 import React from "react";
 import { cn } from "../../../lib/utils";
 import { ImageComparisonSlider } from "./ImageComparisonSlider";
+import { ImageSelector } from "./ImageSelector";
+import { type ImageInfo } from "./useImageUpload";
 
 const IMAGE_OPTIONS = [
   {
@@ -48,79 +50,72 @@ export interface DualImageComparisonProps {
 
 export function DualImageComparison({ defaultImage = "sea-surface-temperature" }: DualImageComparisonProps) {
   const [selectedImage, setSelectedImage] = React.useState(defaultImage);
+  const [customImage, setCustomImage] = React.useState<ImageInfo | null>(null);
   const imageOption = IMAGE_OPTIONS.find((o) => o.value === selectedImage) ?? IMAGE_OPTIONS[0]!;
 
+  // 커스텀 이미지가 있으면 그것을 사용, 없으면 기본 이미지 사용
+  const src = customImage?.src ?? imageOption.src;
+  const width = customImage?.width ?? imageOption.width;
+  const height = customImage?.height ?? imageOption.height;
+  const alt = customImage?.alt ?? imageOption.label;
+
   return (
-    <div className="space-y-6">
+    <div
+      className={cn(
+        /* layout */
+        "space-y-6"
+      )}
+    >
       {/* Image selector */}
       <div
         className={cn(
           /* layout */
-          "flex items-center justify-center gap-3 rounded-xl p-4",
+          "w-full rounded-2xl",
+          "px-3 py-4",
+          "sm:px-4 sm:py-5",
+          "md:p-6",
           /* background */
-          "bg-zinc-100 dark:bg-zinc-800"
+          "bg-zinc-50 dark:bg-zinc-900",
+          /* border */
+          "border border-zinc-200 dark:border-zinc-800"
         )}
       >
-        <label
-          htmlFor="dual-image-select"
-          className={cn(
-            /* typography */
-            "text-sm font-medium",
-            /* color */
-            "text-zinc-700 dark:text-zinc-300"
-          )}
-        >
-          이미지 선택:
-        </label>
-        <select
-          id="dual-image-select"
-          value={selectedImage}
-          onChange={(e) => setSelectedImage(e.target.value)}
-          className={cn(
-            /* typography */
-            "text-sm font-medium",
-            /* shape */
-            "rounded-lg px-4 py-2",
-            /* background */
-            "bg-white dark:bg-zinc-900",
-            /* border */
-            "border border-zinc-300 dark:border-zinc-600",
-            /* color */
-            "text-zinc-900 dark:text-zinc-100",
-            /* interaction */
-            "cursor-pointer transition-colors hover:border-zinc-400 dark:hover:border-zinc-500"
-          )}
-        >
-          {IMAGE_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <ImageSelector
+          options={IMAGE_OPTIONS}
+          selectedValue={selectedImage}
+          onValueChange={(value) => {
+            setSelectedImage(value);
+            setCustomImage(null);
+          }}
+          onImageSelect={setCustomImage}
+        />
       </div>
 
       {/* Comparison sliders */}
       <ImageComparisonSlider
-        src={imageOption.src}
-        alt={imageOption.label}
-        width={imageOption.width}
-        height={imageOption.height}
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
         leftMethod="original"
         rightMethod="invert"
-        label="원본 vs invert (색상이 보색으로 바뀜)"
+        label="원본 vs invert"
+        description="색상이 보색으로 바뀜"
         hideImageSelector
       />
 
       <ImageComparisonSlider
-        src={imageOption.src}
-        alt={imageOption.label}
-        width={imageOption.width}
-        height={imageOption.height}
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
         leftMethod="original"
         rightMethod="invert-hue-180"
-        label="원본 vs invert + hueRotate (색상 유지)"
+        label="원본 vs invert + hueRotate"
+        description="색상 유지"
         hideImageSelector
       />
     </div>
   );
 }
+

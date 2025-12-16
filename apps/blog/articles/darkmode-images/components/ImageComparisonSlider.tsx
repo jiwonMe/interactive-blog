@@ -4,6 +4,8 @@ import React from "react";
 import { useTheme } from "next-themes";
 import { cn } from "../../../lib/utils";
 import { SVGFilteredImage } from "../../../components/mdx-components/SVGFilteredImage";
+import { ImageSelector } from "./ImageSelector";
+import { type ImageInfo } from "./useImageUpload";
 
 const IMAGE_OPTIONS = [
   {
@@ -51,6 +53,7 @@ export interface ImageComparisonSliderProps {
   leftMethod: "original" | "invert" | "invert-hue-180";
   rightMethod: "original" | "invert" | "invert-hue-180";
   label?: string;
+  description?: string;
   defaultImage?: string;
   hideImageSelector?: boolean;
 }
@@ -69,22 +72,24 @@ export function ImageComparisonSlider({
   leftMethod,
   rightMethod,
   label,
+  description,
   defaultImage = "sea-surface-temperature",
   hideImageSelector = false,
 }: ImageComparisonSliderProps) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   const [selectedImage, setSelectedImage] = React.useState(defaultImage);
+  const [customImage, setCustomImage] = React.useState<ImageInfo | null>(null);
   const [sliderPosition, setSliderPosition] = React.useState(50);
   const [isDragging, setIsDragging] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
-  // Use props if provided, otherwise use selected image
+  // Use props if provided, otherwise use selected image or custom image
   const imageOption = IMAGE_OPTIONS.find((o) => o.value === selectedImage) ?? IMAGE_OPTIONS[0]!;
-  const src = propSrc ?? imageOption.src;
-  const alt = propAlt ?? imageOption.label;
-  const width = propWidth ?? imageOption.width;
-  const height = propHeight ?? imageOption.height;
+  const src = propSrc ?? customImage?.src ?? imageOption.src;
+  const alt = propAlt ?? customImage?.alt ?? imageOption.label;
+  const width = propWidth ?? customImage?.width ?? imageOption.width;
+  const height = propHeight ?? customImage?.height ?? imageOption.height;
 
   React.useEffect(() => {
     setMounted(true);
@@ -184,7 +189,10 @@ export function ImageComparisonSlider({
     <div
       className={cn(
         /* layout */
-        "w-full rounded-2xl p-6",
+        "w-full rounded-2xl",
+        "px-3 py-4",
+        "sm:px-4 sm:py-5",
+        "md:p-6",
         /* background */
         "bg-zinc-50 dark:bg-zinc-900",
         /* border */
@@ -200,60 +208,48 @@ export function ImageComparisonSlider({
           )}
         >
           {label && (
-            <p
-              className={cn(
-                /* typography */
-                "text-sm font-medium",
-                /* color */
-                "text-zinc-700 dark:text-zinc-300"
+            <div>
+              <p
+                className={cn(
+                  /* typography */
+                  "text-sm font-semibold",
+                  /* color */
+                  "text-zinc-900 dark:text-zinc-100"
+                )}
+              >
+                {label}
+              </p>
+              {description && (
+                <p
+                  className={cn(
+                    /* typography */
+                    "mt-0.5 text-xs",
+                    /* color */
+                    "text-zinc-600 dark:text-zinc-400"
+                  )}
+                >
+                  {description}
+                </p>
               )}
-            >
-              {label}
-            </p>
+            </div>
           )}
           {!hideImageSelector && (
             <div
               className={cn(
                 /* layout */
-                "flex items-center gap-2"
+                "w-full max-w-xs"
               )}
             >
-              <label
-                htmlFor="image-select"
-                className={cn(
-                  /* typography */
-                  "text-xs font-medium",
-                  /* color */
-                  "text-zinc-600 dark:text-zinc-400"
-                )}
-              >
-                이미지:
-              </label>
-              <select
-                id="image-select"
-                value={selectedImage}
-                onChange={(e) => setSelectedImage(e.target.value)}
-                className={cn(
-                  /* typography */
-                  "text-xs font-medium",
-                  /* shape */
-                  "rounded-lg px-3 py-1.5",
-                  /* background */
-                  "bg-white dark:bg-zinc-800",
-                  /* border */
-                  "border border-zinc-200 dark:border-zinc-700",
-                  /* color */
-                  "text-zinc-700 dark:text-zinc-300",
-                  /* interaction */
-                  "cursor-pointer transition-colors hover:border-zinc-300 dark:hover:border-zinc-600"
-                )}
-              >
-                {IMAGE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <ImageSelector
+                options={IMAGE_OPTIONS}
+                selectedValue={selectedImage}
+                onValueChange={(value) => {
+                  setSelectedImage(value);
+                  setCustomImage(null);
+                }}
+                onImageSelect={setCustomImage}
+                label="이미지"
+              />
             </div>
           )}
         </div>
@@ -362,7 +358,9 @@ export function ImageComparisonSlider({
             /* layout */
             "absolute left-4 top-4",
             /* background */
-            "rounded-lg bg-black/50 px-3 py-1.5 backdrop-blur-sm",
+            "rounded-lg bg-black/60 px-3 py-1.5 backdrop-blur-md",
+            /* border */
+            "border border-white/10",
             /* z-index */
             "z-20"
           )}
@@ -370,7 +368,7 @@ export function ImageComparisonSlider({
           <p
             className={cn(
               /* typography */
-              "text-xs font-medium",
+              "text-xs font-semibold",
               /* color */
               "text-white"
             )}
@@ -383,7 +381,9 @@ export function ImageComparisonSlider({
             /* layout */
             "absolute right-4 top-4",
             /* background */
-            "rounded-lg bg-black/50 px-3 py-1.5 backdrop-blur-sm",
+            "rounded-lg bg-black/60 px-3 py-1.5 backdrop-blur-md",
+            /* border */
+            "border border-white/10",
             /* z-index */
             "z-20"
           )}
@@ -391,7 +391,7 @@ export function ImageComparisonSlider({
           <p
             className={cn(
               /* typography */
-              "text-xs font-medium",
+              "text-xs font-semibold",
               /* color */
               "text-white"
             )}
@@ -404,20 +404,25 @@ export function ImageComparisonSlider({
       <div
         className={cn(
           /* layout */
-          "mt-4 text-center"
+          "mt-4 flex items-center justify-center"
         )}
       >
-        <p
+        <span
           className={cn(
+            /* layout */
+            "inline-flex items-center rounded-full px-3 py-1",
+            /* background */
+            "bg-zinc-100 dark:bg-zinc-800",
             /* typography */
-            "text-xs",
+            "text-xs font-medium",
             /* color */
-            "text-zinc-500 dark:text-zinc-400"
+            "text-zinc-600 dark:text-zinc-400"
           )}
         >
           드래그하거나 터치해서 비교해보세요
-        </p>
+        </span>
       </div>
     </div>
   );
 }
+

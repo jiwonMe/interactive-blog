@@ -2,8 +2,11 @@
 
 import React from "react";
 import { useTheme } from "next-themes";
+import { Moon, Sun } from "lucide-react";
 import { cn } from "../../../lib/utils";
 import { SVGFilteredImage } from "../../../components/mdx-components/SVGFilteredImage";
+import { ImageSelector } from "./ImageSelector";
+import { type ImageInfo } from "./useImageUpload";
 
 type TransformMethod = "original" | "invert" | "invert-hue-180";
 
@@ -59,9 +62,15 @@ export function DarkmodeImageLab({
   defaultImage = "sea-surface-temperature",
 }: DarkmodeImageLabProps) {
   const [selectedImage, setSelectedImage] = React.useState(defaultImage);
+  const [customImage, setCustomImage] = React.useState<ImageInfo | null>(null);
   const imageOption = IMAGE_OPTIONS.find((o) => o.value === selectedImage) ?? IMAGE_OPTIONS[0]!;
-  const { src, width, height } = imageOption;
-  const alt = imageOption.label;
+  
+  // 커스텀 이미지가 있으면 그것을 사용, 없으면 기본 이미지 사용
+  const src = customImage?.src ?? imageOption.src;
+  const width = customImage?.width ?? imageOption.width;
+  const height = customImage?.height ?? imageOption.height;
+  const alt = customImage?.alt ?? imageOption.label;
+  
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   const [method, setMethod] = React.useState<TransformMethod>("original");
@@ -121,7 +130,10 @@ export function DarkmodeImageLab({
       <div
         className={cn(
           /* layout */
-          "w-full rounded-2xl p-6",
+          "w-full rounded-2xl",
+          "px-3 py-4",
+          "sm:px-4 sm:py-5",
+          "md:p-6",
           /* background */
           "bg-zinc-50 dark:bg-zinc-900",
           /* border */
@@ -137,7 +149,10 @@ export function DarkmodeImageLab({
     <div
       className={cn(
         /* layout */
-        "w-full rounded-2xl p-6",
+        "w-full rounded-2xl",
+        "px-3 py-4",
+        "sm:px-4 sm:py-5",
+        "md:p-6",
         /* background */
         "bg-zinc-50 dark:bg-zinc-900",
         /* border */
@@ -155,7 +170,7 @@ export function DarkmodeImageLab({
           <h3
             className={cn(
               /* typography */
-              "text-lg font-bold",
+              "text-lg font-semibold",
               /* color */
               "text-zinc-900 dark:text-zinc-100"
             )}
@@ -170,122 +185,126 @@ export function DarkmodeImageLab({
               "text-zinc-600 dark:text-zinc-400"
             )}
           >
-            방법을 선택하고 테마를 전환해 결과를 비교해보세요
+            변환 방법을 선택하고 라이트/다크 테마를 전환하며 결과를 비교해보세요
           </p>
         </div>
 
-        {/* Theme Toggle */}
-        <button
-          onClick={handleThemeToggle}
-          className={cn(
-            /* layout */
-            "flex items-center gap-2 rounded-lg px-4 py-2",
-            /* background */
-            "bg-white dark:bg-zinc-800",
-            /* border */
-            "border border-zinc-200 dark:border-zinc-700",
-            /* interaction */
-            "transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-700"
-          )}
-        >
-          <span
+        {/* Theme Toggle - 라이트 모드일 때만 표시 */}
+        {!isDark && (
+          <button
+            onClick={handleThemeToggle}
             className={cn(
+              /* layout */
+              "inline-flex items-center gap-2 rounded-lg px-3 py-1.5",
+              /* border */
+              "border border-zinc-200",
+              /* background */
+              "bg-white",
+              /* interaction */
+              "transition-colors hover:bg-zinc-100",
+              /* focus */
+              "focus:outline-none focus:ring-2 focus:ring-zinc-400/40",
               /* typography */
               "text-sm font-medium",
               /* color */
-              "text-zinc-700 dark:text-zinc-300"
+              "text-zinc-700"
             )}
+            aria-label="다크모드로 전환하기"
           >
-            {isDark ? "🌙 다크" : "☀️ 라이트"}
-          </span>
-        </button>
+            <Moon
+              className={cn(
+                /* layout */
+                "h-4 w-4",
+                /* color */
+                "text-zinc-700"
+              )}
+            />
+            <span>다크모드로 전환하기</span>
+          </button>
+        )}
       </div>
 
-      {/* Image Selector */}
+      {/* Controls */}
       <div
         className={cn(
           /* layout */
-          "mb-4 flex flex-wrap gap-2"
+          "mb-6 flex flex-col gap-4"
         )}
       >
-        <span
-          className={cn(
-            /* typography */
-            "self-center text-sm",
-            /* color */
-            "text-zinc-600 dark:text-zinc-400"
-          )}
-        >
-          이미지:
-        </span>
-        {IMAGE_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            onClick={() => setSelectedImage(option.value)}
+        {/* Image Selector */}
+        <ImageSelector
+          options={IMAGE_OPTIONS}
+          selectedValue={selectedImage}
+          onValueChange={(value) => {
+            setSelectedImage(value);
+            setCustomImage(null);
+          }}
+          onImageSelect={setCustomImage}
+        />
+
+        {/* Method Tabs */}
+        <div>
+          <label
             className={cn(
-              /* layout */
-              "rounded-lg px-3 py-1.5",
-              /* border */
-              "border transition-colors",
-              /* state: selected */
-              selectedImage === option.value
-                ? "border-emerald-500 bg-emerald-50 text-emerald-700 dark:border-emerald-400 dark:bg-emerald-950 dark:text-emerald-300"
-                : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-zinc-600",
               /* typography */
-              "text-sm font-medium"
+              "mb-2 block text-xs font-medium",
+              /* color */
+              "text-zinc-600 dark:text-zinc-400"
             )}
           >
-            {option.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Method Selector */}
-      <div
-        className={cn(
-          /* layout */
-          "mb-6 grid grid-cols-1 gap-2 sm:grid-cols-3"
-        )}
-      >
-        {METHOD_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            onClick={() => setMethod(option.value)}
+            변환 방법
+          </label>
+          <div
             className={cn(
               /* layout */
-              "flex flex-col items-start rounded-lg p-3",
-              /* border */
-              "border-2 transition-colors",
-              /* state: selected */
-              method === option.value
-                ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950"
-                : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600"
+              "inline-flex items-center gap-1 rounded-lg p-1",
+              /* background */
+              "bg-zinc-100 dark:bg-zinc-800"
             )}
+            role="tablist"
           >
-            <span
-              className={cn(
-                /* typography */
-                "text-sm font-medium",
-                /* color */
-                method === option.value
-                  ? "text-blue-700 dark:text-blue-300"
-                  : "text-zinc-900 dark:text-zinc-100"
-              )}
-            >
-              {option.label}
-            </span>
-            <span
-              className={cn(
-                /* typography */
-                "mt-0.5 text-xs",
-                /* color */
-                "text-zinc-500 dark:text-zinc-400"
-              )}
-            >
-              {option.description}
-            </span>
-          </button>
-        ))}
+            {METHOD_OPTIONS.map((option) => {
+              const isActive = method === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setMethod(option.value)}
+                  className={cn(
+                    /* layout */
+                    "flex flex-col items-start rounded-md px-3 py-2",
+                    /* typography */
+                    "text-xs font-medium",
+                    /* transition */
+                    "transition-colors",
+                    /* active/inactive */
+                    isActive
+                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-zinc-100"
+                      : "text-zinc-600 hover:text-zinc-900 hover:bg-white/60 dark:text-zinc-400 dark:hover:text-zinc-50 dark:hover:bg-zinc-900/60",
+                    /* focus */
+                    "focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/40 dark:focus-visible:ring-zinc-500/40"
+                  )}
+                >
+                  <span>{option.label}</span>
+                  <span
+                    className={cn(
+                      /* typography */
+                      "mt-0.5 text-[10px]",
+                      /* color */
+                      isActive
+                        ? "text-zinc-600 dark:text-zinc-400"
+                        : "text-zinc-500 dark:text-zinc-500"
+                    )}
+                  >
+                    {option.description}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Image Preview */}
@@ -304,7 +323,7 @@ export function DarkmodeImageLab({
       <div
         className={cn(
           /* layout */
-          "mt-4 flex items-center justify-center gap-2"
+          "mt-4 flex items-center justify-center"
         )}
       >
         <span
@@ -312,7 +331,7 @@ export function DarkmodeImageLab({
             /* layout */
             "inline-flex items-center rounded-full px-3 py-1",
             /* background */
-            isDark ? "bg-zinc-800" : "bg-zinc-100",
+            "bg-zinc-100 dark:bg-zinc-800",
             /* typography */
             "text-xs font-medium",
             /* color */

@@ -8,6 +8,8 @@ import { Button } from "../../../components/ui/button";
 import { IMAGE_OPTIONS, PRESETS, identityMatrix, parseValuesString, toValuesString, type ImageKey, type Matrix4x5, type PresetKey } from "./feColorMatrixLabData";
 import { FeColorMatrixMatrixEditor } from "./FeColorMatrixMatrixEditor";
 import { FeColorMatrixValuesEditor } from "./FeColorMatrixValuesEditor";
+import { ImageSelector } from "./ImageSelector";
+import { type ImageInfo } from "./useImageUpload";
 
 export interface FeColorMatrixLabProps {
   defaultImage?: ImageKey;
@@ -19,7 +21,14 @@ export function FeColorMatrixLab({
   defaultPreset = "identity",
 }: FeColorMatrixLabProps) {
   const [selectedImage, setSelectedImage] = React.useState<ImageKey>(defaultImage);
+  const [customImage, setCustomImage] = React.useState<ImageInfo | null>(null);
   const imageOption = IMAGE_OPTIONS.find((o) => o.value === selectedImage) ?? IMAGE_OPTIONS[0]!;
+
+  // 커스텀 이미지가 있으면 그것을 사용, 없으면 기본 이미지 사용
+  const src = customImage?.src ?? imageOption.src;
+  const width = customImage?.width ?? imageOption.width;
+  const height = customImage?.height ?? imageOption.height;
+  const alt = customImage?.alt ?? imageOption.label;
 
   const [preset, setPreset] = React.useState<PresetKey>(defaultPreset);
   const [matrix, setMatrix] = React.useState<Matrix4x5>(() => PRESETS[defaultPreset]?.values ?? identityMatrix());
@@ -82,7 +91,10 @@ export function FeColorMatrixLab({
       <div
         className={cn(
           /* layout */
-          "rounded-2xl p-6",
+          "rounded-2xl",
+          "px-3 py-4",
+          "sm:px-4 sm:py-5",
+          "md:p-6",
           "space-y-5",
           /* background */
           "bg-zinc-50 dark:bg-zinc-900",
@@ -93,8 +105,10 @@ export function FeColorMatrixLab({
         <div
           className={cn(
             /* layout */
-            "flex flex-col gap-4",
+            "flex flex-row gap-4",
             "sm:flex-row sm:items-end sm:justify-between",
+            /* size */
+            "h-[100px]"
           )}
         >
           <div
@@ -128,9 +142,9 @@ export function FeColorMatrixLab({
           <div
             className={cn(
               /* layout */
-              "grid gap-3",
-              "sm:grid-cols-2 sm:items-end",
-              // 옵션 라벨이 길어서, 좁은 max-w를 걸면 combobox가 답답해진다.
+              "flex flex-col gap-4",
+              "sm:flex-row sm:items-start",
+              /* width */
               "sm:w-full",
               "md:max-w-[40rem]",
             )}
@@ -138,37 +152,31 @@ export function FeColorMatrixLab({
             <div
               className={cn(
                 /* layout */
+                "flex-1 min-w-0",
+                /* spacing */
                 "space-y-1.5",
               )}
             >
-              <p
-                className={cn(
-                  /* typography */
-                  "text-xs font-medium",
-                  /* color */
-                  "text-zinc-700 dark:text-zinc-300",
-                )}
-              >
-                이미지
-              </p>
-              <Select value={selectedImage} onValueChange={(v) => setSelectedImage(v as ImageKey)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {IMAGE_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ImageSelector
+                options={IMAGE_OPTIONS}
+                selectedValue={selectedImage}
+                onValueChange={(value) => {
+                  setSelectedImage(value as ImageKey);
+                  setCustomImage(null);
+                }}
+                onImageSelect={setCustomImage}
+                label="이미지"
+              />
             </div>
 
             <div
               className={cn(
                 /* layout */
+                "flex-shrink-0",
+                /* spacing */
                 "space-y-1.5",
+                /* width */
+                "w-full sm:w-[12rem]",
               )}
             >
               <p
@@ -182,7 +190,12 @@ export function FeColorMatrixLab({
                 preset
               </p>
               <Select value={preset} onValueChange={(v) => setPreset(v as PresetKey)}>
-                <SelectTrigger>
+                <SelectTrigger
+                  className={cn(
+                    /* layout */
+                    "w-full"
+                  )}
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -204,7 +217,12 @@ export function FeColorMatrixLab({
             "lg:grid-cols-2",
           )}
         >
-          <div className="space-y-3">
+          <div
+            className={cn(
+              /* layout */
+              "space-y-3",
+            )}
+          >
             <FeColorMatrixMatrixEditor
               matrix={matrix}
               description={PRESETS[preset]?.description ?? "커스텀"}
@@ -227,23 +245,42 @@ export function FeColorMatrixLab({
             />
           </div>
 
-          <div>
-            <SVGFilteredImage
-              src={imageOption.src}
-              alt={imageOption.label}
-              width={imageOption.width}
-              height={imageOption.height}
-              wrapperClassName={cn(
+          <div
+            className={cn(
+              /* layout */
+              "flex flex-col",
+            )}
+          >
+            <div
+              className={cn(
                 /* layout */
-                "my-0",
+                "rounded-xl p-4",
+                /* background */
+                "bg-white dark:bg-zinc-950",
+                /* border */
+                "border border-zinc-200 dark:border-zinc-800",
+                /* layout */
+                "flex-1 flex items-center justify-center",
               )}
             >
-              <feColorMatrix type="matrix" values={toValuesString(matrix)} />
-            </SVGFilteredImage>
+              <SVGFilteredImage
+                src={src}
+                alt={alt}
+                width={width}
+                height={height}
+                wrapperClassName={cn(
+                  /* layout */
+                  "my-0 w-full",
+                )}
+              >
+                <feColorMatrix type="matrix" values={toValuesString(matrix)} />
+              </SVGFilteredImage>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
 
