@@ -17,7 +17,7 @@ export interface FeColorMatrixLabProps {
 }
 
 export function FeColorMatrixLab({
-  defaultImage = "sea-surface-temperature",
+  defaultImage = "la-nina",
   defaultPreset = "identity",
 }: FeColorMatrixLabProps) {
   const [selectedImage, setSelectedImage] = React.useState<ImageKey>(defaultImage);

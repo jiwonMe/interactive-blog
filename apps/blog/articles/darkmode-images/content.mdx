@@ -15,11 +15,15 @@ tags: ['darkmode', 'svg-filter', 'color-space', 'css', 'image-processing']
 
 간단하다고 생각했다. CSS `filter: invert(1)` 한 줄이면 흰 배경이 검은 배경으로, 검은 글자가 흰 글자로 바뀔 테니까. 그런데 막상 적용해보니 문제가 생겼다.
 
-지구과학 슬라이드에서 **빨간색으로 표시된 N극이 청록색으로**, **파란색으로 표시된 S극이 노란색으로** 바뀌어버렸다. 물리 수업 자료에서 양전하(+)와 음전하(−)를 구분하던 색도 뒤바뀌었다. <Highlight>색이 의미를 가질 때 단순 반전은 본 의미를 왜곡할 수 있다.</Highlight>
+지구과학 슬라이드에서 **빨간색으로 표시된 N극이 청록색으로**, **파란색으로 표시된 S극이 노란색으로** 바뀌어버렸다. 물리 수업 자료에서 빛의 파장 스펙트럼을 나타내던 색도 완전히 뒤바뀌었다. <Highlight>색이 의미를 가질 때, 단순 반전은 본 의미를 왜곡할 수 있다.</Highlight>
+
+<SVGFilteredImage src="/images/articles/darkmode-images/images/em-spectrum.png" alt="전자기 스펙트럼" width={1440} height={720} preset="invert" caption="단순 반전(invert)시 문제가 되는 그림" backgroundColor="black" />
 
 나는 "negative"가 아니라 **"dark-friendly"**를 원했던 것이다.
 
 아래 실험실에서 직접 확인해보자. **해수면 온도 지도**<Footnote id="sea-surface-temperature-image">Sea Surface Temperature - November 2007. Wikimedia Commons, Public Domain. https://commons.wikimedia.org/wiki/File:Sea_Surface_Temperature_-_November_2007.jpg</Footnote>, **양성자-양성자 연쇄 반응**<Footnote id="proton-proton-chain-image">Proton-proton chain reaction diagram. Wikimedia Commons, Public Domain. https://commons.wikimedia.org/wiki/File:Wpdms_physics_proton_proton_chain_1.svg</Footnote>, **대기 구성 다이어그램**<Footnote id="atmosphere-composition-image">Atmosphere Composition Diagram. Wikimedia Commons, Public Domain. https://commons.wikimedia.org/wiki/File:Atmosphere_composition_diagram-en.svg</Footnote>처럼 색이 의미를 가지는 과학 이미지를 선택하고, 방법을 바꿔가며 테마를 전환해보자.
+
+**지도 이미지**도 마찬가지다. 공원을 나타내는 초록색이나 지하철 노선의 색상(예: 2호선 초록, 3호선 주황)은 단순 반전 시 보색으로 바뀌어 사용자가 혼란스러울 수 있다. `invert(1) hue-rotate(180deg)`를 적용하면 이러한 색상의 의미가 유지되면서 배경만 어두워진다.
 
 <DarkmodeImageLab />
 
@@ -240,6 +244,5 @@ CSS `filter` 함수는 Filter Effects 스펙<Footnote id="filter-effects-spec">W
 3년 전 받았던 외주는 `filter: invert(1) hue-rotate(180deg);` 한 줄로 해결했었다. N극은 빨간색 그대로, S극은 파란색 그대로 유지되면서 배경만 어두워졌다.
 
 오랜만에 옛날 외주했던 기억이 나서 정리해봤다. 색이 의미를 가지는 이미지를 다크모드에서 반전하는 방법을 살펴봤는데, 다음은 색과 관련하여 Oklab/Oklch 색공간 등을 다뤄볼까 싶다.
-
 
 <Footnotes />

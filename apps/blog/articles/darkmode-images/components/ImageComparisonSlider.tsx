@@ -23,25 +23,18 @@ const IMAGE_OPTIONS = [
     height: 624,
   },
   {
-    value: "proton-proton-chain",
-    label: "양성자-양성자 연쇄 반응",
-    src: "/images/articles/darkmode-images/images/proton-proton-chain.png",
-    width: 960,
-    height: 1117,
+    value: "em-spectrum",
+    label: "전자기 스펙트럼",
+    src: "/images/articles/darkmode-images/images/em-spectrum.png",
+    width: 1440,
+    height: 720,
   },
   {
-    value: "atmosphere-composition",
-    label: "대기 구성 다이어그램",
-    src: "/images/articles/darkmode-images/images/atmosphere-composition.png",
-    width: 1280,
-    height: 986,
-  },
-  {
-    value: "active-margin",
-    label: "활성 대륙 경계",
-    src: "/images/articles/darkmode-images/images/active-margin.png",
-    width: 2560,
-    height: 1488,
+    value: "naver-map",
+    label: "네이버 지도",
+    src: "/images/articles/darkmode-images/images/naver-map.png",
+    width: 1440,
+    height: 720,
   },
 ] as const;
 
@@ -73,7 +66,7 @@ export function ImageComparisonSlider({
   rightMethod,
   label,
   description,
-  defaultImage = "sea-surface-temperature",
+  defaultImage = "la-nina",
   hideImageSelector = false,
 }: ImageComparisonSliderProps) {
   const { resolvedTheme } = useTheme();

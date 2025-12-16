@@ -65,6 +65,10 @@ type CommonProps = {
    * 예) <feGaussianBlur stdDeviation="2" />
    */
   children?: React.ReactNode;
+  /**
+   * 배경색을 추가합니다. 이미지가 투명한 영역에 배경색이 표시됩니다.
+   */
+  backgroundColor?: 'white' | 'black';
 };
 
 type FillImageProps = CommonProps & {
@@ -259,6 +263,24 @@ const renderColorAdjustments = (color: ColorAdjustments | undefined, enableColor
   );
 };
 
+const renderBackgroundColor = (backgroundColor: 'white' | 'black' | undefined) => {
+  if (!backgroundColor) return null;
+
+  const color = backgroundColor === 'white' ? '#ffffff' : '#000000';
+
+  return (
+    <>
+      {/* 배경색 생성 */}
+      <feFlood floodColor={color} result="bg" />
+      {/* 배경 위에 필터가 적용된 이미지 합성 */}
+      {/* in="filtered"는 필터 체인의 결과를 참조합니다 */}
+      {/* operator="over"는 첫 번째 입력(in)을 두 번째 입력(in2) 위에 그립니다 */}
+      {/* 따라서 필터가 적용된 이미지가 배경 위에 그려집니다 */}
+      <feComposite in="filtered" in2="bg" operator="over" />
+    </>
+  );
+};
+
 const buildFilterCss = (filterId: string): CSSProperties => {
   // CSS filter는 SVG <filter id="..."> 를 참조할 수 있습니다.
   // Safari 등 일부 환경에서는 호환성 이슈가 있을 수 있어, 필요하면 추후 fallback(CSS filter)도 추가 가능합니다.
@@ -277,6 +299,7 @@ export function SVGFilteredImage(props: SVGFilteredImageProps) {
     enableColor = true,
     preset = 'none',
     children,
+    backgroundColor,
     priority,
     quality,
     ...rest
@@ -288,6 +311,7 @@ export function SVGFilteredImage(props: SVGFilteredImageProps) {
 
   const filterPrimitives = children ?? renderPresetFilterPrimitives(preset);
   const colorPrimitives = renderColorAdjustments(color, enableColor);
+  const backgroundColorPrimitives = renderBackgroundColor(backgroundColor);
 
   return (
     <figure
@@ -306,9 +330,20 @@ export function SVGFilteredImage(props: SVGFilteredImageProps) {
         )}
       >
         <defs>
-          <filter id={filterId} colorInterpolationFilters="sRGB">
+          <filter
+            id={filterId}
+            colorInterpolationFilters="sRGB"
+            x="0%"
+            y="0%"
+            width="100%"
+            height="100%"
+          >
             {filterPrimitives}
             {colorPrimitives}
+            {/* 필터 체인의 결과를 명시적으로 저장 (배경색이 있을 때만) */}
+            {/* in 속성이 없으면 이전 필터의 결과를 사용하고, result로 저장합니다 */}
+            {backgroundColorPrimitives && <feComposite result="filtered" />}
+            {backgroundColorPrimitives}
           </filter>
         </defs>
       </svg>
