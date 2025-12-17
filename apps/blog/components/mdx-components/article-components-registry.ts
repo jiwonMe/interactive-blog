@@ -28,6 +28,7 @@ import { ComparisonGrid } from '../../articles/darkmode-images/components/Compar
 import { ImageComparisonSlider } from '../../articles/darkmode-images/components/ImageComparisonSlider';
 import { DualImageComparison } from '../../articles/darkmode-images/components/DualImageComparison';
 import { FeColorMatrixLab } from '../../articles/darkmode-images/components/FeColorMatrixLab';
+import { LuminanceVisualization } from '../../articles/darkmode-images/components/LuminanceVisualization';
 
 // 컴포넌트 이름과 컴포넌트를 매핑하는 레지스트리
 export const articleComponentsRegistry: Record<string, React.ComponentType<any>> = {
@@ -58,6 +59,7 @@ export const articleComponentsRegistry: Record<string, React.ComponentType<any>>
   ImageComparisonSlider,
   DualImageComparison,
   FeColorMatrixLab,
+  LuminanceVisualization,
 };
 
 // 컴포넌트를 동적으로 가져오는 함수

@@ -1,9 +1,10 @@
 ---
-title: '반전의 반전: 다크모드에 맞는 이미지 필터'
-date: '2025-12-16'
+title: '반전의 반전: 다크모드에 맞는 이미지 필터를 찾아서'
+date: '2025-12-17'
 description: '다크모드에서 이미지를 반전하면 왜 색의 의미가 깨지는지, 그리고 SVG 필터 행렬을 이용한 해결책을 단계별로 파헤칩니다.'
 author: 'Jiwon Park'
 tags: ['darkmode', 'svg-filter', 'color-space', 'css', 'image-processing']
+image: '/images/articles/darkmode-images/images/og-image.png'
 ---
 
 <Callout>
@@ -170,7 +171,7 @@ $$
 
 ### 예시: 휘도 기반 반전 행렬
 
-`hue-rotate(180deg)` 대신 **휘도(luminance)**를 직접 계산해서 반전하는 방법도 있다. 상대 휘도 공식<Footnote id="relative-luminance">WCAG 2.1. Relative Luminance. https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html#dfn-relative-luminance</Footnote>을 이용하면:
+`hue-rotate(180deg)` 대신 **휘도(luminance)**를 직접 계산해서 반전하는 방법도 있다. (결과는 비슷하다) 상대 휘도 공식<Footnote id="relative-luminance">WCAG 2.1. Relative Luminance. https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html#dfn-relative-luminance</Footnote>을 이용하면:
 
 $$
 Y = 0.2126 \cdot R + 0.7152 \cdot G + 0.0722 \cdot B
@@ -192,6 +193,37 @@ $$
    0       0       0      1 0
 "/>
 ```
+
+아래 인터랙티브 컴포넌트에서 RGB 값을 조절하면 휘도가 어떻게 계산되는지, 그리고 휘도 기반 반전이 어떻게 작동하는지 확인할 수 있다. 초록색(G)의 가중치가 0.7152로 가장 크다는 것을 시각적으로 확인할 수 있다.
+
+<LuminanceVisualization />
+
+<CollapsibleSection title="왜 초록색의 휘도 기여도가 가장 높을까">
+
+초록색(G)의 가중치가 0.7152로 가장 높은 이유는 **인간의 시각 시스템** 때문이다.
+
+### CIE 1931 Photopic Luminosity Function
+
+잘 밝은 조건(photopic vision)에서 인간의 눈은 **초록색 파장에 가장 민감**하다. CIE 1931에서 정의한 photopic luminosity function<Footnote id="photopic-luminosity">Wikipedia. Luminous efficiency function. https://en.wikipedia.org/wiki/Luminous_efficiency_function</Footnote>은 약 **555nm(나노미터)에서 최고점**을 가지며, 이는 초록-노랑 영역에 해당한다.
+
+이 함수는 인간이 각 파장의 빛을 얼마나 밝게 인지하는지를 나타낸다. 같은 에너지를 가진 빛이라도, 555nm 근처의 초록색 빛이 가장 밝게 보인다.
+
+### 휘도 가중치의 유래
+
+WCAG 2.1의 상대 휘도 공식에 사용되는 가중치(0.2126, 0.7152, 0.0722)는 **CIE 1931 색공간**<Footnote id="cie-1931">Wikipedia. CIE 1931 color space. https://en.wikipedia.org/wiki/CIE_1931_color_space</Footnote>에서 파생되었으며, **ITU-R BT.709 표준**<Footnote id="itu-r-bt709">ITU-R Recommendation BT.709. Parameter values for the HDTV standards for production and international programme exchange. https://www.itu.int/rec/R-REC-BT.709/</Footnote>에서도 동일하게 사용된다.
+
+이 가중치는 각 RGB 채널이 **인간이 인지하는 밝기(perceived brightness)**에 기여하는 정도를 반영한다:
+- **초록(G)**: 0.7152 (약 72%) — 가장 높은 기여도
+- **빨강(R)**: 0.2126 (약 21%)
+- **파랑(B)**: 0.0722 (약 7%) — 가장 낮은 기여도
+
+### 진화적 이유
+
+인간의 눈이 초록색에 가장 민감한 이유는 진화적 적응으로 추정된다. 자연 환경에서 초록색(식물, 풀)이 가장 흔한 색상이었고, 이를 잘 구분하는 것이 생존에 유리했을 것이다.
+
+결과적으로, 휘도 계산에서 초록색이 가장 큰 가중치를 가지는 것은 **인간의 시각적 인지와 일치**하도록 설계된 것이다. 같은 휘도를 가진 이미지라도, 초록색 성분이 많을수록 우리 눈에는 더 밝게 보인다.
+
+</CollapsibleSection>
 
 흥미롭게도, 이 행렬은 `invert(1)` 뒤에 `hue-rotate(180deg)`를 적용한 합성 행렬과 사실상 같은 꼴이다. `hue-rotate()` 스펙에서 쓰는 가중치(0.213/0.715/0.072)를 쓰면 값이 더 딱 떨어지고, 여기서는 WCAG 계수(0.2126/0.7152/0.0722)를 써서 소수점 몇 자리만 달라진다.
 
