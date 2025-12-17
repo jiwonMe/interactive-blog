@@ -1,7 +1,7 @@
 ---
 title: '반전의 반전: 다크모드에 맞는 이미지 필터를 찾아서'
 date: '2025-12-17'
-description: '다크모드에서 이미지를 반전하면 왜 색의 의미가 깨지는지, 그리고 SVG 필터 행렬을 이용한 해결책을 단계별로 파헤칩니다.'
+description: '다크모드에서 이미지를 단순 반전하면 시각적 의미가 무너지는데, 실제로 적용했던 해결책(SVG 필터 포함)들에 대해 알아보자.'
 author: 'Jiwon Park'
 tags: ['darkmode', 'svg-filter', 'color-space', 'css', 'image-processing']
 image: '/images/articles/darkmode-images/images/og-image.png'
@@ -71,11 +71,11 @@ $$
 
 ## 해결책: invert() + hue-rotate()
 
-지금까지 정리하면 다음과 같다.
+그래서 정리해보면 다음과 같다.
 - **원하는 것**: 밝기는 뒤집되, 색상(Hue)은 유지
 - **invert()의 문제**: 색상까지 보색으로 치환
 
-해결은 단순하다. `hue-rotate(180deg)`를 한 번 더 추가하면 된다.
+이 문제를 해결하기 위해서는 `hue-rotate(180deg)`를 한 번 더 추가하면 된다.
 
 ```css
 filter: invert(1) hue-rotate(180deg);
@@ -141,7 +141,7 @@ $$
 
 `hue-rotate(180deg)`가 만족스럽지 않거나, 다른 종류의 색 변환이 필요하다면 이야기는 달라진다. 그때는 SVG `feColorMatrix`로 행렬을 직접 작성할 수 있다.
 
-가장 빠른 방법은 값을 바꿔 가며 결과를 확인하는 것이다. 아래는 `fecolormatrix.com`<Footnote id="fecolormatrix-tool">SVG Color Matrix Mixer. https://fecolormatrix.com/</Footnote>를 참고해 만든 플레이그라운드로, 4×5 행렬을 즉시 시험해 볼 수 있다.
+가장 빠르게 이해하는 방법은 값을 바꿔 가며 결과를 확인하는 것이다. 아래는 `fecolormatrix.com`<Footnote id="fecolormatrix-tool">SVG Color Matrix Mixer. https://fecolormatrix.com/</Footnote>를 참고해 만든 플레이그라운드로, 4×5 행렬을 즉시 시험해 볼 수 있다.
 
 <FeColorMatrixLab />
 
