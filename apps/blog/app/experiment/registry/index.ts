@@ -2,6 +2,7 @@ import type { ExperimentStory } from "./types";
 import { articleStories } from "./stories/articles";
 import { blogMdxStories } from "./stories/blog-mdx";
 import { blogMdxDarkmodeImageStories } from "./stories/blog-mdx-darkmode-image";
+import { blogMdxDarkmodeImagesInteractiveStories } from "./stories/blog-mdx-darkmode-images-interactive";
 import { blogMdxDarkmodeOklchImageStories } from "./stories/blog-mdx-darkmode-oklch-image";
 import { interactiveComponentsStories } from "./stories/interactive-components";
 import { interactiveUiMdxStories } from "./stories/interactive-ui-mdx";
@@ -15,6 +16,7 @@ export const experiments: ExperimentStory[] = [
   ...interactiveComponentsStories,
   ...blogMdxStories,
   ...blogMdxDarkmodeImageStories,
+  ...blogMdxDarkmodeImagesInteractiveStories,
   ...blogMdxDarkmodeOklchImageStories,
   ...articleStories,
 ].sort(

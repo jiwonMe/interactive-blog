@@ -1,6 +1,8 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { cn } from "../../../lib/utils";
 import type { ExperimentStory } from "../registry";
 
@@ -24,6 +26,33 @@ export function ExperimentSidebar({
   onSelect,
 }: ExperimentSidebarProps) {
   const hasQuery = query.trim().length > 0;
+
+  // 각 section의 열림/닫힘 상태 관리
+  const [openSections, setOpenSections] = React.useState<Set<string>>(new Set());
+
+  // 활성 story가 있는 section은 자동으로 열기
+  React.useEffect(() => {
+    if (activeSlug) {
+      const activeStory = grouped.find(([, stories]) =>
+        stories.some((s) => s.slug === activeSlug)
+      );
+      if (activeStory) {
+        setOpenSections((prev) => new Set(prev).add(activeStory[0]));
+      }
+    }
+  }, [activeSlug, grouped]);
+
+  const toggleSection = (category: string) => {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(category)) {
+        next.delete(category);
+      } else {
+        next.add(category);
+      }
+      return next;
+    });
+  };
 
   return (
     <aside
@@ -233,121 +262,165 @@ export function ExperimentSidebar({
             검색 결과가 없습니다.
           </p>
         ) : (
-          grouped.map(([category, stories]) => (
-            <section key={category}>
-              <div
-                className={cn(
-                  /* 레이아웃 */
-                  "flex items-center justify-between gap-2"
-                )}
-              >
-                <h2
-                  className={cn(
-                    /* 타이포 */
-                    "text-xs font-bold uppercase tracking-wider",
-                    /* 색상 */
-                    "text-zinc-500 dark:text-zinc-400"
-                  )}
-                >
-                  {category}
-                </h2>
-                <span
+          grouped.map(([category, stories]) => {
+            const isOpen = openSections.has(category);
+            return (
+              <section key={category}>
+                <button
+                  type="button"
+                  onClick={() => toggleSection(category)}
                   className={cn(
                     /* 레이아웃 */
-                    "text-[10px] px-2 py-0.5 rounded-full",
-                    /* 배경 */
-                    "bg-zinc-100 dark:bg-zinc-900",
-                    /* 테두리 */
-                    "border border-zinc-200 dark:border-zinc-800",
-                    /* 텍스트 */
-                    "text-zinc-600 dark:text-zinc-300"
+                    "w-full flex items-center justify-between gap-2",
+                    /* 패딩 */
+                    "py-2",
+                    /* 인터랙션 */
+                    "hover:bg-zinc-50 dark:hover:bg-zinc-900/50",
+                    "transition-colors rounded-lg",
+                    /* 포커스 */
+                    "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30"
                   )}
                 >
-                  {stories.length}
-                </span>
-              </div>
-              <div
-                className={cn(
-                  /* 레이아웃 */
-                  "mt-2 space-y-1"
-                )}
-              >
-                {stories.map((story) => {
-                  const isActive = activeSlug === story.slug;
-                  return (
-                    <button
-                      key={story.slug}
-                      type="button"
-                      onClick={() => onSelect(story.slug)}
-                      aria-current={isActive ? "page" : undefined}
+                  <div
+                    className={cn(
+                      /* 레이아웃 */
+                      "flex items-center gap-2 flex-1 min-w-0"
+                    )}
+                  >
+                    <ChevronDown
                       className={cn(
                         /* 레이아웃 */
-                        "relative w-full text-left rounded-lg px-3 py-2",
-                        /* 배경 */
-                        isActive ? "bg-blue-50 dark:bg-blue-950/40" : "bg-transparent",
-                        /* 테두리 */
-                        "border",
-                        isActive
-                          ? "border-blue-200 dark:border-blue-900/60"
-                          : "border-transparent",
-                        /* 인터랙션 */
-                        "hover:bg-zinc-50 dark:hover:bg-zinc-900",
-                        "transition-colors",
-                        /* 포커스 */
-                        "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
-                        /* 인디케이터 */
-                        isActive
-                          ? "before:absolute before:left-1 before:inset-y-2 before:w-1 before:rounded-full before:bg-blue-500 dark:before:bg-blue-400"
-                          : "before:absolute before:left-1 before:inset-y-2 before:w-1 before:rounded-full before:bg-transparent"
+                        "h-3.5 w-3.5 shrink-0",
+                        /* 색상 */
+                        "text-zinc-500 dark:text-zinc-400",
+                        /* 애니메이션 */
+                        "transition-transform duration-200",
+                        /* 회전 */
+                        isOpen ? "rotate-0" : "-rotate-90"
+                      )}
+                    />
+                    <h2
+                      className={cn(
+                        /* 타이포 */
+                        "text-xs font-bold uppercase tracking-wider truncate",
+                        /* 색상 */
+                        "text-zinc-500 dark:text-zinc-400"
                       )}
                     >
-                      <div
-                        className={cn(
-                          /* 레이아웃 */
-                          "flex items-start justify-between gap-3"
-                        )}
-                      >
-                        <div className="min-w-0">
-                          <div
+                      {category}
+                    </h2>
+                  </div>
+                  <span
+                    className={cn(
+                      /* 레이아웃 */
+                      "text-[10px] px-2 py-0.5 rounded-full shrink-0",
+                      /* 배경 */
+                      "bg-zinc-100 dark:bg-zinc-900",
+                      /* 테두리 */
+                      "border border-zinc-200 dark:border-zinc-800",
+                      /* 텍스트 */
+                      "text-zinc-600 dark:text-zinc-300"
+                    )}
+                  >
+                    {stories.length}
+                  </span>
+                </button>
+                <div
+                  className={cn(
+                    /* 레이아웃 */
+                    "grid",
+                    /* 애니메이션 */
+                    "transition-all duration-200 ease-in-out",
+                    /* 상태 */
+                    isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  )}
+                >
+                  <div className="overflow-hidden">
+                    <div
+                      className={cn(
+                        /* 레이아웃 */
+                        "mt-2 space-y-1"
+                      )}
+                    >
+                      {stories.map((story) => {
+                        const isActive = activeSlug === story.slug;
+                        return (
+                          <button
+                            key={story.slug}
+                            type="button"
+                            onClick={() => onSelect(story.slug)}
+                            aria-current={isActive ? "page" : undefined}
                             className={cn(
-                              /* 타이포 */
-                              "text-sm font-semibold truncate",
-                              /* 색상 */
-                              "text-zinc-900 dark:text-zinc-100"
+                              /* 레이아웃 */
+                              "relative w-full text-left rounded-lg px-3 py-2",
+                              /* 배경 */
+                              isActive ? "bg-blue-50 dark:bg-blue-950/40" : "bg-transparent",
+                              /* 테두리 */
+                              "border",
+                              isActive
+                                ? "border-blue-200 dark:border-blue-900/60"
+                                : "border-transparent",
+                              /* 인터랙션 */
+                              "hover:bg-zinc-50 dark:hover:bg-zinc-900",
+                              "transition-colors",
+                              /* 포커스 */
+                              "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
+                              /* 인디케이터 */
+                              isActive
+                                ? "before:absolute before:left-1 before:inset-y-2 before:w-1 before:rounded-full before:bg-blue-500 dark:before:bg-blue-400"
+                                : "before:absolute before:left-1 before:inset-y-2 before:w-1 before:rounded-full before:bg-transparent"
                             )}
                           >
-                            {story.title}
-                          </div>
-                          <div
-                            className={cn(
-                              /* 타이포 */
-                              "text-xs truncate",
-                              /* 색상 */
-                              "text-zinc-500 dark:text-zinc-400"
-                            )}
-                          >
-                            {story.slug}
-                          </div>
-                        </div>
-                        <span
-                          className={cn(
-                            /* 레이아웃 */
-                            "shrink-0 text-[10px] px-2 py-1 rounded-full",
-                            /* 배경 */
-                            "bg-zinc-100 dark:bg-zinc-800",
-                            /* 텍스트 */
-                            "text-zinc-600 dark:text-zinc-300"
-                          )}
-                        >
-                          {story.tags[0] ?? "story"}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          ))
+                            <div
+                              className={cn(
+                                /* 레이아웃 */
+                                "flex items-start justify-between gap-3"
+                              )}
+                            >
+                              <div className="min-w-0">
+                                <div
+                                  className={cn(
+                                    /* 타이포 */
+                                    "text-sm font-semibold truncate",
+                                    /* 색상 */
+                                    "text-zinc-900 dark:text-zinc-100"
+                                  )}
+                                >
+                                  {story.title}
+                                </div>
+                                <div
+                                  className={cn(
+                                    /* 타이포 */
+                                    "text-xs truncate",
+                                    /* 색상 */
+                                    "text-zinc-500 dark:text-zinc-400"
+                                  )}
+                                >
+                                  {story.slug}
+                                </div>
+                              </div>
+                              <span
+                                className={cn(
+                                  /* 레이아웃 */
+                                  "shrink-0 text-[10px] px-2 py-1 rounded-full",
+                                  /* 배경 */
+                                  "bg-zinc-100 dark:bg-zinc-800",
+                                  /* 텍스트 */
+                                  "text-zinc-600 dark:text-zinc-300"
+                                )}
+                              >
+                                {story.tags[0] ?? "story"}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </section>
+            );
+          })
         )}
       </div>
     </aside>
