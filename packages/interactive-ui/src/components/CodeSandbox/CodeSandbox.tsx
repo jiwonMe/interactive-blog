@@ -7,11 +7,11 @@ import {
   type SandpackFiles,
   type SandpackPredefinedTemplate,
 } from '@codesandbox/sandpack-react';
-import { atomDark, githubLight } from '@codesandbox/sandpack-themes';
 import {
   filterDependencies,
   DEFAULT_ALLOWED_DEPENDENCIES,
 } from './dependency-policy';
+import { githubLightCustom, githubDarkCustom } from './github-themes';
 
 /**
  * CodeSandbox 컴포넌트 Props
@@ -21,8 +21,9 @@ export interface CodeSandboxProps {
    * Sandpack 템플릿
    * - "vanilla": HTML/CSS/JS
    * - "react-ts": React + TypeScript
+   * - "test-ts": TypeScript 테스트 환경 (Jest 기반)
    */
-  template: 'vanilla' | 'react-ts';
+  template: 'vanilla' | 'react-ts' | 'test-ts';
 
   /**
    * 파일 맵 (Sandpack files 형식)
@@ -62,6 +63,8 @@ export interface CodeSandboxProps {
     readOnly?: boolean;
     /** 행 번호 표시 */
     showLineNumbers?: boolean;
+    /** 레이아웃 모드 (preview, tests, console) */
+    layout?: 'preview' | 'tests' | 'console';
   };
 
   /**
@@ -92,6 +95,45 @@ function injectSandpackCss() {
   style.textContent = getSandpackCssText();
   document.head.appendChild(style);
   cssInjected = true;
+}
+
+/**
+ * 탭 버튼 텍스트 색상 오버라이드 CSS 주입
+ */
+function injectTabButtonOverride(isDark: boolean) {
+  if (typeof document === 'undefined') return;
+
+  const existingOverride = document.getElementById('sandpack-tab-override');
+  if (existingOverride) {
+    // 기존 스타일 업데이트
+    existingOverride.textContent = getTabButtonOverrideCSS(isDark);
+    return;
+  }
+
+  const overrideStyle = document.createElement('style');
+  overrideStyle.id = 'sandpack-tab-override';
+  overrideStyle.textContent = getTabButtonOverrideCSS(isDark);
+  document.head.appendChild(overrideStyle);
+}
+
+/**
+ * 탭 버튼 오버라이드 CSS 생성
+ */
+function getTabButtonOverrideCSS(isDark: boolean): string {
+  // 다크모드/라이트모드에 따른 색상
+  const baseColor = isDark ? '#c9d1d9' : '#24292f';
+  const accentColor = isDark ? '#58a6ff' : '#0969da';
+
+  return `
+    /* 비활성 탭 버튼 텍스트 색상 (무채색) */
+    .sp-tab-button:not([data-active="true"]) {
+      color: ${baseColor} !important;
+    }
+    /* 활성 탭 버튼은 파란색 유지 */
+    .sp-tab-button[data-active="true"] {
+      color: ${accentColor} !important;
+    }
+  `;
 }
 
 /**
@@ -183,6 +225,11 @@ export function CodeSandbox({
     injectSandpackCss();
   }, []);
 
+  // 탭 버튼 텍스트 색상 오버라이드 (다크모드 변경 시 업데이트)
+  useEffect(() => {
+    injectTabButtonOverride(isDarkMode);
+  }, [isDarkMode]);
+
   // 의존성 필터링
   const { allowed: filteredDeps, blocked } = filterDependencies(
     dependencies,
@@ -199,10 +246,14 @@ export function CodeSandbox({
     externalResources,
     readOnly = false,
     showLineNumbers = true,
+    layout,
   } = options;
 
-  // 테마 선택
-  const theme = isDarkMode ? atomDark : githubLight;
+  // 테마 선택 (Shiki github-light/github-dark와 일치)
+  const theme = isDarkMode ? githubDarkCustom : githubLightCustom;
+
+  // 테스트 템플릿인 경우 자동으로 tests 레이아웃 사용
+  const effectiveLayout = layout ?? (template === 'test-ts' ? 'tests' : 'preview');
 
   return (
     <div
@@ -211,6 +262,8 @@ export function CodeSandbox({
       style={{
         borderRadius: '8px',
         overflow: 'hidden',
+        // 본문 배경색과 일치하도록 배경색 제거 (Sandpack 테마의 surface1 사용)
+        backgroundColor: isDarkMode ? '#09090b' : '#f4f4f5',
         border: isDarkMode ? '1px solid #3f3f46' : '1px solid #e4e4e7',
       }}
     >
@@ -236,12 +289,13 @@ export function CodeSandbox({
           readOnly,
           showLineNumbers,
           // 레이아웃 설정
+          layout: effectiveLayout,
           showTabs: true,
           closableTabs: false,
           showNavigator: false,
-          showRefreshButton: true,
+          showRefreshButton: template !== 'test-ts',
           // 에디터 설정
-          wrapContent: true,
+          wrapContent: false, // 긴 줄은 스크롤로 표시
           autorun: true,
           recompileMode: 'delayed',
           recompileDelay: 500,

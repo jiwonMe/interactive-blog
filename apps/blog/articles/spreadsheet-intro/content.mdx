@@ -1,0 +1,247 @@
+---
+title: 'Chapter 0: 개발 환경과 TDD 이해'
+date: '2025-12-24'
+description: '웹 기반 스프레드시트를 만들기 위한 준비 과정과 테스트 주도 개발(TDD) 방법론을 익힙니다.'
+author: 'PWNZ'
+tags: ['Spreadsheet', 'TDD', 'React', 'TypeScript']
+---
+
+## 0.0 이 책에 대하여
+
+### 무엇을 만드나요?
+
+이 책에서는 **웹 기반 스프레드시트 애플리케이션**을 처음부터 만들어갑니다. Google Sheets나 Excel Online처럼 브라우저에서 작동하며, 수만 개의 셀을 부드럽게 다룰 수 있는 애플리케이션입니다.
+
+```
+최종 모습:
+┌─────────────────────────────────────────────────┐
+│  File  Edit  View  Insert  Format  Data  Help  │
+├─────┬──────────┬──────────┬──────────┬──────────┤
+│     │    A     │    B     │    C     │    D     │
+├─────┼──────────┼──────────┼──────────┼──────────┤
+│  1  │  Name    │   Age    │  Status  │  Score   │
+├─────┼──────────┼──────────┼──────────┼──────────┤
+│  2  │  Alice   │    30    │  Active  │    95    │
+├─────┼──────────┼──────────┼──────────┼──────────┤
+│  3  │  Bob     │    25    │ Inactive │    82    │
+└─────┴──────────┴──────────┴──────────┴──────────┘
+```
+
+완성된 스프레드시트는 다음 기능을 제공합니다:
+
+- 수만 행의 데이터를 부드럽게 스크롤
+- 셀 선택, 편집, 포맷팅
+- 방향키, Tab, Enter로 이동
+- 수식 계산 (=SUM, =AVERAGE 등)
+- Undo와 Redo
+- 복사와 붙여넣기
+
+### 왜 스프레드시트를 만드나요?
+
+스프레드시트는 겉으로는 단순해 보이지만, 내부적으로는 여러 복잡한 문제를 다룹니다. 렌더링 성능, 상태 관리, 키보드 인터랙션, 수식 계산 등 모던 웹 애플리케이션이 직면하는 거의 모든 도전 과제가 이 안에 담겨 있습니다.
+
+프론트엔드 개발 관점에서 스프레드시트는 다음을 경험할 수 있는 이상적인 프로젝트입니다:
+
+**기술적 도전**:
+- 대규모 데이터셋을 다루는 성능 최적화
+- 복잡한 사용자 인터랙션 처리
+- 예측 가능한 상태 관리
+- 접근성을 고려한 키보드 네비게이션
+
+---
+
+## 0.1 Test-Driven Development
+
+### 개념의 이해
+
+Test-Driven Development(TDD)는 코드를 작성하기 전에 테스트를 먼저 작성하는 개발 방법론입니다. 이는 단순한 테스트 작성 순서의 변경이 아니라, 소프트웨어 설계에 대한 근본적으로 다른 접근입니다.
+
+```
+전통적 개발 흐름:
+구현 → 동작 확인 → 버그 발견 → 수정 → 반복
+
+TDD 흐름:
+테스트 작성 → 실패 확인 → 구현 → 통과 확인 → 리팩토링
+```
+
+### Red-Green-Refactor 사이클 체험
+
+아래 샌드박스에서 TDD의 가치를 직접 확인해보세요. `calculateTotal` 함수는 현재 엣지 케이스를 처리하지 못하고 있습니다. 오른쪽 테스트 결과 패널에서 **실패하는 테스트**를 확인하고, 구현을 수정해서 **모든 테스트를 통과**시켜 보세요.
+
+<CodeSandbox
+  template="test-ts"
+  options={{
+    editorHeight: 450,
+    activeFile: "/calculateTotal.ts",
+    visibleFiles: ["/calculateTotal.ts", "/calculateTotal.test.ts"]
+  }}
+  files={{
+    "/calculateTotal.ts": `/**
+ * TODO: 엣지 케이스를 처리하도록 수정하세요.
+ * 1. items가 없을 때 0 반환
+ * 2. price가 없을 때 0으로 처리
+ */
+export function calculateTotal(items: any[] = []) {
+  let total = 0;
+  for (let item of items) {
+    // 🔴 현재 unsafe한 접근 - price가 없으면 NaN 발생!
+    total += item.price * item.quantity;
+  }
+  return total;
+}`,
+    "/calculateTotal.test.ts": `import { calculateTotal } from "./calculateTotal";
+
+describe("calculateTotal", () => {
+  test("should return 0 for empty array", () => {
+    expect(calculateTotal([])).toBe(0);
+  });
+  
+  test("should handle missing price", () => {
+    expect(calculateTotal([{ quantity: 2 }])).toBe(0);
+  });
+  
+  test("should calculate correct total", () => {
+    expect(calculateTotal([
+      { price: 10, quantity: 2 },
+      { price: 5, quantity: 3 }
+    ])).toBe(35);
+  });
+});`
+  }}
+/>
+
+---
+
+## 0.2 개발 환경
+
+이 프로젝트는 모던 웹 개발 도구들을 사용합니다.
+
+### Node.js 버전 확인
+
+터미널에서 현재 설치된 Node.js 버전을 확인하세요:
+
+```bash
+node --version
+# v18.0.0 이상 권장
+```
+
+---
+
+## 0.3 프로젝트 생성
+
+### Vite 프로젝트 초기화
+
+우리는 빠른 빌드와 훌륭한 개발 경험을 위해 **Vite**를 사용합니다.
+
+```bash
+npm create vite@latest spreadsheet-app -- --template react-ts
+cd spreadsheet-app
+npm install
+```
+
+### 테스트 도구 설치
+
+```bash
+npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom
+```
+
+---
+
+## 0.4 Vitest 설정
+
+TDD를 위해서는 테스트 환경이 잘 갖춰져야 합니다. `vitest.config.ts` 설정을 통해 `jsdom` 환경을 구축합니다.
+
+---
+
+## 0.5 첫 번째 테스트
+
+간단한 유틸리티 함수로 설정이 잘 되었는지 확인해봅시다. 오른쪽 패널에서 테스트 결과가 실시간으로 업데이트됩니다.
+
+<CodeSandbox
+  template="test-ts"
+  options={{
+    editorHeight: 400,
+    activeFile: "/math.test.ts",
+    visibleFiles: ["/math.ts", "/math.test.ts"]
+  }}
+  files={{
+    "/math.ts": `export function add(a: number, b: number): number {
+  return a + b;
+}
+
+export function multiply(a: number, b: number): number {
+  // TODO: 구현을 완성하세요 (Green 단계)
+  return 0;
+}`,
+    "/math.test.ts": `import { add, multiply } from "./math";
+
+describe("math utilities", () => {
+  test("should add two numbers", () => {
+    expect(add(2, 3)).toBe(5);
+  });
+
+  test("should multiply two numbers", () => {
+    expect(multiply(3, 4)).toBe(12);
+  });
+});`
+  }}
+/>
+
+---
+
+## 0.6 프로젝트 구조
+
+우리의 프로젝트는 다음과 같이 명확하게 관심사를 분리합니다:
+
+- `components/`: UI 렌더링 담당
+- `hooks/`: 상태와 부수 효과 관리
+- `utils/`: 비즈니스 로직 (순수 함수)
+- `types/`: 공통 타입 정의
+
+---
+
+## 0.14 다음 단계
+
+### 준비 완료
+
+이제 모든 준비가 끝났습니다. 다음 챕터에서는 스프레드시트의 근간이 되는 **Cell** 컴포넌트를 만들기 시작합니다.
+
+<CodeSandbox
+  template="react-ts"
+  options={{
+    editorHeight: 350
+  }}
+  files={{
+    "/App.tsx": `import React from "react";
+
+function Cell({ value }: { value: string | number }) {
+  return (
+    <div style={{
+      minWidth: 100, height: 32, padding: "0 8px", border: "1px solid #e0e0e0",
+      display: "flex", alignItems: "center", background: "white", fontSize: 14,
+    }}>
+      {value === "" ? "\\u00A0" : value}
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <div style={{ padding: 24, background: "#fafafa", minHeight: "100vh" }}>
+      <h1>Chapter 1 미리보기</h1>
+      <div style={{ display: "flex", gap: 1, background: "#ddd", padding: 1, width: "fit-content" }}>
+        <Cell value="Name" />
+        <Cell value="Age" />
+      </div>
+      <div style={{ display: "flex", gap: 1, background: "#ddd", padding: 1, width: "fit-content", marginTop: -1 }}>
+        <Cell value="Alice" />
+        <Cell value={30} />
+      </div>
+    </div>
+  );
+}`
+  }}
+/>
+
+**Chapter 1**에서 본격적인 격자 구조를 만들어 봅시다!
+
