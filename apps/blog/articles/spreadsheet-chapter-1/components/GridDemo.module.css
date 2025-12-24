@@ -1,0 +1,200 @@
+/* ============================================================
+   GridDemo 컨테이너
+   ============================================================ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.75rem;
+  background: #fafafa;
+}
+
+:global(.dark) .container {
+  background: rgba(24, 24, 27, 0.5);
+  border-color: #27272a;
+}
+
+/* ============================================================
+   컨트롤 영역
+   ============================================================ */
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #52525b;
+}
+
+:global(.dark) .label {
+  color: #a1a1aa;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #3b82f6;
+}
+
+/* ============================================================
+   Grid 컨테이너
+   ============================================================ */
+
+.gridWrapper {
+  overflow-x: auto;
+}
+
+.grid {
+  display: inline-block;
+  border: 1px solid #d4d4d8;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+:global(.dark) .grid {
+  border-color: #52525b;
+}
+
+/* ============================================================
+   헤더 영역
+   ============================================================ */
+
+.header {
+  display: flex;
+  background: #f4f4f5;
+  border-bottom: 2px solid #d4d4d8;
+}
+
+:global(.dark) .header {
+  background: #27272a;
+  border-bottom-color: #52525b;
+}
+
+.cornerCell {
+  width: 50px;
+  height: 32px;
+  border-right: 1px solid #e4e4e7;
+}
+
+:global(.dark) .cornerCell {
+  border-right-color: #3f3f46;
+}
+
+.headerCell {
+  width: 100px;
+  height: 32px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+  color: #71717a;
+  border-right: 1px solid #e4e4e7;
+}
+
+:global(.dark) .headerCell {
+  color: #a1a1aa;
+  border-right-color: #3f3f46;
+}
+
+/* ============================================================
+   데이터 행
+   ============================================================ */
+
+.rowContainer {
+  display: flex;
+}
+
+.rowContainer:not(:last-child) {
+  border-bottom: 1px solid #e4e4e7;
+}
+
+:global(.dark) .rowContainer:not(:last-child) {
+  border-bottom-color: #3f3f46;
+}
+
+.rowNumber {
+  width: 50px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f4f4f5;
+  border-right: 2px solid #d4d4d8;
+  font-size: 12px;
+  color: #71717a;
+  font-weight: 600;
+}
+
+:global(.dark) .rowNumber {
+  background: #27272a;
+  border-right-color: #52525b;
+  color: #a1a1aa;
+}
+
+.row {
+  display: flex;
+}
+
+/* ============================================================
+   셀
+   ============================================================ */
+
+.cell {
+  width: 100px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #e4e4e7;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: white;
+  font-size: 14px;
+  color: #27272a;
+  transition: background-color 0.15s ease;
+}
+
+:global(.dark) .cell {
+  background: #18181b;
+  border-color: #3f3f46;
+  color: #e4e4e7;
+}
+
+.cell:hover {
+  background: #f4f4f5;
+}
+
+:global(.dark) .cell:hover {
+  background: #27272a;
+}
+
+/* ============================================================
+   안내 문구
+   ============================================================ */
+
+.hint {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #71717a;
+}
+
+:global(.dark) .hint {
+  color: #71717a;
+}
+
