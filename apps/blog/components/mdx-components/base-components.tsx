@@ -1,4 +1,4 @@
-import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard, Footnote, Footnotes as OriginalFootnotes, Callout, CollapsibleCode, Highlight } from '@repo/interactive-ui';
+import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard, Footnote, Footnotes as OriginalFootnotes, Callout, CollapsibleCode, Highlight, CodeSandbox } from '@repo/interactive-ui';
 import { AreaChart, BarChart, LineChart, ScatterPlot, SimulationPanel, PlaybackControls, StatsDisplay, Button, NumberInput, Select, Slider, Toggle, RechartsLineChart, RechartsHistogram } from '@repo/interactive-components';
 import { cn } from '../../lib/utils';
 import Image from 'next/image';
@@ -171,6 +171,18 @@ export function createBaseComponents(slug?: string, title?: string) {
     CollapsibleSection: (props: any) => <CollapsibleSection {...props} />,
     // Highlight 컴포넌트 (형광펜 효과)
     Highlight: (props: any) => <Highlight {...props} />,
+    // CodeSandbox 컴포넌트 (인터랙티브 코드 편집/실행)
+    CodeSandbox: (props: any) => (
+      <div className="my-8">
+        <CodeSandbox {...props} />
+      </div>
+    ),
+    // Sandbox alias (CodeSandbox의 짧은 이름)
+    Sandbox: (props: any) => (
+      <div className="my-8">
+        <CodeSandbox {...props} />
+      </div>
+    ),
     // CodeTabs / CodeTab (rehype plugin이 주입한 탭 UI)
     CodeTabs: (props: any) => <CodeTabs {...props} />,
     CodeTab: (props: any) => <CodeTab {...props} />,

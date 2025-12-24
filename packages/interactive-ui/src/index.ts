@@ -13,5 +13,15 @@ export { Callout } from './components/Callout';
 export type { CalloutType } from './components/Callout';
 export { CollapsibleCode } from './components/CollapsibleCode';
 export { Highlight } from './components/Highlight';
+export { CodeSandbox } from './components/CodeSandbox';
+export type { CodeSandboxProps } from './components/CodeSandbox';
+export {
+  DEFAULT_ALLOWED_DEPENDENCIES,
+  filterDependencies,
+} from './components/CodeSandbox';
+export type {
+  AllowedDependency,
+  DependencyFilterResult,
+} from './components/CodeSandbox';
 export { KNOWN_CITATIONS } from './lib/known-citations';
 export type { KnownCitation } from './lib/known-citations';
