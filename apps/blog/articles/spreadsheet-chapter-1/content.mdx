@@ -1,0 +1,1057 @@
+---
+title: 'Chapter 1: 격자 구조 만들기'
+series: '밑바닥부터 시작하는 스프레드시트'
+order: 1
+hidden: true
+date: '2025-12-25'
+description: '스프레드시트의 기본이 되는 격자 구조를 TDD로 만들어봅니다. Cell, Row, Grid 컴포넌트를 단계별로 구현합니다.'
+author: 'PWNZ'
+tags: ['Spreadsheet', 'TDD', 'React', 'TypeScript', 'Component']
+---
+
+## 격자의 본질
+
+스프레드시트의 가장 기본적인 형태는 격자다. 행과 열이 교차하여 셀을 만든다. 이 구조는 1979년 VisiCalc에서 시작되어 지금까지 변하지 않았다.<Footnote id="visicalc">Bricklin, Dan. "VisiCalc: Information from its creators." _Bricklin.com_, http://www.bricklin.com/visicalc.htm</Footnote>
+
+VisiCalc의 화면은 단순했다. 5개의 열(A-E)과 20개의 행이 한 화면에 표시됐다. 각 셀은 고정된 너비를 가졌고, 값이 길면 잘렸다. 화살표 키로 셀 사이를 이동했다. 이 기본 인터페이스는 45년이 지난 지금도 동일하다.
+
+```
+VisiCalc (1979):
+>A1: 
+    A         B         C         D         E
+1   --------- --------- --------- --------- ---------
+2   --------- --------- --------- --------- ---------
+3   --------- --------- --------- --------- ---------
+```
+
+이번 챕터에서는 이 격자 구조를 만든다. 복잡한 기능 없이, 순수하게 데이터를 화면에 표시하는 것에 집중한다. 셀을 선택하거나 편집하는 기능은 다음 챕터에서 다룬다.
+
+### 완성 목표
+
+이번 챕터가 끝나면 다음과 같은 스프레드시트가 완성된다:
+
+```
+┌─────┬──────────────┬──────────┬──────────┐
+│     │      A       │    B     │    C     │
+├─────┼──────────────┼──────────┼──────────┤
+│  1  │     Name     │   Age    │  Status  │
+├─────┼──────────────┼──────────┼──────────┤
+│  2  │ Alice Johnson│    30    │  Active  │
+├─────┼──────────────┼──────────┼──────────┤
+│  3  │  Bob Smith   │    25    │ Inactive │
+└─────┴──────────────┴──────────┴──────────┘
+```
+
+데이터가 화면에 표시되지만, 아직 사용자 인터랙션은 없다. 마우스를 올리면 배경색이 바뀌는 정도의 시각적 피드백만 제공한다.
+
+---
+
+## 1.1 컴포넌트 구조
+
+### 합성의 원칙
+
+React의 핵심 철학 중 하나는 합성(composition)이다.<Footnote id="react-thinking">React. "Thinking in React." _React Documentation_, https://react.dev/learn/thinking-in-react</Footnote> 복잡한 UI를 작은 컴포넌트로 나누고, 이를 조합하여 전체를 만든다. 각 컴포넌트는 하나의 책임만 가진다.
+
+스프레드시트를 세 개의 컴포넌트로 분해한다:
+
+```
+Grid
+ └─ Row
+     └─ Cell
+```
+
+**Cell**은 가장 작은 단위다. 하나의 값을 표시한다.
+
+**Row**는 셀들을 가로로 배치한다. 하나의 행 데이터를 받아서 여러 Cell을 렌더링한다.
+
+**Grid**는 행들을 세로로 쌓는다. 전체 데이터를 받아서 여러 Row를 렌더링한다.
+
+이 구조가 유일한 정답은 아니다. 모든 것을 하나의 컴포넌트로 만들 수도 있다. 하지만 분리하면 각 부분을 독립적으로 테스트하고 수정할 수 있다.
+
+### 데이터 흐름
+
+React에서 데이터는 위에서 아래로 흐른다.<Footnote id="react-props">React. "Passing Props to a Component." _React Documentation_, https://react.dev/learn/passing-props-to-a-component</Footnote> 부모 컴포넌트가 자식에게 props로 데이터를 전달한다:
+
+```
+App (데이터 소유)
+ │
+ └─ Grid (data prop)
+     │
+     └─ Row (cells prop)
+         │
+         └─ Cell (value prop)
+```
+
+이 단방향 데이터 흐름은 애플리케이션을 예측 가능하게 만든다. 버그가 발생하면 데이터의 출처를 추적하기 쉽다.
+
+---
+
+## 1.2 데이터 구조 설계
+
+코드를 작성하기 전에 데이터의 형태를 정의한다. TypeScript의 타입 시스템은 컴파일 시점에 오류를 잡아준다.
+
+`src/types/index.ts` 파일을 만든다:
+
+```typescript
+/**
+ * 하나의 셀 데이터
+ */
+export interface CellData {
+  value: string | number;
+}
+
+/**
+ * 하나의 행 데이터
+ */
+export interface RowData {
+  cells: CellData[];
+}
+
+/**
+ * 전체 그리드 데이터
+ */
+export interface GridData {
+  rows: RowData[];
+}
+
+/**
+ * 셀의 위치
+ */
+export interface CellPosition {
+  rowIndex: number;
+  colIndex: number;
+}
+```
+
+왜 `{ value: 'Alice' }` 형태로 감싸는가? 지금은 값만 있지만, 나중에 수식, 스타일, 포맷 같은 속성이 추가된다. 처음부터 객체로 만들어두면 확장이 쉽다.
+
+---
+
+## 1.3 Cell 컴포넌트
+
+### 요구사항 정의
+
+Cell은 스프레드시트의 가장 작은 단위다. 다음 요구사항을 충족해야 한다:
+
+1. 텍스트 값을 표시할 수 있다
+2. 숫자 값을 표시할 수 있다
+3. 빈 값도 렌더링한다 (높이 유지)
+4. 고정된 최소 너비와 높이를 가진다
+5. 긴 텍스트는 잘리고 말줄임표가 표시된다
+6. 마우스를 올리면 배경색이 변한다
+
+### 테스트 작성
+
+요구사항을 테스트로 변환한다. `src/components/__tests__/Cell.test.tsx`:
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { Cell } from '../Cell';
+
+describe('Cell', () => {
+  // 요구사항 1: 텍스트 값 표시
+  it('renders text value', () => {
+    render(<Cell value="Hello" />);
+    expect(screen.getByText('Hello')).toBeInTheDocument();
+  });
+
+  // 요구사항 2: 숫자 값 표시
+  it('renders number value', () => {
+    render(<Cell value={42} />);
+    expect(screen.getByText('42')).toBeInTheDocument();
+  });
+
+  // 요구사항 3: 빈 값 렌더링
+  it('renders empty cell', () => {
+    render(<Cell value="" />);
+    const cell = screen.getByTestId('cell');
+    expect(cell).toBeInTheDocument();
+  });
+
+  // 요구사항 4: 셀 스타일 적용
+  it('applies cell class', () => {
+    render(<Cell value="Test" />);
+    const cell = screen.getByTestId('cell');
+    expect(cell.className).toContain('cell');
+  });
+
+  // 요구사항 5: 긴 텍스트 처리 (CSS로 처리되므로 클래스 존재 확인)
+  it('handles long text with proper class', () => {
+    const longText = 'This is a very long text that should be truncated';
+    render(<Cell value={longText} />);
+    const cell = screen.getByTestId('cell');
+    expect(cell).toHaveTextContent(longText);
+    expect(cell.className).toContain('cell');
+  });
+});
+```
+
+테스트를 실행한다:
+
+```bash
+npm test
+```
+
+실패한다. Cell 컴포넌트가 없기 때문이다:
+
+```
+FAIL  src/components/__tests__/Cell.test.tsx
+ ✕ renders text value
+   Error: Cannot find module '../Cell'
+```
+
+이것이 TDD의 Red 단계다. 실패하는 테스트가 있어야 구현을 시작한다.
+
+### 구현
+
+테스트를 통과시키는 최소한의 코드를 작성한다.
+
+`src/components/Cell.tsx`:
+
+```typescript
+import styles from './Cell.module.css';
+
+interface CellProps {
+  value: string | number;
+}
+
+export function Cell({ value }: CellProps) {
+  return (
+    <div data-testid="cell" className={styles.cell}>
+      {value}
+    </div>
+  );
+}
+```
+
+`src/components/Cell.module.css`:
+
+```css
+.cell {
+  min-width: 100px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: white;
+  font-size: 14px;
+  color: #333;
+}
+
+.cell:hover {
+  background: #f8f9fa;
+}
+```
+
+테스트를 다시 실행한다:
+
+```bash
+npm test
+```
+
+```
+PASS  src/components/__tests__/Cell.test.tsx
+ ✓ renders text value
+ ✓ renders number value
+ ✓ renders empty cell
+ ✓ applies cell class
+ ✓ handles long text with proper class
+```
+
+모든 테스트가 통과한다. Green 단계다.
+
+### 리팩토링
+
+코드를 개선할 부분이 있는지 검토한다.
+
+빈 셀의 경우 내용이 완전히 비어 있다. 레이아웃은 유지되지만, 시각적으로 더 명확하게 만들 수 있다. non-breaking space를 넣으면 빈 셀임을 더 잘 알 수 있다.
+
+먼저 테스트를 추가한다:
+
+```typescript
+it('displays non-breaking space for empty value', () => {
+  render(<Cell value="" />);
+  const cell = screen.getByTestId('cell');
+  // \u00A0 = non-breaking space
+  expect(cell.textContent).toBe('\u00A0');
+});
+```
+
+테스트가 실패한다. 이제 구현을 수정한다:
+
+```typescript
+export function Cell({ value }: CellProps) {
+  const displayValue = value === '' ? '\u00A0' : value;
+  
+  return (
+    <div data-testid="cell" className={styles.cell}>
+      {displayValue}
+    </div>
+  );
+}
+```
+
+테스트가 통과한다. 리팩토링 완료다.
+
+**CSS Modules 선택 이유**: 스타일링에는 여러 선택지가 있다. 인라인 스타일, 전역 CSS, CSS-in-JS 등. CSS Modules를 선택한 이유는 스타일 격리가 자동으로 되고, 런타임 오버헤드가 없기 때문이다.<Footnote id="css-modules">Maddern, Glen. "CSS Modules: Welcome to the Future." _glenmaddern.com_, 2015, https://glenmaddern.com/articles/css-modules</Footnote> 스프레드시트 스타일은 복잡하지 않으므로 이 정도면 충분하다.
+
+---
+
+## 1.4 Row 컴포넌트
+
+### 요구사항 정의
+
+Row는 여러 Cell을 가로로 배치한다:
+
+1. 전달받은 셀 데이터를 모두 렌더링한다
+2. 셀들을 가로로 나란히 배치한다
+3. 빈 행도 렌더링한다
+4. 행 인덱스를 data 속성으로 가진다 (디버깅, 테스트 용도)
+5. 마우스를 올리면 행 전체 배경색이 변한다
+
+### 테스트 작성
+
+`src/components/__tests__/Row.test.tsx`:
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { Row } from '../Row';
+import type { CellData } from '../../types';
+
+describe('Row', () => {
+  // 요구사항 1: 셀 데이터 렌더링
+  it('renders all cells with provided data', () => {
+    const cells: CellData[] = [
+      { value: 'Alice' },
+      { value: 30 },
+      { value: 'Active' },
+    ];
+
+    render(<Row cells={cells} rowIndex={0} />);
+
+    expect(screen.getByText('Alice')).toBeInTheDocument();
+    expect(screen.getByText('30')).toBeInTheDocument();
+    expect(screen.getByText('Active')).toBeInTheDocument();
+  });
+
+  // 요구사항 1: 정확한 셀 개수
+  it('renders correct number of cells', () => {
+    const cells: CellData[] = [
+      { value: 'A' },
+      { value: 'B' },
+      { value: 'C' },
+      { value: 'D' },
+    ];
+
+    render(<Row cells={cells} rowIndex={0} />);
+    
+    const cellElements = screen.getAllByTestId('cell');
+    expect(cellElements).toHaveLength(4);
+  });
+
+  // 요구사항 3: 빈 행 렌더링
+  it('renders empty row', () => {
+    render(<Row cells={[]} rowIndex={0} />);
+    
+    const row = screen.getByTestId('row-0');
+    expect(row).toBeInTheDocument();
+  });
+
+  // 요구사항 4: 행 인덱스 속성
+  it('has row index in test id', () => {
+    const cells: CellData[] = [{ value: 'Test' }];
+    
+    render(<Row cells={cells} rowIndex={5} />);
+    
+    expect(screen.getByTestId('row-5')).toBeInTheDocument();
+  });
+
+  // 요구사항 2: 가로 배치 (flexbox 클래스 확인)
+  it('applies row class for horizontal layout', () => {
+    const cells: CellData[] = [{ value: 'A' }, { value: 'B' }];
+
+    render(<Row cells={cells} rowIndex={0} />);
+    
+    const row = screen.getByTestId('row-0');
+    expect(row.className).toContain('row');
+  });
+});
+```
+
+테스트를 실행하면 실패한다.
+
+### 구현
+
+`src/components/Row.tsx`:
+
+```typescript
+import { Cell } from './Cell';
+import type { CellData } from '../types';
+import styles from './Row.module.css';
+
+interface RowProps {
+  cells: CellData[];
+  rowIndex: number;
+}
+
+export function Row({ cells, rowIndex }: RowProps) {
+  return (
+    <div 
+      data-testid={`row-${rowIndex}`}
+      className={styles.row}
+    >
+      {cells.map((cell, colIndex) => (
+        <Cell 
+          key={`${rowIndex}-${colIndex}`}
+          value={cell.value}
+        />
+      ))}
+    </div>
+  );
+}
+```
+
+`src/components/Row.module.css`:
+
+```css
+.row {
+  display: flex;
+}
+
+.row:hover {
+  background: #f8f9fa;
+}
+```
+
+테스트가 통과한다.
+
+### 리팩토링
+
+현재 코드는 충분히 간단하다. 리팩토링할 부분이 없다.
+
+**key prop 선택**: React 리스트에서 key는 항목을 식별하는 데 사용된다.<Footnote id="react-lists">React. "Rendering Lists." _React Documentation_, https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key</Footnote> 인덱스만 사용하면 항목 순서가 바뀔 때 문제가 생길 수 있다. 하지만 스프레드시트에서 셀 순서는 고정되어 있다. 행 2, 열 3의 셀은 항상 그 위치다. 따라서 `${rowIndex}-${colIndex}` 조합이 적절하다.
+
+**Flexbox 선택**: CSS Grid도 가능하지만, Flexbox를 선택했다. 열 개수가 행마다 다를 수 있고, 열 너비를 동적으로 조절할 계획이기 때문이다. Flexbox가 이런 상황에 더 유연하다.
+
+---
+
+## 1.5 Grid 컴포넌트
+
+### 요구사항 정의
+
+Grid는 전체 스프레드시트를 구성한다:
+
+1. 여러 행을 세로로 쌓아서 표시한다
+2. 빈 그리드도 렌더링한다
+3. 열 헤더(A, B, C...)를 선택적으로 표시한다
+4. 행 번호(1, 2, 3...)를 선택적으로 표시한다
+5. 테두리와 기본 스타일을 가진다
+
+### 테스트 작성
+
+`src/components/__tests__/Grid.test.tsx`:
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { Grid } from '../Grid';
+import type { GridData } from '../../types';
+
+describe('Grid', () => {
+  // 요구사항 1: 여러 행 렌더링
+  it('renders all rows with data', () => {
+    const data: GridData = {
+      rows: [
+        { cells: [{ value: 'A1' }, { value: 'B1' }] },
+        { cells: [{ value: 'A2' }, { value: 'B2' }] },
+      ],
+    };
+
+    render(<Grid data={data} />);
+
+    expect(screen.getByText('A1')).toBeInTheDocument();
+    expect(screen.getByText('B1')).toBeInTheDocument();
+    expect(screen.getByText('A2')).toBeInTheDocument();
+    expect(screen.getByText('B2')).toBeInTheDocument();
+  });
+
+  // 요구사항 1: 정확한 행 개수
+  it('renders correct number of rows', () => {
+    const data: GridData = {
+      rows: [
+        { cells: [{ value: 'A' }] },
+        { cells: [{ value: 'B' }] },
+        { cells: [{ value: 'C' }] },
+      ],
+    };
+
+    render(<Grid data={data} />);
+    
+    const rows = screen.getAllByTestId(/^row-/);
+    expect(rows).toHaveLength(3);
+  });
+
+  // 요구사항 2: 빈 그리드 렌더링
+  it('renders empty grid', () => {
+    const data: GridData = { rows: [] };
+    
+    render(<Grid data={data} />);
+    
+    const grid = screen.getByTestId('grid');
+    expect(grid).toBeInTheDocument();
+  });
+
+  // 요구사항 3: 열 헤더 표시
+  it('renders column headers when showHeaders is true', () => {
+    const data: GridData = {
+      rows: [{ cells: [{ value: 'A1' }, { value: 'B1' }, { value: 'C1' }] }],
+    };
+
+    render(<Grid data={data} showHeaders={true} />);
+
+    expect(screen.getByText('A')).toBeInTheDocument();
+    expect(screen.getByText('B')).toBeInTheDocument();
+    expect(screen.getByText('C')).toBeInTheDocument();
+  });
+
+  // 요구사항 3: 헤더 기본값 false
+  it('does not render headers by default', () => {
+    const data: GridData = {
+      rows: [{ cells: [{ value: 'A1' }] }],
+    };
+
+    render(<Grid data={data} />);
+
+    expect(screen.queryByText('A')).not.toBeInTheDocument();
+  });
+
+  // 요구사항 4: 행 번호 표시
+  it('renders row numbers when showHeaders is true', () => {
+    const data: GridData = {
+      rows: [
+        { cells: [{ value: 'Test' }] },
+        { cells: [{ value: 'Test' }] },
+      ],
+    };
+
+    render(<Grid data={data} showHeaders={true} />);
+
+    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
+  });
+
+  // 요구사항 5: 그리드 스타일
+  it('applies grid class', () => {
+    const data: GridData = {
+      rows: [{ cells: [{ value: 'Test' }] }],
+    };
+
+    render(<Grid data={data} />);
+    
+    const grid = screen.getByTestId('grid');
+    expect(grid.className).toContain('grid');
+  });
+});
+```
+
+테스트를 실행하면 실패한다.
+
+### 구현
+
+`src/components/Grid.tsx`:
+
+```typescript
+import { Row } from './Row';
+import type { GridData } from '../types';
+import styles from './Grid.module.css';
+
+interface GridProps {
+  data: GridData;
+  showHeaders?: boolean;
+}
+
+export function Grid({ data, showHeaders = false }: GridProps) {
+  // 가장 긴 행의 열 개수를 기준으로 헤더 생성
+  const maxColumns = Math.max(
+    ...data.rows.map((row) => row.cells.length),
+    0
+  );
+
+  // A, B, C, ... 형태의 열 헤더
+  const columnHeaders = Array.from({ length: maxColumns }, (_, i) =>
+    String.fromCharCode(65 + i)
+  );
+
+  return (
+    <div data-testid="grid" className={styles.grid}>
+      {showHeaders && (
+        <div className={styles.header}>
+          <div className={styles.cornerCell}></div>
+          {columnHeaders.map((header) => (
+            <div key={header} className={styles.headerCell}>
+              {header}
+            </div>
+          ))}
+        </div>
+      )}
+      {data.rows.map((row, rowIndex) => (
+        <div key={rowIndex} className={styles.rowContainer}>
+          {showHeaders && (
+            <div className={styles.rowNumber}>{rowIndex + 1}</div>
+          )}
+          <Row cells={row.cells} rowIndex={rowIndex} />
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+`src/components/Grid.module.css`:
+
+```css
+.grid {
+  display: inline-block;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 
+    'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.header {
+  display: flex;
+  background: #f5f5f5;
+  border-bottom: 2px solid #d0d0d0;
+}
+
+.cornerCell {
+  min-width: 50px;
+  height: 32px;
+  border-right: 1px solid #e0e0e0;
+}
+
+.headerCell {
+  min-width: 100px;
+  height: 32px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+  color: #666;
+  border-right: 1px solid #e0e0e0;
+}
+
+.rowContainer {
+  display: flex;
+}
+
+.rowContainer:not(:last-child) {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.rowNumber {
+  min-width: 50px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  border-right: 2px solid #d0d0d0;
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+}
+```
+
+테스트가 통과한다.
+
+### 리팩토링
+
+열 헤더 생성 로직을 살펴보자:
+
+```typescript
+const columnHeaders = Array.from({ length: maxColumns }, (_, i) =>
+  String.fromCharCode(65 + i)
+);
+```
+
+이 코드는 A-Z까지만 지원한다. 27번째 열부터는 `[`, `\` 같은 문자가 나온다. 실제 스프레드시트는 AA, AB, ... 형태를 사용한다.
+
+지금 당장 고칠 필요는 없다. 26개 열이면 대부분의 용도에 충분하다. 하지만 나중에 확장해야 한다는 것을 기록해둔다:
+
+```typescript
+// TODO: 26개 이상의 열 지원 (AA, AB, ...)
+const columnHeaders = Array.from({ length: maxColumns }, (_, i) =>
+  String.fromCharCode(65 + i)
+);
+```
+
+YAGNI(You Aren't Gonna Need It) 원칙이다.<Footnote id="yagni">Fowler, Martin. "Yagni." _martinfowler.com_, 2015, https://martinfowler.com/bliki/Yagni.html</Footnote> 필요할 때 구현하면 된다.
+
+---
+
+## 1.6 테스트 데이터 유틸리티
+
+### 요구사항 정의
+
+테스트와 개발에 사용할 데이터 생성 함수가 필요하다:
+
+1. 지정한 크기의 빈 그리드를 생성한다
+2. 샘플 데이터가 포함된 그리드를 생성한다
+
+### 테스트 작성
+
+`src/utils/__tests__/data.test.ts`:
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { createEmptyGrid, createSampleGrid } from '../data';
+
+describe('data utilities', () => {
+  describe('createEmptyGrid', () => {
+    // 요구사항 1: 지정된 크기로 생성
+    it('creates grid with specified dimensions', () => {
+      const grid = createEmptyGrid(3, 4);
+      
+      expect(grid.rows).toHaveLength(3);
+      expect(grid.rows[0].cells).toHaveLength(4);
+      expect(grid.rows[1].cells).toHaveLength(4);
+      expect(grid.rows[2].cells).toHaveLength(4);
+    });
+
+    // 요구사항 1: 빈 값으로 채워짐
+    it('fills cells with empty values', () => {
+      const grid = createEmptyGrid(2, 2);
+      
+      grid.rows.forEach(row => {
+        row.cells.forEach(cell => {
+          expect(cell.value).toBe('');
+        });
+      });
+    });
+
+    // 경계 케이스: 0 크기
+    it('handles zero dimensions', () => {
+      const grid = createEmptyGrid(0, 0);
+      expect(grid.rows).toHaveLength(0);
+    });
+  });
+
+  describe('createSampleGrid', () => {
+    // 요구사항 2: 샘플 데이터 포함
+    it('creates non-empty grid', () => {
+      const grid = createSampleGrid();
+      
+      expect(grid.rows.length).toBeGreaterThan(0);
+      expect(grid.rows[0].cells.length).toBeGreaterThan(0);
+    });
+
+    // 요구사항 2: 의미 있는 데이터
+    it('has header row with labels', () => {
+      const grid = createSampleGrid();
+      
+      expect(grid.rows[0].cells[0].value).toBe('Name');
+    });
+  });
+});
+```
+
+### 구현
+
+`src/utils/data.ts`:
+
+```typescript
+import type { GridData } from '../types';
+
+export function createEmptyGrid(rows: number, cols: number): GridData {
+  return {
+    rows: Array.from({ length: rows }, () => ({
+      cells: Array.from({ length: cols }, () => ({
+        value: '',
+      })),
+    })),
+  };
+}
+
+export function createSampleGrid(): GridData {
+  return {
+    rows: [
+      {
+        cells: [
+          { value: 'Name' },
+          { value: 'Age' },
+          { value: 'Status' },
+          { value: 'Score' },
+        ],
+      },
+      {
+        cells: [
+          { value: 'Alice Johnson' },
+          { value: 30 },
+          { value: 'Active' },
+          { value: 95 },
+        ],
+      },
+      {
+        cells: [
+          { value: 'Bob Smith' },
+          { value: 25 },
+          { value: 'Inactive' },
+          { value: 82 },
+        ],
+      },
+      {
+        cells: [
+          { value: 'Carol White' },
+          { value: 35 },
+          { value: 'Active' },
+          { value: 88 },
+        ],
+      },
+    ],
+  };
+}
+```
+
+테스트가 통과한다.
+
+### 리팩토링
+
+현재 코드는 충분히 간단하다. 리팩토링 불필요.
+
+---
+
+## 1.7 애플리케이션 통합
+
+### 요구사항 정의
+
+모든 컴포넌트를 연결하여 실제로 동작하는 애플리케이션을 만든다:
+
+1. 샘플 데이터를 표시한다
+2. 헤더를 포함한다
+3. 기본적인 레이아웃을 가진다
+
+### 구현
+
+통합 단계에서는 별도의 테스트 없이 진행한다. 각 컴포넌트는 이미 테스트되었다.
+
+`src/App.tsx`:
+
+```typescript
+import { Grid } from './components/Grid';
+import { createSampleGrid } from './utils/data';
+import './App.css';
+
+function App() {
+  const data = createSampleGrid();
+
+  return (
+    <div className="app">
+      <header className="app-header">
+        <h1>Build Your Own Spreadsheet</h1>
+        <p>Chapter 1: Basic Grid UI</p>
+      </header>
+      
+      <main className="app-main">
+        <Grid data={data} showHeaders={true} />
+      </main>
+    </div>
+  );
+}
+
+export default App;
+```
+
+`src/App.css`:
+
+```css
+.app {
+  min-height: 100vh;
+  background: #fafafa;
+}
+
+.app-header {
+  padding: 40px 40px 20px;
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.app-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.app-header p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.app-main {
+  padding: 40px;
+}
+```
+
+### 브라우저에서 확인
+
+```bash
+npm run dev
+```
+
+`http://localhost:5173`을 열면 스프레드시트가 표시된다. 헤더와 샘플 데이터가 보인다. 셀 위에 마우스를 올리면 배경색이 바뀐다.
+
+---
+
+## 1.8 성능 기준선
+
+### 요구사항 정의
+
+미래의 최적화를 위해 현재 성능을 측정해둔다:
+
+1. 100행 렌더링 시간 측정
+2. 1000행 렌더링 시간 측정
+3. DOM 노드 개수 확인
+
+### 테스트 작성
+
+`src/components/__tests__/Grid.performance.test.tsx`:
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { render } from '@testing-library/react';
+import { Grid } from '../Grid';
+import type { GridData } from '../../types';
+
+function generateLargeGrid(rows: number, cols: number): GridData {
+  return {
+    rows: Array.from({ length: rows }, (_, rowIndex) => ({
+      cells: Array.from({ length: cols }, (_, colIndex) => ({
+        value: `R${rowIndex}C${colIndex}`,
+      })),
+    })),
+  };
+}
+
+describe('Grid Performance Baseline', () => {
+  it('renders 100 rows under 100ms', () => {
+    const data = generateLargeGrid(100, 10);
+
+    const startTime = performance.now();
+    render(<Grid data={data} />);
+    const endTime = performance.now();
+
+    const renderTime = endTime - startTime;
+    console.log(`100 rows: ${renderTime.toFixed(2)}ms`);
+
+    expect(renderTime).toBeLessThan(100);
+  });
+
+  it('renders 1000 rows under 500ms', () => {
+    const data = generateLargeGrid(1000, 10);
+
+    const startTime = performance.now();
+    render(<Grid data={data} />);
+    const endTime = performance.now();
+
+    const renderTime = endTime - startTime;
+    console.log(`1000 rows: ${renderTime.toFixed(2)}ms`);
+
+    expect(renderTime).toBeLessThan(500);
+  });
+
+  it('creates expected number of DOM nodes', () => {
+    const data = generateLargeGrid(100, 10);
+    const { container } = render(<Grid data={data} />);
+
+    const cellCount = container.querySelectorAll('[data-testid="cell"]').length;
+    console.log(`DOM cells for 100 rows: ${cellCount}`);
+
+    // 100 rows × 10 cols = 1000 cells
+    expect(cellCount).toBe(1000);
+  });
+});
+```
+
+테스트를 실행하면 현재 성능 기준이 출력된다:
+
+```
+100 rows: 23.45ms
+1000 rows: 312.67ms
+DOM cells for 100 rows: 1000
+```
+
+이 숫자는 Chapter 4에서 virtualization을 적용한 후와 비교할 기준이 된다.
+
+---
+
+## 1.9 커버리지 확인
+
+```bash
+npm run test:coverage
+```
+
+```
+File                  | % Stmts | % Branch | % Funcs | % Lines
+----------------------|---------|----------|---------|--------
+components/Cell.tsx   |   100   |   100    |   100   |   100
+components/Row.tsx    |   100   |   100    |   100   |   100
+components/Grid.tsx   |   100   |   100    |   100   |   100
+utils/data.ts         |   100   |   100    |   100   |   100
+```
+
+100% 커버리지다. 모든 코드 경로가 테스트되고 있다.
+
+---
+
+## 1.10 이번 챕터 정리
+
+### 만든 것
+
+- **Cell**: 단일 값을 표시하는 컴포넌트
+- **Row**: 셀들을 가로로 배치하는 컴포넌트
+- **Grid**: 행들을 세로로 쌓고 헤더를 추가하는 컴포넌트
+- **데이터 유틸리티**: 테스트 데이터 생성 함수
+
+### TDD 사이클
+
+각 컴포넌트마다 동일한 사이클을 반복했다:
+
+1. **요구사항 정의**: 컴포넌트가 무엇을 해야 하는지 명확히 한다
+2. **테스트 작성**: 요구사항을 테스트 코드로 변환한다
+3. **구현**: 테스트를 통과시키는 최소한의 코드를 작성한다
+4. **리팩토링**: 테스트가 통과하는 상태를 유지하면서 코드를 개선한다
+
+### 현재의 한계
+
+- 셀을 선택할 수 없다
+- 키보드로 이동할 수 없다
+- 내용을 편집할 수 없다
+- 대규모 데이터에서 느리다
+
+---
+
+## 1.11 다음 챕터
+
+Chapter 2에서는 선택(selection) 기능을 추가한다. 요구사항부터 정의한다:
+
+- 마우스로 셀을 클릭하면 선택된다
+- 선택된 셀은 시각적으로 강조된다
+- 방향키로 선택을 이동할 수 있다
+- Tab과 Enter로도 이동할 수 있다
+
+선택은 모든 인터랙션의 기초다. 사용자가 어떤 셀을 다루고 있는지 시스템이 알아야 편집, 복사, 붙여넣기 같은 작업이 가능해진다.
+
+---
+
+<Footnotes />
