@@ -1,1116 +1,196 @@
 ---
-title: 'Chapter 0: 개발 환경과 TDD 이해'
+title: '시작하기 전에'
 series: '밑바닥부터 시작하는 스프레드시트'
-order: 0
+seriesOrder: 0
+hidden: true
 date: '2025-12-24'
-description: '웹 기반 스프레드시트를 만들기 위한 준비 과정과 테스트 주도 개발(TDD) 방법론을 익힙니다.'
+description: '스프레드시트를 만드는 이유, 앞으로의 여정, 그리고 개발 환경 설정'
 author: 'PWNZ'
-tags: ['Spreadsheet', 'TDD', 'React', 'TypeScript']
+tags: ['Spreadsheet', 'React', 'TypeScript']
 ---
 
-## 0.0 이 책에 대하여
+<Callout title="TL;DR">
+- 이 시리즈는 **표(테이블) 튜토리얼**이 아니라, **스프레드시트 엔진**(수식·그래프·성능·히스토리)을 만들기 위한 여정이다.
+- Chapter 1-2는 기초 공사다. 빠르게 지나가되, 이후 챕터의 성능/엔진 설계를 위해 **의도적인 제약**(고정 셀 크기, 키보드 모델 등)을 깔아둔다.
+- 각 챕터는 “구현”보다 “**왜 이렇게 했는가**(트레이드오프)”를 중심으로 읽는 것이 더 도움이 된다.
+</Callout>
 
-### 무엇을 만드나요?
+<Callout title="읽는 법">
+- **당장 재미있는 부분이 보고 싶다면**: Chapter 3(virtualization)부터 읽고, 필요할 때 1-2로 돌아와도 된다.
+- **끝까지 따라 만들고 싶다면**: 각 챕터의 인터랙티브 데모를 먼저 눌러보고, “불편함/제약”을 체감한 뒤 코드를 읽는 편이 이해가 빠르다.
+</Callout>
 
-이 책에서는 **웹 기반 스프레드시트 애플리케이션**을 처음부터 만들어갑니다. Google Sheets나 Excel Online처럼 브라우저에서 작동하며, 수만 개의 셀을 부드럽게 다룰 수 있는 애플리케이션입니다.
+## 왜 스프레드시트인가?
+
+1979년, Dan Bricklin은 하버드 경영대학원 수업에서 교수가 칠판에 재무 모델을 그리는 것을 지켜보았다. 숫자 하나가 바뀌면 교수는 관련된 모든 숫자를 지우고 다시 계산해야 했다. Bricklin은 생각했다. "컴퓨터가 이걸 할 수 있지 않을까?"<Footnote id="visicalc-origin">Bricklin, Dan. "The Idea." _Bricklin.com_, http://www.bricklin.com/visicalc.htm</Footnote>
+
+그가 Bob Frankston과 함께 만든 VisiCalc은 개인용 컴퓨터의 역사를 바꿨다. Apple II는 취미용 기기에서 비즈니스 도구가 됐다. "킬러 앱"이라는 개념이 탄생했다.
 
 ```
-최종 모습:
+VisiCalc (1979):
+>A1: 
+    A         B         C         D         E
+1   Revenue   Costs     Profit
+2   1000      850       =A2-B2
+3   1200      900       =A3-B3
+```
+
+45년이 지난 지금, 스프레드시트의 기본 인터페이스는 변하지 않았다. 격자, 셀 주소, 수식. Google Sheets와 Excel Online은 VisiCalc의 직계 후손이다.
+
+**왜 변하지 않았을까?**
+
+스프레드시트는 종이 원장(ledger)의 메타포를 완벽하게 디지털화했기 때문이다. 회계사들은 수백 년간 행과 열로 데이터를 정리해왔다. 스프레드시트는 그 멘탈 모델을 그대로 유지하면서 계산을 자동화했다. 새로운 UI를 배울 필요가 없었다.
+
+이 시리즈에서 우리는 이 45년 된 인터페이스를 처음부터 만든다. 단순한 테이블이 아니다. 수식을 계산하고, 의존성을 추적하고, 수만 행을 부드럽게 렌더링하는 진짜 스프레드시트다.
+
+---
+
+## 우리가 만들 것
+
+### 최종 목표
+
+```
 ┌─────────────────────────────────────────────────┐
-│  File  Edit  View  Insert  Format  Data  Help  │
+│  A1       │ =SUM(B2:B4)                         │
 ├─────┬──────────┬──────────┬──────────┬──────────┤
 │     │    A     │    B     │    C     │    D     │
 ├─────┼──────────┼──────────┼──────────┼──────────┤
-│  1  │  Name    │   Age    │  Status  │  Score   │
+│  1  │  Name    │  Sales   │  Bonus   │  Total   │
 ├─────┼──────────┼──────────┼──────────┼──────────┤
-│  2  │  Alice   │    30    │  Active  │    95    │
+│  2  │  Alice   │   1000   │  =B2*0.1 │ =B2+C2   │
 ├─────┼──────────┼──────────┼──────────┼──────────┤
-│  3  │  Bob     │    25    │ Inactive │    82    │
+│  3  │  Bob     │    850   │  =B3*0.1 │ =B3+C3   │
+├─────┼──────────┼──────────┼──────────┼──────────┤
+│  4  │  Carol   │   1200   │  =B4*0.1 │ =B4+C4   │
 └─────┴──────────┴──────────┴──────────┴──────────┘
+        ↑ B2를 수정하면 C2, D2, 그리고 A1이 자동으로 업데이트된다
 ```
 
-완성된 스프레드시트는 다음 기능을 제공합니다:
+### 여정의 구조
 
-- 수만 행의 데이터를 부드럽게 스크롤
-- 셀 선택, 편집, 포맷팅
-- 방향키, Tab, Enter로 이동
-- 수식 계산 (=SUM, =AVERAGE 등)
-- Undo와 Redo
-- 복사와 붙여넣기
+| 챕터 | 주제 | 핵심 도전 |
+|------|------|----------|
+| **1** | 격자와 인터랙션 | 컴포넌트 구조, 키보드 네비게이션 |
+| **2** | 편집과 폼 상태 | 인라인 에디터, 상태 동기화 |
+| **3** | 성능과 Virtualization | 100,000행을 60fps로 렌더링 |
+| **4** | 수식 엔진 | 파서, AST, 인터프리터 구현 |
+| **5** | 의존성 그래프 | 토폴로지 정렬, 순환 참조 탐지 |
+| **6** | 히스토리 관리 | Command 패턴, Undo/Redo |
+| **7** | 고급 UX | 범위 선택, 드래그 앤 드롭, 접근성 |
 
-### 왜 스프레드시트를 만드나요?
+**Chapter 1-2**는 기초 공사다. React로 인터랙티브한 격자를 만든다.
 
-스프레드시트는 겉으로는 단순해 보이지만, 내부적으로는 여러 복잡한 문제를 다룹니다. 렌더링 성능, 상태 관리, 키보드 인터랙션, 수식 계산 등 모던 웹 애플리케이션이 직면하는 거의 모든 도전 과제가 이 안에 담겨 있습니다.
+**Chapter 3**부터 진짜 도전이 시작된다. 일반적인 테이블 라이브러리로는 불가능한, 스프레드시트만의 문제를 다룬다.
 
-프론트엔드 개발 관점에서 스프레드시트는 다음을 경험할 수 있는 이상적인 프로젝트입니다:
-
-**기술적 도전**:
-
-- 대규모 데이터셋을 다루는 성능 최적화
-- 복잡한 사용자 인터랙션 처리
-- 예측 가능한 상태 관리
-- 접근성을 고려한 키보드 네비게이션
-
-**소프트웨어 설계**:
-
-- 명확한 관심사의 분리
-- 테스트 가능한 아키텍처
-- 확장 가능한 컴포넌트 구조
-- 의존성 관리
-
-**알고리즘과 자료구조**:
-
-- 의존성 그래프를 통한 수식 계산
-- 효율적인 데이터 구조 선택
-- 메모이제이션과 캐싱
-- 명령 패턴을 통한 실행 취소
-
-### 이 책의 대상 독자
-
-이 책은 다음 지식을 가진 개발자를 위해 쓰였습니다:
-
-**필요한 배경**:
-
-- JavaScript와 TypeScript의 기본 문법
-- React Hooks (useState, useEffect, useRef)
-- HTML과 CSS 기초
-- npm이나 yarn 같은 패키지 매니저 사용 경험
-
-**얻게 될 것**:
-
-- Test-Driven Development의 실전 경험
-- 성능 최적화 기법과 virtualization
-- 복잡한 UI를 구조화하는 방법
-- 대규모 프로젝트를 관리하는 패턴
-
-중급 개발자가 고급 수준으로 성장하는 데 필요한 실무 경험을 제공하는 것이 이 책의 목표입니다.
+**Chapter 4-5**가 이 시리즈의 핵심이다. `=SUM(A1:A10)` 같은 수식을 파싱하고, 셀 간 의존성을 추적하며, 하나의 셀이 바뀌면 어떤 셀들을 다시 계산해야 하는지 알아내는 엔진을 만든다.
 
 ---
 
-## 0.1 Test-Driven Development
+## 기술 스택
 
-### 개념의 이해
+- **React 18**: 컴포넌트 기반 UI
+- **TypeScript**: 타입 안전성
+- **Vite**: 빠른 개발 환경
+- **Vitest**: 테스트 프레임워크
+- **CSS Modules**: 스코프된 스타일링
 
-Test-Driven Development(TDD)는 코드를 작성하기 전에 테스트를 먼저 작성하는 개발 방법론입니다. 이는 단순한 테스트 작성 순서의 변경이 아니라, 소프트웨어 설계에 대한 근본적으로 다른 접근입니다.
-
-```
-전통적 개발 흐름:
-구현 → 동작 확인 → 버그 발견 → 수정 → 반복
-
-TDD 흐름:
-테스트 작성 → 실패 확인 → 구현 → 통과 확인 → 리팩토링
-```
-
-### Red-Green-Refactor 사이클
-
-TDD는 세 단계의 반복적인 사이클로 진행됩니다:
-
-**🔴 Red (실패하는 테스트)**
-
-먼저 원하는 동작을 설명하는 테스트를 작성합니다:
-
-```typescript
-// Cell.test.tsx
-it('should render with text value', () => {
-  render(<Cell value="Hello" />);
-  expect(screen.getByText('Hello')).toBeInTheDocument();
-});
-```
-
-이 시점에서 `Cell` 컴포넌트는 존재하지 않으므로 테스트는 실패합니다. 이 실패는 예상된 것이며, 테스트가 올바르게 작성되었음을 확인해줍니다.
-
-**🟢 Green (최소한의 구현)**
-
-테스트를 통과시키는 가장 간단한 코드를 작성합니다:
-
-```typescript
-// Cell.tsx
-export function Cell({ value }) {
-  return <div>{value}</div>;
-}
-```
-
-테스트가 통과합니다. 이제 올바르게 동작하는 코드가 생겼습니다.
-
-**🔵 Refactor (개선)**
-
-테스트가 통과하는 상태를 유지하면서 코드를 개선합니다:
-
-```typescript
-// Cell.tsx
-export function Cell({ value }: { value: string | number }) {
-  return (
-    <div className="cell" style={{ padding: '8px' }}>
-      {value}
-    </div>
-  );
-}
-```
-
-테스트는 여전히 통과합니다. 리팩토링 과정에서 실수로 기능을 망가뜨리지 않았음을 테스트가 보장해줍니다.
-
-### TDD의 가치
-
-전통적인 개발에서는 코드를 먼저 작성하고 나중에 테스트를 추가합니다. 이 경우 다음과 같은 문제가 발생할 수 있습니다:
-
-```typescript
-// 코드를 먼저 작성
-function calculateTotal(items) {
-  let total = 0;
-  for (let item of items) {
-    total += item.price * item.quantity;
-  }
-  return total;
-}
-
-// 나중에 발견되는 엣지 케이스들:
-// - items가 빈 배열이면?
-// - item.price가 undefined면?
-// - quantity가 음수면?
-```
-
-TDD 접근에서는 이러한 엣지 케이스를 미리 고려하게 됩니다:
-
-```typescript
-// 1. 테스트가 엣지 케이스를 먼저 정의
-describe('calculateTotal', () => {
-  it('should return 0 for empty array', () => {
-    expect(calculateTotal([])).toBe(0);
-  });
-  
-  it('should handle missing price', () => {
-    expect(calculateTotal([{ quantity: 2 }])).toBe(0);
-  });
-  
-  it('should calculate correct total', () => {
-    expect(calculateTotal([
-      { price: 10, quantity: 2 },
-      { price: 5, quantity: 3 }
-    ])).toBe(35);
-  });
-});
-
-// 2. 구현이 모든 케이스를 처리
-function calculateTotal(items = []) {
-  return items.reduce((total, item) => {
-    const price = item.price ?? 0;
-    const quantity = item.quantity ?? 0;
-    return total + (price * quantity);
-  }, 0);
-}
-```
-
-TDD는 다음과 같은 이점을 제공합니다:
-
-- 버그가 프로덕션에 도달하기 전에 발견됩니다
-- 리팩토링 시 회귀(regression)를 방지합니다
-- 테스트 자체가 코드 사용법을 문서화합니다
-- 테스트하기 쉬운 코드는 일반적으로 더 나은 설계를 가집니다
-
-### 이 책에서의 적용
-
-모든 챕터는 일관된 패턴을 따릅니다:
-
-```
-1. 기능 소개와 개념 설명
-2. 테스트 작성 (Red)
-3. 최소한의 구현 (Green)
-4. 코드 개선 (Refactor)
-5. 브라우저에서 동작 확인
-6. 다음 기능으로 이동
-```
-
-처음에는 테스트를 먼저 작성하는 것이 어색하게 느껴질 수 있습니다. 이는 자연스러운 과정입니다. 몇 개의 챕터를 진행하면서 TDD의 리듬이 몸에 익게 됩니다.
-
-### Red-Green-Refactor 사이클 체험
-
-아래 샌드박스에서 TDD의 가치를 직접 확인해보세요. `calculateTotal` 함수는 현재 엣지 케이스를 처리하지 못하고 있습니다. 오른쪽 테스트 결과 패널에서 **실패하는 테스트**를 확인하고, 구현을 수정해서 **모든 테스트를 통과**시켜 보세요.
-
-<CollapsibleCode title="💡 힌트: 해결 방법 보기" defaultOpen={false}>
-
-```typescript
-export function calculateTotal(items: any[] = []) {
-  return items.reduce((total, item) => {
-    const price = item.price ?? 0;
-    const quantity = item.quantity ?? 0;
-    return total + (price * quantity);
-  }, 0);
-}
-```
-
-</CollapsibleCode>
-
-<CodeSandbox
-  template="test-ts"
-  options={{
-    editorHeight: 450,
-    activeFile: "/calculateTotal.ts",
-    visibleFiles: ["/calculateTotal.ts", "/calculateTotal.test.ts"]
-  }}
-  files={{
-    "/calculateTotal.ts": `/**
- * TODO: 엣지 케이스를 처리하도록 수정하세요.
- * 1. items가 없을 때 0 반환
- * 2. price가 없을 때 0으로 처리
- */
-export function calculateTotal(items: any[] = []) {
-  let total = 0;
-  for (let item of items) {
-    // 🔴 현재 unsafe한 접근 - price가 없으면 NaN 발생!
-    total += item.price * item.quantity;
-  }
-  return total;
-}`,
-    "/calculateTotal.test.ts": `import { calculateTotal } from "./calculateTotal";
-
-describe("calculateTotal", () => {
-  test("should return 0 for empty array", () => {
-    expect(calculateTotal([])).toBe(0);
-  });
-  
-  test("should handle missing price", () => {
-    expect(calculateTotal([{ quantity: 2 }])).toBe(0);
-  });
-  
-  test("should calculate correct total", () => {
-    expect(calculateTotal([
-      { price: 10, quantity: 2 },
-      { price: 5, quantity: 3 }
-    ])).toBe(35);
-  });
-});`
-  }}
-/>
+의도적으로 최소한의 의존성만 사용한다. 상태 관리 라이브러리, UI 프레임워크, 스프레드시트 라이브러리 없이 처음부터 만든다. 이래야 내부 동작을 완전히 이해할 수 있다.
 
 ---
 
-## 0.2 개발 환경
+## 프로젝트 설정
 
-### 필요한 도구
-
-프로젝트는 다음 도구들을 사용합니다:
-
-**필수 도구**:
-
-- Node.js 18 이상
-- npm 또는 yarn
-- 코드 에디터 (VS Code 권장)
-
-**권장 도구**:
-
-- Git (버전 관리)
-- Chrome 또는 Firefox (DevTools)
-
-### Node.js 버전 확인
-
-터미널은 현재 설치된 Node.js 버전을 표시합니다:
+### 생성
 
 ```bash
-node --version
-# v18.0.0 이상이어야 합니다
-
-npm --version
-# 9.0.0 이상이어야 합니다
-```
-
-버전이 요구사항을 충족하지 않는다면, [Node.js 공식 사이트](https://nodejs.org/)에서 LTS 버전을 다운로드할 수 있습니다. 설치 후 터미널을 재시작하면 새 버전이 적용됩니다.
-
-### VS Code 확장 프로그램
-
-VS Code는 다음 확장 프로그램과 함께 사용할 때 개발 경험이 크게 향상됩니다:
-
-- **ESLint** - 코드 품질 문제를 즉시 표시합니다
-- **Prettier** - 일관된 코드 스타일을 자동으로 적용합니다
-- **Vitest** - 테스트 결과를 에디터 안에서 확인할 수 있습니다
-- **Error Lens** - 에러와 경고를 해당 줄에 인라인으로 표시합니다
-
-확장 프로그램은 `Ctrl+Shift+X` (Mac: `Cmd+Shift+X`)를 눌러 설치할 수 있습니다.
-
----
-
-## 0.3 프로젝트 생성
-
-### Vite 프로젝트 초기화
-
-Vite는 빠른 개발 서버와 최적화된 빌드를 제공하는 프론트엔드 빌드 도구입니다. 새 프로젝트는 다음 명령으로 생성됩니다:
-
-```bash
-npm create vite@latest spreadsheet-app -- --template react-ts
-```
-
-이 명령은 React와 TypeScript로 구성된 프로젝트를 생성합니다. 프롬프트가 나타나면 프로젝트 이름과 템플릿을 확인하고 진행합니다.
-
-### 의존성 설치
-
-프로젝트 폴더로 이동한 후:
-
-```bash
-cd spreadsheet-app
+npm create vite@latest spreadsheet -- --template react-ts
+cd spreadsheet
 npm install
 ```
 
-npm은 필요한 모든 패키지를 다운로드하고 설치합니다. 이 과정은 네트워크 속도에 따라 몇 분 정도 소요될 수 있습니다.
-
-### 개발 서버 실행
+### 테스트 환경
 
 ```bash
-npm run dev
+npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom
 ```
 
-개발 서버가 시작되면 브라우저에서 `http://localhost:5173`을 열어볼 수 있습니다. Vite 기본 페이지가 표시되면 프로젝트가 올바르게 설정된 것입니다.
-
-### 테스트 도구 설치
-
-TDD를 위해서는 테스트 프레임워크와 관련 라이브러리가 필요합니다:
-
-```bash
-npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom @vitest/ui
-```
-
-각 패키지의 역할:
-
-- **vitest** - 빠른 테스트 실행 환경을 제공합니다
-- **@testing-library/react** - React 컴포넌트를 테스트하는 유틸리티입니다
-- **@testing-library/jest-dom** - DOM 상태를 검증하는 매처를 추가합니다
-- **@testing-library/user-event** - 사용자 인터랙션을 시뮬레이션합니다
-- **jsdom** - Node.js 환경에서 브라우저 DOM을 시뮬레이션합니다
-- **@vitest/ui** - 테스트 결과를 웹 인터페이스로 확인할 수 있게 합니다
-
----
-
-## 0.4 Vitest 설정
-
-### 설정 파일 구조
-
-Vitest는 프로젝트 루트의 `vitest.config.ts` 파일을 통해 설정됩니다:
+`vite.config.ts`:
 
 ```typescript
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'jsdom',
     globals: true,
+    environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'src/test/',
-        '**/*.test.{ts,tsx}',
-        '**/*.config.{ts,js}',
-      ],
-    },
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
   },
 });
 ```
 
-이 설정은 다음을 지정합니다:
-
-- `environment: 'jsdom'` - 브라우저 환경을 시뮬레이션합니다
-- `globals: true` - describe, it, expect 같은 함수를 전역에서 사용할 수 있게 합니다
-- `setupFiles` - 각 테스트 실행 전에 필요한 설정을 불러옵니다
-- `coverage` - 코드 커버리지 측정 방식을 정의합니다
-
-### 테스트 초기화 설정
-
-`src/test/setup.ts` 파일은 모든 테스트가 실행되기 전에 필요한 설정을 준비합니다:
+`src/test/setup.ts`:
 
 ```typescript
-import { expect, afterEach } from 'vitest';
-import { cleanup } from '@testing-library/react';
-import * as matchers from '@testing-library/jest-dom/matchers';
-
-expect.extend(matchers);
-
-afterEach(() => {
-  cleanup();
-});
-
-globalThis.requestAnimationFrame = (cb: FrameRequestCallback) => {
-  return setTimeout(cb, 0) as unknown as number;
-};
-
-globalThis.cancelAnimationFrame = (id: number) => {
-  clearTimeout(id);
-};
+import '@testing-library/jest-dom';
 ```
 
-이 설정의 의미:
-
-- `expect.extend(matchers)` - toBeInTheDocument 같은 DOM 매처를 추가합니다
-- `afterEach(cleanup)` - 각 테스트 후 렌더링된 컴포넌트를 정리합니다
-- `requestAnimationFrame` 모킹 - 애니메이션 API를 테스트 환경에서 사용할 수 있게 합니다
-
-### TypeScript 설정
-
-`tsconfig.json`의 `compilerOptions`에 다음 설정이 필요합니다:
-
-```json
-{
-  "compilerOptions": {
-    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
-}
-```
-
-이는 TypeScript가 테스트 관련 타입을 인식하고, `@/` 경로 별칭을 사용할 수 있게 합니다.
-
-### 스크립트 추가
-
-`package.json`의 scripts 섹션은 자주 사용하는 명령을 단축키로 제공합니다:
+`package.json`에 스크립트 추가:
 
 ```json
 {
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
     "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest run --coverage"
   }
 }
 ```
 
-각 스크립트의 역할:
-
-- `npm test` - watch 모드로 테스트를 실행합니다. 파일이 변경되면 자동으로 재실행됩니다
-- `npm run test:ui` - 웹 브라우저에서 테스트 결과를 시각적으로 확인합니다
-- `npm run test:coverage` - 코드 커버리지를 측정하고 리포트를 생성합니다
-
----
-
-## 0.5 첫 번째 테스트
-
-### 간단한 함수와 테스트
-
-설정이 올바른지 확인하기 위해 간단한 유틸리티 함수와 테스트를 작성합니다.
-
-`src/utils/math.ts` 파일을 만듭니다:
-
-```typescript
-export function add(a: number, b: number): number {
-  return a + b;
-}
-
-export function multiply(a: number, b: number): number {
-  return a * b;
-}
-```
-
-`src/utils/__tests__/math.test.ts` 파일을 만듭니다:
-
-```typescript
-import { describe, it, expect } from 'vitest';
-import { add, multiply } from '../math';
-
-describe('math utilities', () => {
-  describe('add', () => {
-    it('should add two positive numbers', () => {
-      expect(add(2, 3)).toBe(5);
-    });
-
-    it('should handle negative numbers', () => {
-      expect(add(-1, -2)).toBe(-3);
-    });
-
-    it('should handle zero', () => {
-      expect(add(5, 0)).toBe(5);
-    });
-  });
-
-  describe('multiply', () => {
-    it('should multiply two numbers', () => {
-      expect(multiply(3, 4)).toBe(12);
-    });
-
-    it('should handle zero', () => {
-      expect(multiply(5, 0)).toBe(0);
-    });
-  });
-});
-```
-
-### 테스트 실행
-
-터미널에서 `npm test`를 실행하면 Vitest가 watch 모드로 시작됩니다:
-
-```
-✓ src/utils/__tests__/math.test.ts (5)
-  ✓ math utilities (5)
-    ✓ add (3)
-      ✓ should add two positive numbers
-      ✓ should handle negative numbers
-      ✓ should handle zero
-    ✓ multiply (2)
-      ✓ should multiply two numbers
-      ✓ should handle zero
-
-Test Files  1 passed (1)
-     Tests  5 passed (5)
-```
-
-모든 테스트가 통과하면 설정이 올바르게 완료된 것입니다.
-
-### UI로 확인
-
-새 터미널 탭에서 `npm run test:ui`를 실행하면 브라우저가 열리고 테스트 결과를 시각적으로 확인할 수 있습니다. 이 인터페이스는 각 테스트의 실행 시간, 통과/실패 상태, 코드 커버리지 등을 보여줍니다.
-
-### 인터랙티브 연습
-
-아래 샌드박스에서 `multiply` 함수를 구현하여 테스트를 통과시켜보세요. 이는 TDD의 **Green** 단계입니다.
-
-<CollapsibleCode title="💡 힌트: multiply 함수 구현" defaultOpen={false}>
-
-```typescript
-export function multiply(a: number, b: number): number {
-  return a * b;
-}
-```
-
-간단하지만, 이것이 TDD의 핵심입니다. 테스트를 통과시키는 최소한의 구현을 작성하는 것입니다.
-
-</CollapsibleCode>
-
-<CodeSandbox
-  template="test-ts"
-  options={{
-    editorHeight: 400,
-    activeFile: "/math.test.ts",
-    visibleFiles: ["/math.ts", "/math.test.ts"]
-  }}
-  files={{
-    "/math.ts": `export function add(a: number, b: number): number {
-  return a + b;
-}
-
-export function multiply(a: number, b: number): number {
-  // TODO: 구현을 완성하세요 (Green 단계)
-  return 0;
-}`,
-    "/math.test.ts": `import { add, multiply } from "./math";
-
-describe("math utilities", () => {
-  test("should add two numbers", () => {
-    expect(add(2, 3)).toBe(5);
-  });
-
-  test("should multiply two numbers", () => {
-    expect(multiply(3, 4)).toBe(12);
-  });
-});`
-  }}
-/>
-
----
-
-## 0.6 프로젝트 구조
-
-### 디렉토리 구성
-
-프로젝트는 관심사에 따라 명확하게 분리된 구조를 가집니다:
-
-```
-spreadsheet-app/
-├── src/
-│   ├── components/          # UI 컴포넌트
-│   │   ├── __tests__/       # 컴포넌트 테스트
-│   │   ├── Cell.tsx
-│   │   ├── Cell.module.css
-│   │   ├── Row.tsx
-│   │   └── Grid.tsx
-│   │
-│   ├── hooks/               # 재사용 가능한 로직
-│   │   ├── __tests__/
-│   │   ├── useSelection.ts
-│   │   └── useKeyboard.ts
-│   │
-│   ├── utils/               # 순수 함수
-│   │   ├── __tests__/
-│   │   ├── math.ts
-│   │   └── data.ts
-│   │
-│   ├── types/               # TypeScript 타입 정의
-│   │   └── index.ts
-│   │
-│   └── test/                # 테스트 설정
-│       └── setup.ts
-│
-├── vitest.config.ts
-├── tsconfig.json
-└── package.json
-```
-
-각 폴더의 역할:
-
-- **components/** - 렌더링을 담당하는 React 컴포넌트입니다
-- **hooks/** - 상태와 부수 효과를 관리하는 커스텀 훅입니다
-- **utils/** - 비즈니스 로직과 데이터 변환을 처리하는 순수 함수입니다
-- **types/** - 프로젝트 전체에서 사용되는 타입 정의입니다
-
-### 파일 명명 규칙
-
-일관된 명명 규칙은 코드베이스를 탐색하기 쉽게 만듭니다:
-
-**컴포넌트 파일**:
-
-- `PascalCase.tsx` - React 컴포넌트
-- `PascalCase.module.css` - 컴포넌트 전용 스타일
-
-**훅 파일**:
-
-- `useHookName.ts` - use 접두사로 시작하는 커스텀 훅
-
-**유틸리티 파일**:
-
-- `camelCase.ts` - 일반적인 유틸리티 함수
-
-**테스트 파일**:
-
-- `*.test.ts` 또는 `*.test.tsx` - 해당 모듈의 테스트
-
----
-
-## 0.7 코드 품질
-
-### ESLint 설정
-
-ESLint는 코드 작성 중에 잠재적인 문제를 발견합니다. `eslint.config.js` 파일은 프로젝트의 린팅 규칙을 정의합니다:
-
-```javascript
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
-import { defineConfig, globalIgnores } from 'eslint/config'
-  
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-	files: ['**/*.{ts,tsx}'],
-	extends: [
-	  js.configs.recommended,
-	  tseslint.configs.recommended,
-	  reactHooks.configs.flat.recommended,
-	  reactRefresh.configs.vite,
-	],
-	languageOptions: {
-	  ecmaVersion: 2020,
-	  globals: globals.browser,
-	},
-	rules: {
-	  'react-refresh/only-export-components': [
-	    'warn',
-	    { allowConstantExport: true },
-	  ],
-	  '@typescript-eslint/no-explicit-any': 'warn',
-	  '@typescript-eslint/no-unused-vars': [
-		'error',
-		{
-		  argsIgnorePattern: '^_',
-		  varsIgnorePattern: '^_',
-	    },
-	  ],
-	},
-  },
-])
-```
-
-이 규칙들은 일반적인 실수를 방지하고 일관된 코드 스타일을 유지하는 데 도움을 줍니다.
-
-### Prettier 설정
-
-Prettier는 코드를 자동으로 포맷팅합니다. `.prettierrc.json` 파일이 스타일을 정의합니다:
-
-```json
-{
-  "semi": true,
-  "trailingComma": "es5",
-  "singleQuote": true,
-  "printWidth": 80,
-  "tabWidth": 2,
-  "useTabs": false,
-  "arrowParens": "always",
-  "endOfLine": "lf"
-}
-```
-
-VS Code에서 `Shift+Alt(Option)+F`를 누르면 현재 파일이 자동으로 포맷팅됩니다.
-
-### 린트와 포맷 스크립트
-
-`package.json`에 다음 스크립트를 추가하면 전체 프로젝트를 검사하고 포맷팅할 수 있습니다:
-
-```json
-{
-  "scripts": {
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css}\""
-  }
-}
-```
-
-`npm run lint`는 문제를 발견하고, `npm run format`은 코드 스타일을 일관되게 만듭니다.
-
----
-
-## 0.8 버전 관리
-
-### Git 초기화
-
-Git은 코드의 변경 이력을 관리합니다. 프로젝트 루트에서:
-
-```bash
-git init
-```
-
-### .gitignore 설정
-
-`.gitignore` 파일은 Git이 추적하지 않을 파일들을 지정합니다:
-
-```
-# 의존성
-node_modules/
-
-# 빌드 결과물
-dist/
-build/
-
-# 테스트
-coverage/
-
-# 환경 변수
-.env
-.env.local
-
-# 에디터
-.vscode/
-.idea/
-*.swp
-
-# OS
-.DS_Store
-Thumbs.db
-
-# 로그
-*.log
-```
-
-이 파일들은 저장소에 포함될 필요가 없거나, 각 개발자의 환경마다 다른 내용을 가집니다.
-
-### 초기 커밋
-
-프로젝트의 첫 번째 상태를 저장합니다:
-
-```bash
-git add .
-git commit -m "Initial commit: Project setup with Vite, TypeScript, Vitest"
-```
-
-이후 각 기능을 완성할 때마다 커밋을 만들어 변경 이력을 관리합니다.
-
----
-
-## 0.9 개발 워크플로우
-
-### 일상적인 개발 흐름
-
-개발은 일반적으로 두 개의 터미널 프로세스를 동시에 실행하며 진행됩니다.
-
-첫 번째 터미널에서 개발 서버를 실행합니다:
-
-```bash
-npm run dev
-```
-
-브라우저는 `http://localhost:5173`에서 애플리케이션을 보여줍니다. 파일을 수정하면 브라우저가 자동으로 업데이트됩니다.
-
-두 번째 터미널에서 테스트를 watch 모드로 실행합니다:
-
-```bash
-npm test
-```
-
-파일이 변경되면 관련 테스트가 자동으로 재실행됩니다. 이를 통해 코드 변경이 기존 기능을 망가뜨리지 않았는지 즉시 확인할 수 있습니다.
-
-### TDD 워크플로우 예시
-
-새 기능을 추가할 때는 다음 순서를 따릅니다:
-
-```bash
-# 새 기능 브랜치 생성
-git checkout -b feature/cell-selection
-
-# 1. 테스트 작성 (Red)
-#    src/components/__tests__/Cell.test.tsx 수정
-#    테스트 실행 - 실패 확인 ❌
-
-# 2. 구현 (Green)
-#    src/components/Cell.tsx 수정
-#    테스트 실행 - 통과 확인 ✅
-
-# 3. 리팩토링
-#    코드 개선하되 테스트는 계속 통과 유지
-
-# 4. 커밋
-git add .
-git commit -m "feat: Add cell selection"
-```
-
-이 사이클은 각 기능마다 반복됩니다.
-
----
-
-## 0.10 개발 도구 활용
-
-### VS Code 유용한 기능
-
-VS Code는 다음 단축키로 효율적인 작업이 가능합니다:
-
-- `Ctrl+P` - 파일 빠르게 열기
-- `Ctrl+Shift+P` - 명령 팔레트
-- `Shift+Alt+F` - 코드 자동 포맷팅
-- `Ctrl+Shift+M` - 문제 패널 열기
-- `` Ctrl+` `` - 터미널 토글
-
-Vitest 확장을 설치하면 코드 옆에 테스트 실행 버튼이 나타나 개별 테스트를 쉽게 실행할 수 있습니다.
-
-### Chrome DevTools
-
-브라우저의 개발자 도구는 런타임 동작을 이해하는 데 필수적입니다:
-
-**React DevTools**: Chrome 확장을 설치하면 F12 → Components 탭에서 컴포넌트 트리와 props, state를 실시간으로 확인할 수 있습니다.
-
-**Performance 탭**: Record 버튼을 클릭하고 스크롤이나 인터랙션을 수행한 후 Stop을 누르면, 각 프레임의 처리 시간과 병목 지점을 분석할 수 있습니다.
-
-### Vitest의 유용한 기능
-
-특정 테스트만 실행하고 싶을 때는 `.only`를 사용합니다:
-
-```typescript
-it.only('should test this specific case', () => {
-  // 다른 테스트는 건너뛰고 이 테스트만 실행됩니다
-});
-```
-
-나중에 작성할 테스트는 `.skip`으로 표시할 수 있습니다:
-
-```typescript
-it.skip('should implement later', () => {
-  // 이 테스트는 건너뜁니다
-});
-```
-
-테스트 디버깅이 필요하면 `console.log`를 사용합니다. 출력은 터미널에 표시됩니다.
-
----
-
-## 0.11 학습 경로
-
-### 챕터 구성
-
-이 책은 세 부분으로 나뉩니다:
-
-**Part I: 기본 스프레드시트 (Chapter 0-3)**
-
-기초적인 스프레드시트를 만들며 React, TypeScript, TDD의 기본을 다집니다. 데이터를 표시하고, 셀을 선택하고, 내용을 편집하는 기능을 구현합니다.
-
-- Chapter 0: 개발 환경과 TDD 이해
-- Chapter 1: 셀, 행, 그리드 컴포넌트
-- Chapter 2: 셀 선택과 키보드 네비게이션
-- Chapter 3: 기본적인 인라인 편집
-
-**Part II: 성능과 아키텍처 (Chapter 4-5)**
-
-수만 개의 행을 다루기 위한 virtualization을 구현하고, 이와 함께 작동하는 견고한 편집 시스템을 만듭니다. 이 부분이 기술적으로 가장 도전적입니다.
-
-- Chapter 4: Virtualized 렌더링과 스크롤
-- Chapter 5: 확장 가능한 편집 엔진
-
-**Part III: 고급 기능 (Chapter 6-8)**
-
-수식 계산, 실행 취소/재실행, 다중 선택 같은 고급 기능을 추가합니다. 지금까지 만든 견고한 기반 위에서 기능을 확장합니다.
-
-- Chapter 6: 수식 엔진과 의존성 그래프
-- Chapter 7: Undo/Redo 시스템
-- Chapter 8: 고급 UX 기능
-
-### 학습 곡선
-
-각 챕터의 난이도는 다음과 같이 진행됩니다:
-
-```
-난이도 │
-       │                              ╱
-       │                            ╱
-       │                          ╱
-       │                        ╱
-       │                  ╱╲  ╱
-       │              ╱╲╱  ╲╱
-       │          ╱╲╱
-       │      ╱╲╱
-       │  ╱╲╱
-       └────────────────────────────────► 챕터
-         0  1  2  3  4  5  6  7  8
-```
-
-Chapter 1-3은 완만하게 상승합니다. 기본 개념을 익히며 TDD에 익숙해지는 시간입니다.
-
-Chapter 4-5는 가파르게 상승합니다. Virtualization과 복잡한 상태 관리를 다루며 가장 도전적인 부분입니다.
-
-Chapter 6-8은 다시 안정화됩니다. 이미 구축한 견고한 기반 위에서 기능을 추가하는 단계입니다.
-
-### 각 챕터의 핵심 학습 요소
-
-- **Chapter 1**: 컴포넌트 구조화와 기본 렌더링
-- **Chapter 2**: 이벤트 처리와 키보드 인터랙션
-- **Chapter 3**: 폼 상태 관리
-- **Chapter 4**: 성능 최적화와 virtualization 패턴
-- **Chapter 5**: 복잡한 상태 조율과 엔진 설계
-- **Chapter 6**: 그래프 알고리즘과 재귀적 계산
-- **Chapter 7**: 디자인 패턴과 히스토리 관리
-- **Chapter 8**: 접근성과 고급 UX
-
----
-
-## 0.12 시작 전 확인사항
-
-### 환경 설정 완료
-
-다음 명령들이 정상적으로 작동한다면 환경 설정이 완료된 것입니다:
-
-```bash
-node --version
-# v18.0.0 이상이 표시됩니다
-
-npm run dev
-# 개발 서버가 시작되고 브라우저에서 페이지가 열립니다
-
-npm test
-# 테스트가 실행되고 결과가 표시됩니다
-```
-
-### 프로젝트 구조 준비
-
-다음 디렉토리들이 존재하는지 확인합니다:
+### 폴더 구조
 
 ```
 src/
-├── components/__tests__/
-├── hooks/__tests__/
-├── utils/__tests__/
-├── types/
-└── test/
+├── components/     # React 컴포넌트
+├── hooks/          # 커스텀 훅
+├── types/          # TypeScript 타입
+├── utils/          # 유틸리티 함수
+├── engine/         # 수식 엔진 (Chapter 4~)
+└── test/           # 테스트 설정
 ```
 
-### 이해도 점검
-
-다음 개념들을 이해했다면 다음 챕터로 진행할 준비가 된 것입니다:
-
-- TDD의 Red-Green-Refactor 사이클
-- Vitest로 테스트를 작성하고 실행하는 방법
-- 프로젝트의 디렉토리 구조와 각 폴더의 역할
-- 앞으로 만들 스프레드시트의 주요 기능들
+설정이 완료되면 `npm run dev`로 개발 서버를 시작할 수 있다.
 
 ---
 
-## 0.13 문제 해결
+## 개발 방법론
 
-### 일반적인 문제들
+이 시리즈는 **Test-Driven Development(TDD)**를 따른다. 코드를 작성하기 전에 테스트를 먼저 작성한다.
 
-**"Cannot find module" 에러가 발생하는 경우**
-
-의존성이 제대로 설치되지 않았을 수 있습니다. node_modules 폴더를 삭제하고 다시 설치합니다:
-
-```bash
-rm -rf node_modules
-npm install
+```
+Red    → 실패하는 테스트 작성
+Green  → 테스트를 통과시키는 최소한의 코드
+Refactor → 테스트가 통과하는 상태에서 코드 개선
 ```
 
-**TypeScript가 'describe'를 인식하지 못하는 경우**
+TDD의 진짜 가치는 테스트 자체가 아니다. **설계를 강제**한다는 점이다. 테스트하기 어려운 코드는 대체로 설계가 잘못된 코드다. 테스트를 먼저 작성하면 자연스럽게 테스트 가능한(= 잘 설계된) 코드를 만들게 된다.
 
-`tsconfig.json`의 types 설정을 확인합니다:
-
-```json
-{
-  "compilerOptions": {
-    "types": ["vitest/globals"]
-  }
-}
-```
-
-**테스트가 자동으로 재실행되지 않는 경우**
-
-watch 모드가 활성화되어 있는지 확인합니다:
-
-```bash
-npm test -- --watch
-```
-
-**포트가 이미 사용 중이라는 메시지가 나타나는 경우**
-
-다른 포트를 지정해서 실행합니다:
-
-```bash
-npm run dev -- --port 3000
-```
-
-### 추가 자료
-
-더 자세한 정보가 필요하다면 다음 문서들을 참고할 수 있습니다:
-
-- [Vitest 공식 문서](https://vitest.dev/)
-- [Testing Library 가이드](https://testing-library.com/)
-- [React 공식 문서](https://react.dev/)
-- [TypeScript 핸드북](https://www.typescriptlang.org/docs/)
+각 챕터에서 TDD 사이클을 반복하지만, 모든 테스트 코드를 보여주지는 않는다. 핵심 개념과 흥미로운 결정에 집중한다. 전체 코드는 GitHub 저장소에서 확인할 수 있다.
 
 ---
 
-## 0.14 다음 단계
+## 다음 단계
 
-### 준비 완료
+Chapter 1에서는 스프레드시트의 기본 UI를 만든다:
 
-이제 스프레드시트를 만들기 위한 모든 준비가 끝났습니다. 개발 환경이 설정되었고, TDD의 기본 개념을 이해했으며, 프로젝트 구조가 갖춰졌습니다.
+- 격자 구조 (Cell → Row → Grid)
+- 셀 선택과 시각적 피드백
+- 키보드 네비게이션
 
-### Chapter 1로
+45년간 변하지 않은 인터페이스를 직접 구현하면서, 왜 이 구조가 살아남았는지 이해하게 될 것이다.
 
-다음 챕터에서는 첫 번째 컴포넌트를 만들기 시작합니다. 가장 작은 단위인 Cell 컴포넌트부터 시작해서, Row와 Grid로 확장해나갑니다.
+---
 
-두 개의 터미널을 준비합니다:
-
-```bash
-# 첫 번째 터미널: 개발 서버
-npm run dev
-
-# 두 번째 터미널: 테스트
-npm test
-```
-
-### 진행 방식
-
-각 챕터는 다음 흐름을 따릅니다:
-
-1. 개념 소개 - 무엇을 만들고 왜 만드는지 설명합니다
-2. 테스트 작성 - 원하는 동작을 테스트로 먼저 표현합니다
-3. 구현 - 테스트를 통과시키는 코드를 작성합니다
-4. 개선 - 테스트가 통과하는 상태를 유지하며 코드를 다듬습니다
-5. 확인 - 브라우저에서 실제 동작을 확인합니다
-
-처음에는 테스트를 먼저 작성하는 것이 어색할 수 있습니다. 이는 자연스러운 과정입니다. 몇 개의 기능을 만들다 보면 TDD의 리듬이 익숙해집니다.
-
-코드를 작성하고, 테스트를 실행하고, 브라우저에서 확인하는 이 순환을 즐기시기 바랍니다. Chapter 1에서 만나요.
+<Footnotes />
