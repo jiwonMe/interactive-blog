@@ -2,16 +2,9 @@
 
 import React, { useState } from "react";
 import { cn } from "../../../lib/utils";
-import { ChevronDown, Layers, Check } from "lucide-react";
-import * as Select from "@radix-ui/react-select";
-
-type ValueType = "TRUE" | "FALSE" | '"1"' | '"12"' | "1" | "12" | "99";
-
-interface RowData {
-  id: number;
-  valA: ValueType;
-  valB: ValueType;
-}
+import { Layers } from "lucide-react";
+import { ValueType, RowData } from "./ExcelCoercionLab.types";
+import { SelectWrapper } from "./SelectWrapper";
 
 /**
  * 엑셀 형 변환 실험실 (Matrix Spreadsheet UI)
@@ -27,7 +20,7 @@ export function ExcelCoercionLab() {
     { id: 5, valA: "TRUE", valB: "99" },
   ]);
 
-  const values: ValueType[] = ["TRUE", "FALSE", '"1"', '"12"', "1", "12", "99"];
+  const values: ValueType[] = ["TRUE", "FALSE", '"1"', '"12"', "1", "12", "99", "0"];
   const operators = ["+", "-", "==", ">"];
   const opToCol = { "+": "C", "-": "D", "==": "E", ">": "F" };
   const colToOp = { "C": "+", "D": "-", "E": "==", "F": ">" };
@@ -99,8 +92,22 @@ export function ExcelCoercionLab() {
       </div>
 
       {/* Formula Bar */}
-      <div className="flex flex-col border-b border-zinc-200 dark:border-zinc-800">
-        <div className="flex items-center gap-1 p-1 bg-zinc-50/80 dark:bg-zinc-900/50">
+      <div
+        className={cn(
+          /* layout */
+          "flex flex-col",
+          /* border */
+          "border-b border-zinc-200 dark:border-zinc-800"
+        )}
+      >
+        <div
+          className={cn(
+            /* layout */
+            "flex items-center gap-1 p-1",
+            /* background */
+            "bg-zinc-50/80 dark:bg-zinc-900/50"
+          )}
+        >
           <div
             className={cn(
               /* layout */
@@ -129,8 +136,30 @@ export function ExcelCoercionLab() {
               "rounded-sm"
             )}
           >
-            <div className="px-2 text-zinc-400 italic font-serif text-sm border-r border-zinc-100 dark:border-zinc-700 select-none">fx</div>
-            <div className="px-2 py-1 text-xs font-mono text-zinc-600 dark:text-zinc-300 w-full truncate">
+            <div
+              className={cn(
+                /* layout */
+                "px-2",
+                /* typography */
+                "text-zinc-400 italic font-serif text-sm",
+                /* border */
+                "border-r border-zinc-100 dark:border-zinc-700",
+                /* misc */
+                "select-none"
+              )}
+            >
+              fx
+            </div>
+            <div
+              className={cn(
+                /* layout */
+                "px-2 py-1 w-full",
+                /* typography */
+                "text-xs font-mono text-zinc-600 dark:text-zinc-300",
+                /* misc */
+                "truncate"
+              )}
+            >
               {activeCell && ["C", "D", "E", "F"].includes(activeCell.col)
                 ? `=${rows[activeCell.row].valA}${colToOp[activeCell.col as keyof typeof colToOp]}${rows[activeCell.row].valB}`
                 : activeCell
@@ -143,11 +172,40 @@ export function ExcelCoercionLab() {
 
       {/* Grid */}
       <div className="overflow-x-auto">
-        <div className="min-w-[600px]">
-          <div className="grid grid-cols-[40px_1.2fr_1.2fr_1fr_1fr_1fr_1fr] bg-zinc-100 dark:bg-zinc-900">
-            <div className="border-r border-b border-zinc-200 dark:border-zinc-800 h-6 min-w-[40px]"></div>
+        <div
+          className={cn(
+            /* layout */
+            "min-w-[600px]"
+          )}
+        >
+          <div
+            className={cn(
+              /* layout */
+              "grid grid-cols-[40px_1.2fr_1.2fr_1fr_1fr_1fr_1fr]",
+              /* background */
+              "bg-zinc-100 dark:bg-zinc-900"
+            )}
+          >
+            <div
+              className={cn(
+                /* border */
+                "border-r border-b border-zinc-200 dark:border-zinc-800",
+                /* layout */
+                "h-6 min-w-[40px]"
+              )}
+            ></div>
             {["A (Val 1)", "B (Val 2)", "C (+)", "D (-)", "E (==)", "F (>)"].map((col) => (
-              <div key={col} className="border-r border-b border-zinc-200 dark:border-zinc-800 text-[9px] font-bold text-zinc-400 text-center leading-6 uppercase">
+              <div
+                key={col}
+                className={cn(
+                  /* border */
+                  "border-r border-b border-zinc-200 dark:border-zinc-800",
+                  /* typography */
+                  "text-[9px] font-bold text-zinc-400 text-center uppercase",
+                  /* layout */
+                  "leading-6"
+                )}
+              >
                 {col}
               </div>
             ))}
@@ -155,13 +213,36 @@ export function ExcelCoercionLab() {
 
           {rows.map((row, idx) => {
             return (
-              <div key={row.id} className="grid grid-cols-[40px_1.2fr_1.2fr_1fr_1fr_1fr_1fr]">
-                <div className="bg-zinc-100 dark:bg-zinc-900 border-r border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-bold text-zinc-400 text-center leading-10 min-w-[40px]">
+              <div
+                key={row.id}
+                className={cn(
+                  /* layout */
+                  "grid grid-cols-[40px_1.2fr_1.2fr_1fr_1fr_1fr_1fr]"
+                )}
+              >
+                <div
+                  className={cn(
+                    /* background */
+                    "bg-zinc-100 dark:bg-zinc-900",
+                    /* border */
+                    "border-r border-b border-zinc-200 dark:border-zinc-800",
+                    /* typography */
+                    "text-[10px] font-bold text-zinc-400 text-center uppercase",
+                    /* layout */
+                    "leading-10 min-w-[40px]"
+                  )}
+                >
                   {row.id}
                 </div>
 
                 {/* A: Val 1 */}
-                <div onClick={() => setActiveCell({ row: idx, col: "A" })} className="relative">
+                <div
+                  onClick={() => setActiveCell({ row: idx, col: "A" })}
+                  className={cn(
+                    /* layout */
+                    "relative"
+                  )}
+                >
                   <SelectWrapper
                     value={row.valA}
                     onValueChange={(v) => updateRow(idx, "valA", v as ValueType)}
@@ -171,7 +252,13 @@ export function ExcelCoercionLab() {
                 </div>
 
                 {/* B: Val 2 */}
-                <div onClick={() => setActiveCell({ row: idx, col: "B" })} className="relative">
+                <div
+                  onClick={() => setActiveCell({ row: idx, col: "B" })}
+                  className={cn(
+                    /* layout */
+                    "relative"
+                  )}
+                >
                   <SelectWrapper
                     value={row.valB}
                     onValueChange={(v) => updateRow(idx, "valB", v as ValueType)}
@@ -195,7 +282,17 @@ export function ExcelCoercionLab() {
                         "border-r border-b border-zinc-100 dark:border-zinc-800",
                         /* background */
                         "bg-zinc-50/20 dark:bg-zinc-900/5",
-                        activeCell?.row === idx && activeCell?.col === col ? "ring-2 ring-blue-500 ring-inset z-10 bg-white dark:bg-zinc-900" : "hover:bg-zinc-50 dark:hover:bg-zinc-900/30"
+                        activeCell?.row === idx && activeCell?.col === col
+                          ? cn(
+                              /* effect */
+                              "ring-2 ring-blue-500 ring-inset z-10",
+                              /* background */
+                              "bg-white dark:bg-zinc-900"
+                            )
+                          : cn(
+                              /* interaction */
+                              "hover:bg-zinc-50 dark:hover:bg-zinc-900/30"
+                            )
                       )}
                     >
                       <span
@@ -203,7 +300,11 @@ export function ExcelCoercionLab() {
                           /* typography */
                           "text-[11px] font-mono font-bold w-full text-right",
                           /* color */
-                          res === "TRUE" ? "text-emerald-600" : res === "FALSE" ? "text-red-600" : "text-blue-600"
+                          res === "TRUE"
+                            ? "text-emerald-600"
+                            : res === "FALSE"
+                              ? "text-red-600"
+                              : "text-blue-600"
                         )}
                       >
                         {res}
@@ -218,73 +319,27 @@ export function ExcelCoercionLab() {
       </div>
 
       {/* Footer Info */}
-      <div className="p-2 bg-zinc-50 dark:bg-zinc-900/30 border-t border-zinc-200 dark:border-zinc-800">
-        <p className="text-[9px] text-zinc-400 italic px-1">
+      <div
+        className={cn(
+          /* layout */
+          "p-2",
+          /* background */
+          "bg-zinc-50 dark:bg-zinc-900/30",
+          /* border */
+          "border-t border-zinc-200 dark:border-zinc-800"
+        )}
+      >
+        <p
+          className={cn(
+            /* typography */
+            "text-[9px] text-zinc-400 italic",
+            /* layout */
+            "px-1"
+          )}
+        >
           열 C~F는 각 연산자의 결과를 실시간으로 보여줍니다. 같은 값이 연산자에 따라 어떻게 다르게 취급되는지 비교해 보세요.
         </p>
       </div>
     </div>
-  );
-}
-
-function SelectWrapper({ value, onValueChange, isActive, options }: { value: string; onValueChange: (v: string) => void; isActive: boolean; options: string[] }) {
-  return (
-    <Select.Root value={value} onValueChange={onValueChange}>
-      <Select.Trigger
-        className={cn(
-          /* layout */
-          "w-full h-10 px-2 flex items-center justify-between transition-all outline-none",
-          /* border */
-          "border-r border-b border-zinc-100 dark:border-zinc-800",
-          /* typography */
-          "text-xs font-mono",
-          isActive ? "ring-2 ring-blue-500 ring-inset z-10 bg-white dark:bg-zinc-900" : "hover:bg-zinc-50 dark:hover:bg-zinc-900/30 bg-blue-50/5"
-        )}
-      >
-        <Select.Value>{value}</Select.Value>
-        <Select.Icon>
-          <ChevronDown className="w-3 h-3 text-zinc-300" />
-        </Select.Icon>
-      </Select.Trigger>
-
-      <Select.Portal>
-        <Select.Content
-          className={cn(
-            /* layout */
-            "overflow-hidden z-50 shadow-xl",
-            /* background */
-            "bg-white dark:bg-zinc-900",
-            /* border */
-            "border border-zinc-200 dark:border-zinc-800",
-            /* shape */
-            "rounded-sm"
-          )}
-        >
-          <Select.Viewport className="p-1">
-            {options.map((opt) => (
-              <Select.Item
-                key={opt}
-                value={opt}
-                className={cn(
-                  /* layout */
-                  "relative flex items-center px-6 py-1.5 outline-none cursor-pointer select-none",
-                  /* typography */
-                  "text-[11px] font-mono text-zinc-600 dark:text-zinc-400",
-                  /* shape */
-                  "rounded-sm",
-                  /* transition */
-                  "data-[highlighted]:bg-zinc-100 dark:data-[highlighted]:bg-zinc-800 data-[highlighted]:text-zinc-900 dark:data-[highlighted]:text-zinc-100"
-                )}
-              >
-                <Select.ItemText>{opt}</Select.ItemText>
-                <Select.ItemIndicator className="absolute left-1.5 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-blue-500" />
-                </Select.ItemIndicator>
-              </Select.Item>
-            ))}
-          </Select.Viewport>
-        </Select.Content>
-      </Select.Portal>
-    </Select.Root>
   );
 }
