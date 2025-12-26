@@ -31,6 +31,13 @@ import { FeColorMatrixLab } from '../../articles/darkmode-images/components/FeCo
 import { LuminanceVisualization } from '../../articles/darkmode-images/components/LuminanceVisualization';
 import { GridDemo } from '../../articles/spreadsheet-chapter-1/components/GridDemo';
 import { SelectionDemo } from '../../articles/spreadsheet-chapter-1/components/SelectionDemo';
+import { ExcelCoercionLab } from '../../articles/excel-quirks/components/ExcelCoercionLab';
+import { LeapYearBugVisualizer } from '../../articles/excel-quirks/components/LeapYearBugVisualizer';
+import { GeneNameAutoCorrectDemo } from '../../articles/excel-quirks/components/GeneNameAutoCorrectDemo';
+import { VlookupDefaultRisk } from '../../articles/excel-quirks/components/VlookupDefaultRisk';
+import { ExcelFloatingPointDemo } from '../../articles/excel-quirks/components/ExcelFloatingPointDemo';
+import { SumVsPlusLab } from '../../articles/excel-quirks/components/SumVsPlusLab';
+import { MaskingParadoxLab } from '../../articles/excel-quirks/components/MaskingParadoxLab';
 
 // 컴포넌트 이름과 컴포넌트를 매핑하는 레지스트리
 export const articleComponentsRegistry: Record<string, React.ComponentType<any>> = {
@@ -64,6 +71,13 @@ export const articleComponentsRegistry: Record<string, React.ComponentType<any>>
   LuminanceVisualization,
   GridDemo,
   SelectionDemo,
+  ExcelCoercionLab,
+  LeapYearBugVisualizer,
+  GeneNameAutoCorrectDemo,
+  VlookupDefaultRisk,
+  ExcelFloatingPointDemo,
+  SumVsPlusLab,
+  MaskingParadoxLab,
 };
 
 // 컴포넌트를 동적으로 가져오는 함수
