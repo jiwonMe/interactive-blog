@@ -17,7 +17,7 @@ export function ImageBg({
   return (
     <div
       className={cn(
-        "relative min-h-full w-full",
+        "relative h-full w-full",
         "flex items-center justify-center",
         className,
       )}

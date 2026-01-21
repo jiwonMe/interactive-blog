@@ -10,9 +10,8 @@ export function Full({ children, className }: FullProps) {
   return (
     <div
       className={cn(
-        "absolute inset-0",
-        "flex items-center justify-center",
-        "overflow-hidden",
+        "h-full w-full",
+        "flex flex-col items-center justify-center",
         className,
       )}
     >

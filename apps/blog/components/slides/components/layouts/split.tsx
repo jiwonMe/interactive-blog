@@ -23,7 +23,7 @@ export function Split({
   return (
     <div
       className={cn(
-        "flex min-h-full w-full gap-8",
+        "flex h-full w-full gap-12",
         isHorizontal ? "flex-row" : "flex-col",
         className,
       )}
@@ -34,7 +34,7 @@ export function Split({
           <div
             key={index}
             className={cn(
-              "flex items-center justify-center",
+              "flex flex-col justify-center",
               isHorizontal ? "h-full" : "w-full",
             )}
             style={{ flex: flexValue }}

@@ -11,7 +11,7 @@ export function Center({ children, className }: CenterProps) {
     <div
       className={cn(
         "flex flex-col items-center justify-center",
-        "min-h-full w-full",
+        "h-full w-full",
         "text-center",
         className,
       )}

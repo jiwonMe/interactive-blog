@@ -4,9 +4,17 @@ import { useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSlide } from "../context/slide-context";
 
-export function useSlideNavigation(slug: string) {
+type UseSlideNavigationOptions = {
+  onToggleFullscreen?: () => void;
+};
+
+export function useSlideNavigation(
+  slug: string,
+  options: UseSlideNavigationOptions = {},
+) {
   const router = useRouter();
   const { next, prev, goTo, currentIndex, totalSlides } = useSlide();
+  const { onToggleFullscreen } = options;
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -37,13 +45,22 @@ export function useSlideNavigation(slug: string) {
           event.preventDefault();
           goTo(totalSlides - 1);
           break;
+        case "f":
+        case "F":
+          event.preventDefault();
+          onToggleFullscreen?.();
+          break;
         case "Escape":
           event.preventDefault();
-          router.push(`/posts/${slug}`);
+          if (document.fullscreenElement) {
+            document.exitFullscreen();
+          } else {
+            router.push(`/posts/${slug}`);
+          }
           break;
       }
     },
-    [next, prev, goTo, totalSlides, router, slug],
+    [next, prev, goTo, totalSlides, router, slug, onToggleFullscreen],
   );
 
   useEffect(() => {

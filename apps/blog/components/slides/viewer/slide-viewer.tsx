@@ -1,11 +1,21 @@
 "use client";
 
-import { type ReactNode } from "react";
+import {
+  type ReactNode,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../../../lib/utils";
 import { SlideProvider, useSlide } from "../context/slide-context";
 import { SlideControls } from "./slide-controls";
 import { useSlideNavigation } from "../hooks/use-slide-navigation";
+import { useFullscreen } from "../hooks/use-fullscreen";
+
+const SLIDE_WIDTH = 1280;
+const SLIDE_HEIGHT = 720;
 
 type SlideViewerProps = {
   children: ReactNode[];
@@ -14,27 +24,109 @@ type SlideViewerProps = {
   initialSlide?: number;
 };
 
+function useSlideScale(isFullscreen: boolean) {
+  const [scale, setScale] = useState(1);
+
+  const calculateScale = useCallback(() => {
+    if (isFullscreen) {
+      const scaleX = window.innerWidth / SLIDE_WIDTH;
+      const scaleY = window.innerHeight / SLIDE_HEIGHT;
+      setScale(Math.min(scaleX, scaleY));
+    } else {
+      const headerHeight = 56;
+      const footerHeight = 64;
+      const padding = 32;
+
+      const availableWidth = window.innerWidth - padding * 2;
+      const availableHeight =
+        window.innerHeight - headerHeight - footerHeight - padding * 2;
+
+      const scaleX = availableWidth / SLIDE_WIDTH;
+      const scaleY = availableHeight / SLIDE_HEIGHT;
+
+      setScale(Math.min(scaleX, scaleY, 2));
+    }
+  }, [isFullscreen]);
+
+  useEffect(() => {
+    calculateScale();
+    window.addEventListener("resize", calculateScale);
+    return () => window.removeEventListener("resize", calculateScale);
+  }, [calculateScale]);
+
+  return scale;
+}
+
+function useIdleDetection(timeout: number = 2000) {
+  const [isIdle, setIsIdle] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetTimer = useCallback(() => {
+    setIsIdle(false);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      setIsIdle(true);
+    }, timeout);
+  }, [timeout]);
+
+  useEffect(() => {
+    const events = ["mousemove", "mousedown", "keydown", "touchstart"];
+
+    events.forEach((event) => {
+      window.addEventListener(event, resetTimer);
+    });
+
+    resetTimer();
+
+    return () => {
+      events.forEach((event) => {
+        window.removeEventListener(event, resetTimer);
+      });
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [resetTimer]);
+
+  return isIdle;
+}
+
 function SlideViewerInner({
   children,
   slug,
   title,
 }: Omit<SlideViewerProps, "initialSlide">) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const { currentIndex, totalSlides } = useSlide();
-  useSlideNavigation(slug);
+  const { isFullscreen, toggleFullscreen } = useFullscreen(containerRef);
+  const scale = useSlideScale(isFullscreen);
+  const isIdle = useIdleDetection(2000);
+  useSlideNavigation(slug, { onToggleFullscreen: toggleFullscreen });
+
+  const showControls = !isFullscreen || !isIdle;
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         "fixed inset-0 z-50",
         "flex flex-col",
-        "bg-white dark:bg-zinc-950",
+        isFullscreen ? "bg-black" : "bg-zinc-100 dark:bg-zinc-900",
+        isFullscreen && "cursor-none",
+        isFullscreen && !isIdle && "cursor-auto",
       )}
     >
       <header
         className={cn(
+          "flex-none",
           "flex items-center justify-between",
-          "px-6 py-4",
+          "px-6",
+          "bg-white dark:bg-zinc-950",
           "border-b border-zinc-200 dark:border-zinc-800",
+          "transition-all duration-300",
+          isFullscreen ? "h-0 opacity-0 overflow-hidden" : "h-14 opacity-100",
         )}
       >
         <a
@@ -57,42 +149,65 @@ function SlideViewerInner({
         >
           {title}
         </h1>
-        <div className="w-[120px]" />
+        <div
+          className={cn(
+            "text-sm",
+            "text-zinc-500 dark:text-zinc-500",
+            "tabular-nums",
+          )}
+        >
+          {currentIndex + 1} / {totalSlides}
+        </div>
       </header>
 
-      <main className={cn("flex-1 relative overflow-hidden")}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentIndex}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className={cn(
-              "absolute inset-0",
-              "flex items-center justify-center",
-              "p-8 md:p-16",
-              "overflow-auto",
-            )}
-          >
-            <div
+      <main
+        className={cn(
+          "flex-1",
+          "flex items-center justify-center",
+          "overflow-hidden",
+        )}
+      >
+        <div
+          className="relative"
+          style={{
+            width: SLIDE_WIDTH,
+            height: SLIDE_HEIGHT,
+            transform: `scale(${scale})`,
+            transformOrigin: "center center",
+          }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
               className={cn(
-                "w-full max-w-5xl",
-                "slide-content",
-                "prose prose-lg md:prose-xl lg:prose-2xl dark:prose-invert",
-                "prose-headings:text-center prose-headings:mb-8",
-                "prose-p:text-center",
-                "prose-ul:text-left prose-ol:text-left",
-                "prose-pre:text-sm md:prose-pre:text-base",
+                "absolute inset-0",
+                "bg-white dark:bg-zinc-950",
+                "overflow-hidden",
+                isFullscreen
+                  ? "rounded-none shadow-none"
+                  : "rounded-lg shadow-2xl",
               )}
             >
-              {children[currentIndex]}
-            </div>
-          </motion.div>
-        </AnimatePresence>
+              <div className={cn("absolute inset-0", "p-16", "overflow-auto")}>
+                <div className="slide-content h-full flex flex-col justify-center">
+                  {children[currentIndex]}
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </main>
 
-      <SlideControls slug={slug} />
+      <SlideControls
+        slug={slug}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={toggleFullscreen}
+        visible={showControls}
+      />
     </div>
   );
 }

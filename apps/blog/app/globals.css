@@ -10,7 +10,7 @@
  * 컴포넌트 내에서 import하면 번들링 문제가 발생할 수 있어
  * globals.css에서 직접 import
  */
-@import '@xyflow/react/dist/style.css';
+@import "@xyflow/react/dist/style.css";
 
 @tailwind base;
 @tailwind components;
@@ -25,7 +25,8 @@
   font-weight: 45 920;
   font-style: normal;
   font-display: swap;
-  src: url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/woff2/PretendardVariable.woff2") format("woff2-variations");
+  src: url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/woff2/PretendardVariable.woff2")
+    format("woff2-variations");
 }
 
 /**
@@ -68,7 +69,8 @@
   font-weight: normal;
   font-style: normal;
   font-display: swap;
-  src: url("https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/fonts/KaTeX_Main-Regular.woff2") format("woff2");
+  src: url("https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/fonts/KaTeX_Main-Regular.woff2")
+    format("woff2");
 }
 
 @font-face {
@@ -76,15 +78,15 @@
   font-weight: normal;
   font-style: italic;
   font-display: swap;
-  src: url("https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/fonts/KaTeX_Math-Italic.woff2") format("woff2");
+  src: url("https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/fonts/KaTeX_Math-Italic.woff2")
+    format("woff2");
 }
 
 @layer base {
-
   body {
     @apply text-zinc-800 bg-zinc-100 antialiased dark:text-zinc-50 dark:bg-zinc-950;
     /* Pretendard 로드 전 Fallback 폰트 사용으로 CLS 최소화 */
-    font-family: 
+    font-family:
       "Pretendard Variable",
       Pretendard,
       "Pretendard Fallback",
@@ -109,7 +111,12 @@
   }
 
   /* Typography defaults */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-bold tracking-tight text-zinc-900 dark:text-zinc-50;
   }
 
@@ -121,25 +128,33 @@
 @layer utilities {
   /* 커스텀 애니메이션 - framer-motion 대체 */
   @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
-  
+
   @keyframes slide-in-from-left {
-    from { transform: translateX(-8px); }
-    to { transform: translateX(0); }
+    from {
+      transform: translateX(-8px);
+    }
+    to {
+      transform: translateX(0);
+    }
   }
-  
+
   .animate-in {
     animation-duration: 300ms;
     animation-timing-function: ease-out;
     animation-fill-mode: both;
   }
-  
+
   .fade-in {
     animation-name: fade-in;
   }
-  
+
   .slide-in-from-left-2 {
     animation-name: slide-in-from-left, fade-in;
   }
@@ -190,7 +205,7 @@
   }
 
   /* Rehype Pretty Code Multi-theme support */
-  
+
   /* Light mode: hide dark theme elements */
   html:not(.dark) [data-theme="dark"],
   html:not(.dark) [data-theme*="dark"]:not([data-theme*="light"]) {
@@ -202,7 +217,7 @@
   html.dark [data-theme*="light"]:not([data-theme*="dark"]) {
     display: none;
   }
-  
+
   /* Shiki가 생성한 코드 블록의 다크모드/라이트모드 전환 */
   /* shiki는 CSS 변수를 사용하므로 data-theme 기반 숨김은 적용하지 않음 */
   /* 대신 CSS 변수를 사용하여 색상 전환 */
@@ -261,16 +276,16 @@
     background-color: var(--shiki-light-bg, #fff) !important;
     color: var(--shiki-light, #24292e) !important;
   }
-  
+
   /* rehype-pretty-code가 생성한 코드 블록의 배경색 제거 (shiki가 자체 배경색 사용) */
   [data-rehype-pretty-code-figure] pre {
     background-color: transparent !important;
   }
-  
-  html  .dark [data-rehype-pretty-code-figure] pre {
+
+  html .dark [data-rehype-pretty-code-figure] pre {
     background-color: var(--shiki-dark-bg, #09090b) !important;
   }
-  
+
   html:not(.dark) [data-rehype-pretty-code-figure] pre {
     background-color: var(--shiki-light-bg, #fff) !important;
   }
@@ -362,5 +377,182 @@
 
   .dark .toc-scrollbar:hover::-webkit-scrollbar-thumb {
     background-color: rgb(82 82 91);
+  }
+
+  /* Slide deck typography - 1280x720 virtual canvas */
+  .slide-content {
+    --slide-base: 24px;
+    font-size: var(--slide-base);
+    line-height: 1.5;
+    color: rgb(39 39 42);
+  }
+
+  .dark .slide-content {
+    color: rgb(250 250 250);
+  }
+
+  .slide-content h1 {
+    font-size: calc(var(--slide-base) * 2.5);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.5em;
+    color: rgb(24 24 27);
+  }
+
+  .dark .slide-content h1 {
+    color: rgb(250 250 250);
+  }
+
+  .slide-content h2 {
+    font-size: calc(var(--slide-base) * 1.75);
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 0.75em;
+    color: rgb(24 24 27);
+  }
+
+  .dark .slide-content h2 {
+    color: rgb(250 250 250);
+  }
+
+  .slide-content h3 {
+    font-size: calc(var(--slide-base) * 1.25);
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 0.5em;
+    color: rgb(39 39 42);
+  }
+
+  .dark .slide-content h3 {
+    color: rgb(228 228 231);
+  }
+
+  .slide-content p {
+    font-size: var(--slide-base);
+    line-height: 1.6;
+    margin-bottom: 1em;
+    color: rgb(63 63 70);
+  }
+
+  .dark .slide-content p {
+    color: rgb(212 212 216);
+  }
+
+  .slide-content ul,
+  .slide-content ol {
+    font-size: var(--slide-base);
+    line-height: 1.6;
+    margin-bottom: 1em;
+    padding-left: 1.5em;
+  }
+
+  .slide-content li {
+    margin-bottom: 0.5em;
+    color: rgb(63 63 70);
+  }
+
+  .dark .slide-content li {
+    color: rgb(212 212 216);
+  }
+
+  .slide-content li::marker {
+    color: rgb(161 161 170);
+  }
+
+  .dark .slide-content li::marker {
+    color: rgb(113 113 122);
+  }
+
+  .slide-content strong {
+    font-weight: 600;
+    color: rgb(24 24 27);
+  }
+
+  .dark .slide-content strong {
+    color: rgb(250 250 250);
+  }
+
+  .slide-content em {
+    font-style: italic;
+  }
+
+  .slide-content blockquote {
+    font-size: calc(var(--slide-base) * 1.125);
+    font-style: italic;
+    padding-left: 1.5em;
+    border-left: 4px solid rgb(212 212 216);
+    color: rgb(82 82 91);
+    margin: 1em 0;
+  }
+
+  .dark .slide-content blockquote {
+    border-left-color: rgb(63 63 70);
+    color: rgb(161 161 170);
+  }
+
+  .slide-content pre {
+    font-size: calc(var(--slide-base) * 0.75);
+    line-height: 1.5;
+    padding: 1em;
+    border-radius: 0.5em;
+    overflow-x: auto;
+    margin: 1em 0;
+  }
+
+  .slide-content code:not(pre code) {
+    font-size: calc(var(--slide-base) * 0.875);
+    padding: 0.2em 0.4em;
+    border-radius: 0.25em;
+    background: rgb(244 244 245);
+    color: rgb(39 39 42);
+  }
+
+  .dark .slide-content code:not(pre code) {
+    background: rgb(39 39 42);
+    color: rgb(228 228 231);
+  }
+
+  .slide-content table {
+    width: 100%;
+    font-size: calc(var(--slide-base) * 0.875);
+    border-collapse: collapse;
+    margin: 1em 0;
+  }
+
+  .slide-content th,
+  .slide-content td {
+    padding: 0.75em 1em;
+    text-align: left;
+    border-bottom: 1px solid rgb(228 228 231);
+  }
+
+  .dark .slide-content th,
+  .dark .slide-content td {
+    border-bottom-color: rgb(63 63 70);
+  }
+
+  .slide-content th {
+    font-weight: 600;
+    color: rgb(24 24 27);
+    background: rgb(250 250 250);
+  }
+
+  .dark .slide-content th {
+    color: rgb(250 250 250);
+    background: rgb(39 39 42);
+  }
+
+  .slide-content a {
+    color: rgb(37 99 235);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .dark .slide-content a {
+    color: rgb(96 165 250);
+  }
+
+  .slide-content hr {
+    display: none;
   }
 }
