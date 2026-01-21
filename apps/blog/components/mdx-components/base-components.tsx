@@ -1,27 +1,70 @@
-import { InteractivePanel, Playground, YouTube, Section, StickyWrapper, Content, CodeBlock, LinkCard, Footnote, Footnotes as OriginalFootnotes, Callout, CollapsibleCode, Highlight, CodeSandbox } from '@repo/interactive-ui';
-import { AreaChart, BarChart, LineChart, ScatterPlot, SimulationPanel, PlaybackControls, StatsDisplay, Button, NumberInput, Select, Slider, Toggle, RechartsLineChart, RechartsHistogram } from '@repo/interactive-components';
-import { cn } from '../../lib/utils';
-import Image from 'next/image';
-import React from 'react';
-import { articleComponentsRegistry } from './article-components-registry';
-import { Boxed, Claim, Definition, Lemma, Proof, ProofStep, ProofSteps, Theorem } from "./proof-components";
-import { CollapsibleSection } from './CollapsibleSection';
-import { CodeTabs, CodeTab } from '../code-tabs';
-import { HeadingWithLink } from './heading-with-link';
-import { SVGFilteredImage } from './SVGFilteredImage';
-import { DarkmodeImage } from './DarkmodeImage';
-import { DarkmodeOklchImage } from './DarkmodeOklchImage';
-import { ArticleFeedback } from '../analytics/article-feedback';
+import {
+  InteractivePanel,
+  Playground,
+  YouTube,
+  Section,
+  StickyWrapper,
+  Content,
+  CodeBlock,
+  LinkCard,
+  Footnote,
+  Footnotes as OriginalFootnotes,
+  Callout,
+  CollapsibleCode,
+  Highlight,
+  CodeSandbox,
+} from "@repo/interactive-ui";
+import {
+  AreaChart,
+  BarChart,
+  LineChart,
+  ScatterPlot,
+  SimulationPanel,
+  PlaybackControls,
+  StatsDisplay,
+  Button,
+  NumberInput,
+  Select,
+  Slider,
+  Toggle,
+  RechartsLineChart,
+  RechartsHistogram,
+} from "@repo/interactive-components";
+import { cn } from "../../lib/utils";
+import Image from "next/image";
+import React from "react";
+import { articleComponentsRegistry } from "./article-components-registry";
+import {
+  Boxed,
+  Claim,
+  Definition,
+  Lemma,
+  Proof,
+  ProofStep,
+  ProofSteps,
+  Theorem,
+} from "./proof-components";
+import { CollapsibleSection } from "./CollapsibleSection";
+import { CodeTabs, CodeTab } from "../code-tabs";
+import { HeadingWithLink } from "./heading-with-link";
+import { SVGFilteredImage } from "./SVGFilteredImage";
+import { DarkmodeImage } from "./DarkmodeImage";
+import { DarkmodeOklchImage } from "./DarkmodeOklchImage";
+import { ArticleFeedback } from "../analytics/article-feedback";
+import { Steps, Notes, Layout } from "../slides/components";
 
 // 이미지 src를 재작성하는 헬퍼 함수
 const createImageSrcRewriter = (slug?: string) => {
   return (src: string | undefined) => {
     if (!src || !slug) return src;
-    if (src.startsWith('/') || src.startsWith('http')) return src;
+    if (src.startsWith("/") || src.startsWith("http")) return src;
     // remove ./ prefix
-    const cleanSrc = src.replace(/^\.\//, '');
-    const shouldAssumeImagesFolder = cleanSrc.length > 0 && !cleanSrc.includes('/');
-    const normalizedSrc = shouldAssumeImagesFolder ? `images/${cleanSrc}` : cleanSrc;
+    const cleanSrc = src.replace(/^\.\//, "");
+    const shouldAssumeImagesFolder =
+      cleanSrc.length > 0 && !cleanSrc.includes("/");
+    const normalizedSrc = shouldAssumeImagesFolder
+      ? `images/${cleanSrc}`
+      : cleanSrc;
     return `/images/articles/${slug}/${normalizedSrc}`;
   };
 };
@@ -36,7 +79,7 @@ export function createBaseComponents(slug?: string, title?: string) {
       <div
         className={cn(
           /* spacing */
-          'my-8',
+          "my-8",
         )}
       >
         <LineChart {...props} />
@@ -46,7 +89,7 @@ export function createBaseComponents(slug?: string, title?: string) {
       <div
         className={cn(
           /* spacing */
-          'my-8',
+          "my-8",
         )}
       >
         <BarChart {...props} />
@@ -56,7 +99,7 @@ export function createBaseComponents(slug?: string, title?: string) {
       <div
         className={cn(
           /* spacing */
-          'my-8',
+          "my-8",
         )}
       >
         <ScatterPlot {...props} />
@@ -66,7 +109,7 @@ export function createBaseComponents(slug?: string, title?: string) {
       <div
         className={cn(
           /* spacing */
-          'my-8',
+          "my-8",
         )}
       >
         <AreaChart {...props} />
@@ -76,7 +119,7 @@ export function createBaseComponents(slug?: string, title?: string) {
       <div
         className={cn(
           /* spacing */
-          'my-8',
+          "my-8",
         )}
       >
         <RechartsLineChart {...props} />
@@ -86,7 +129,7 @@ export function createBaseComponents(slug?: string, title?: string) {
       <div
         className={cn(
           /* spacing */
-          'my-8',
+          "my-8",
         )}
       >
         <RechartsHistogram {...props} />
@@ -96,7 +139,7 @@ export function createBaseComponents(slug?: string, title?: string) {
       <div
         className={cn(
           /* spacing */
-          'my-8',
+          "my-8",
         )}
       >
         <SimulationPanel {...props} />
@@ -106,7 +149,7 @@ export function createBaseComponents(slug?: string, title?: string) {
       <div
         className={cn(
           /* spacing */
-          'my-8',
+          "my-8",
         )}
       >
         <PlaybackControls {...props} />
@@ -116,7 +159,7 @@ export function createBaseComponents(slug?: string, title?: string) {
       <div
         className={cn(
           /* spacing */
-          'my-8',
+          "my-8",
         )}
       >
         <StatsDisplay {...props} />
@@ -155,10 +198,7 @@ export function createBaseComponents(slug?: string, title?: string) {
     Footnotes: () => (
       <>
         {slug && (
-          <ArticleFeedback
-            articleSlug={slug}
-            articleTitle={title || slug}
-          />
+          <ArticleFeedback articleSlug={slug} articleTitle={title || slug} />
         )}
         <OriginalFootnotes />
       </>
@@ -206,11 +246,14 @@ export function createBaseComponents(slug?: string, title?: string) {
         image: props.image,
         imageAlt: props.imageAlt,
         // size prop만 명시적으로 변환
-        size: (props.size && props.size !== '' && ['small', 'medium', 'large'].includes(props.size)) 
-          ? (props.size as 'small' | 'medium' | 'large') 
-          : undefined,
+        size:
+          props.size &&
+          props.size !== "" &&
+          ["small", "medium", "large"].includes(props.size)
+            ? (props.size as "small" | "medium" | "large")
+            : undefined,
       };
-      
+
       return (
         <div className="my-8">
           <LinkCard {...linkCardProps} />
@@ -227,19 +270,21 @@ export function createBaseComponents(slug?: string, title?: string) {
               // border & shadow
               "rounded-xl border shadow-sm",
               // border color
-              "border-zinc-200 dark:border-zinc-800"
+              "border-zinc-200 dark:border-zinc-800",
             )}
             alt={props.alt || "Blog post image"}
             {...props}
             src={src}
           />
           {props.caption && (
-            <p className={cn(
-              // layout
-              "mt-2 text-center text-sm italic",
-              // color
-              "text-zinc-500 dark:text-zinc-400"
-            )}>
+            <p
+              className={cn(
+                // layout
+                "mt-2 text-center text-sm italic",
+                // color
+                "text-zinc-500 dark:text-zinc-400",
+              )}
+            >
               {props.caption}
             </p>
           )}
@@ -252,47 +297,32 @@ export function createBaseComponents(slug?: string, title?: string) {
       // 따라서 여기서 src를 문자열로 rewrite한 뒤, Client Component에는 값만 전달합니다.
       const { src: rawSrc, ...rest } = props ?? {};
       const rewrittenSrc = rewriteSrc(rawSrc) ?? rawSrc;
-      return (
-        <SVGFilteredImage
-          {...rest}
-          src={rewrittenSrc}
-        />
-      );
+      return <SVGFilteredImage {...rest} src={rewrittenSrc} />;
     },
     // 다크모드일 때만 preset을 켜는 이미지 컴포넌트
     DarkmodeImage: (props: any) => {
       const { src: rawSrc, ...rest } = props ?? {};
       const rewrittenSrc = rewriteSrc(rawSrc) ?? rawSrc;
-      return (
-        <DarkmodeImage
-          {...rest}
-          src={rewrittenSrc}
-        />
-      );
+      return <DarkmodeImage {...rest} src={rewrittenSrc} />;
     },
     // 다크모드일 때 OKLCH 기반으로 픽셀 변환하는 이미지 컴포넌트 (canvas)
     DarkmodeOklchImage: (props: any) => {
       const { src: rawSrc, ...rest } = props ?? {};
       const rewrittenSrc = rewriteSrc(rawSrc) ?? rawSrc;
-      return (
-        <DarkmodeOklchImage
-          {...rest}
-          src={rewrittenSrc}
-        />
-      );
+      return <DarkmodeOklchImage {...rest} src={rewrittenSrc} />;
     },
     img: (props: any) => (
       // Fallback for standard markdown image syntax if not using <Image /> component
       // Note: Next.js Image requires width/height for remote images unless fill is used.
       // For simplicity in standard markdown, we'll style it as a responsive img tag.
-      <img 
+      <img
         className={cn(
           // layout
           "rounded-xl border shadow-sm my-8 max-w-full h-auto",
           // border color
-          "border-zinc-200 dark:border-zinc-800"
+          "border-zinc-200 dark:border-zinc-800",
         )}
-        {...props} 
+        {...props}
       />
     ),
     // 제목 컴포넌트들
@@ -305,7 +335,7 @@ export function createBaseComponents(slug?: string, title?: string) {
           // typography
           "text-3xl font-bold tracking-tight",
           // color
-          "text-zinc-900 dark:text-zinc-50"
+          "text-zinc-900 dark:text-zinc-50",
         )}
         {...props}
       />
@@ -320,7 +350,7 @@ export function createBaseComponents(slug?: string, title?: string) {
           "text-2xl font-bold tracking-tight border-b",
           // color
           "text-zinc-900 border-zinc-200",
-          "dark:text-zinc-50 dark:border-zinc-800"
+          "dark:text-zinc-50 dark:border-zinc-800",
         )}
         {...props}
       />
@@ -334,49 +364,49 @@ export function createBaseComponents(slug?: string, title?: string) {
           // typography
           "text-xl font-semibold",
           // color
-          "text-zinc-900 dark:text-zinc-100"
+          "text-zinc-900 dark:text-zinc-100",
         )}
         {...props}
       />
     ),
     // 텍스트 컴포넌트들
     p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
-      <p 
+      <p
         className={cn(
           // layout
           "mb-6",
           // typography
           "leading-7",
           // color
-          "text-zinc-800 dark:text-zinc-300"
-        )} 
-        {...props} 
+          "text-zinc-800 dark:text-zinc-300",
+        )}
+        {...props}
       />
     ),
     ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
-      <ul 
+      <ul
         className={cn(
           // layout
           "pl-6 mb-6 space-y-2",
           // style
           "list-disc",
           // color
-          "text-zinc-800 dark:text-zinc-300"
-        )} 
-        {...props} 
+          "text-zinc-800 dark:text-zinc-300",
+        )}
+        {...props}
       />
     ),
     ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
-      <ol 
+      <ol
         className={cn(
           // layout
           "pl-6 mb-6 space-y-2",
           // style
           "list-decimal",
           // color
-          "text-zinc-800 dark:text-zinc-300"
-        )} 
-        {...props} 
+          "text-zinc-800 dark:text-zinc-300",
+        )}
+        {...props}
       />
     ),
     li: (props: React.HTMLAttributes<HTMLLIElement>) => (
@@ -388,7 +418,7 @@ export function createBaseComponents(slug?: string, title?: string) {
     ),
     // 인용구
     blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
-      <blockquote 
+      <blockquote
         className={cn(
           // layout
           "pl-4 my-6 border-l-4",
@@ -396,20 +426,20 @@ export function createBaseComponents(slug?: string, title?: string) {
           "italic",
           // color
           "border-zinc-200 text-zinc-600",
-          "dark:border-zinc-700 dark:text-zinc-400"
-        )} 
-        {...props} 
+          "dark:border-zinc-700 dark:text-zinc-400",
+        )}
+        {...props}
       />
     ),
     strong: (props: React.HTMLAttributes<HTMLElement>) => (
-      <strong 
+      <strong
         className={cn(
           // typography
           "font-bold",
           // color
-          "text-zinc-900 dark:text-zinc-100"
-        )} 
-        {...props} 
+          "text-zinc-900 dark:text-zinc-100",
+        )}
+        {...props}
       />
     ),
     em: (props: React.HTMLAttributes<HTMLElement>) => (
@@ -417,13 +447,13 @@ export function createBaseComponents(slug?: string, title?: string) {
     ),
     // 수평선 (Divider) 컴포넌트
     hr: (props: React.HTMLAttributes<HTMLHRElement>) => (
-      <div 
+      <div
         className={cn(
           // layout
           "my-12 mx-auto w-full max-w-xs h-px",
           // gradient - 중앙에서 양쪽으로 fade
           "bg-gradient-to-r from-transparent via-zinc-300 to-transparent",
-          "dark:via-zinc-700"
+          "dark:via-zinc-700",
         )}
         role="separator"
         {...props}
@@ -431,88 +461,93 @@ export function createBaseComponents(slug?: string, title?: string) {
     ),
     // 테이블 컴포넌트들
     table: (props: React.HTMLAttributes<HTMLTableElement>) => (
-      <div className={cn(
-        // layout
-        "my-8 overflow-x-auto"
-      )}>
-        <table 
+      <div
+        className={cn(
+          // layout
+          "my-8 overflow-x-auto",
+        )}
+      >
+        <table
           className={cn(
             // layout
             "w-full border-collapse",
             // typography
             "text-sm",
             // color
-            "text-zinc-800 dark:text-zinc-300"
-          )} 
-          {...props} 
+            "text-zinc-800 dark:text-zinc-300",
+          )}
+          {...props}
         />
       </div>
     ),
     thead: (props: React.HTMLAttributes<HTMLTableSectionElement>) => (
-      <thead 
+      <thead
         className={cn(
           // border
           "border-b-2",
           // color
-          "border-zinc-200 dark:border-zinc-700"
-        )} 
-        {...props} 
+          "border-zinc-200 dark:border-zinc-700",
+        )}
+        {...props}
       />
     ),
     tbody: (props: React.HTMLAttributes<HTMLTableSectionElement>) => (
       <tbody {...props} />
     ),
     tr: (props: React.HTMLAttributes<HTMLTableRowElement>) => (
-      <tr 
+      <tr
         className={cn(
           // border
           "border-b",
           // color
-          "border-zinc-200 dark:border-zinc-800"
-        )} 
-        {...props} 
+          "border-zinc-200 dark:border-zinc-800",
+        )}
+        {...props}
       />
     ),
     th: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
-      <th 
+      <th
         className={cn(
           // layout
           "px-4 py-3 text-left",
           // typography
           "font-semibold",
           // color
-          "text-zinc-900 dark:text-zinc-100"
-        )} 
-        {...props} 
+          "text-zinc-900 dark:text-zinc-100",
+        )}
+        {...props}
       />
     ),
     td: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
-      <td 
-        className={cn(
-          // layout
-          "px-4 py-3",
-          // color
-          "text-zinc-800 dark:text-zinc-300"
-        )} 
-        {...props} 
+      <td
+        className={cn("px-4 py-3", "text-zinc-800 dark:text-zinc-300")}
+        {...props}
       />
     ),
+    Steps,
+    Notes,
+    Layout,
+    "Layout.Center": Layout.Center,
+    "Layout.Split": Layout.Split,
+    "Layout.Full": Layout.Full,
+    "Layout.ImageBg": Layout.ImageBg,
   };
 }
 
 // 아티클 컴포넌트를 동적으로 생성하는 함수
 export function createArticleComponents() {
   const articleComponents: Record<string, React.ComponentType<any>> = {};
-  
+
   // 레지스트리에서 모든 컴포넌트를 가져와서 래핑
-  Object.entries(articleComponentsRegistry).forEach(([componentName, Component]) => {
-    articleComponents[componentName] = (props: any) => (
-      <div className="my-8">
-        <Component {...props} />
-      </div>
-    );
-  });
-  
+  Object.entries(articleComponentsRegistry).forEach(
+    ([componentName, Component]) => {
+      articleComponents[componentName] = (props: any) => (
+        <div className="my-8">
+          <Component {...props} />
+        </div>
+      );
+    },
+  );
+
   return articleComponents;
 }
-

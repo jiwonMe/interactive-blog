@@ -1,10 +1,10 @@
-import fs from 'fs';
-import path from 'path';
-import GithubSlugger from 'github-slugger';
-import matter from 'gray-matter';
+import fs from "fs";
+import path from "path";
+import GithubSlugger from "github-slugger";
+import matter from "gray-matter";
 
 // const contentDirectory = path.join(process.cwd(), 'content');
-const contentDirectory = path.join(process.cwd(), 'apps/blog/articles');
+const contentDirectory = path.join(process.cwd(), "apps/blog/articles");
 
 // Check if we are in the monorepo root or in the app directory
 if (!fs.existsSync(contentDirectory)) {
@@ -23,15 +23,17 @@ if (!fs.existsSync(contentDirectory)) {
 // So cwd must be `apps/blog`.
 // Thus, we should use 'articles' if cwd is `apps/blog`.
 
-const articlesDirectory = path.join(process.cwd(), 'articles').includes('apps/blog') 
-  ? path.join(process.cwd(), 'articles') 
-  : path.join(process.cwd(), 'apps/blog/articles'); 
+const articlesDirectory = path
+  .join(process.cwd(), "articles")
+  .includes("apps/blog")
+  ? path.join(process.cwd(), "articles")
+  : path.join(process.cwd(), "apps/blog/articles");
 
 // Better approach: Check if 'articles' exists in cwd, if not try 'apps/blog/articles'
 const getArticlesDir = () => {
-  const local = path.join(process.cwd(), 'articles');
+  const local = path.join(process.cwd(), "articles");
   if (fs.existsSync(local)) return local;
-  return path.join(process.cwd(), 'apps/blog/articles');
+  return path.join(process.cwd(), "apps/blog/articles");
 };
 
 const targetDirectory = getArticlesDir();
@@ -57,23 +59,32 @@ export type PostData = {
   tags?: string[];
   hidden?: boolean;
   password?: string;
+  slides?: boolean;
 };
 
-export function isTranslatedPost(post: Pick<PostData, 'content'>): boolean {
-  return post.content.includes('번역한 글');
+export function isTranslatedPost(post: Pick<PostData, "content">): boolean {
+  return post.content.includes("번역한 글");
 }
 
 const normalizeArticleAssetPath = (slug: string, input: string): string => {
-  const clean = input.replace(/^\.\//, '');
-  const shouldAssumeImagesFolder = clean.length > 0 && !clean.includes('/');
+  const clean = input.replace(/^\.\//, "");
+  const shouldAssumeImagesFolder = clean.length > 0 && !clean.includes("/");
   const normalized = shouldAssumeImagesFolder ? `images/${clean}` : clean;
   return `/images/articles/${slug}/${normalized}`;
 };
 
-const normalizeFrontmatterImage = (slug: string, image: unknown): string | undefined => {
-  const raw = typeof image === 'string' ? image.trim() : image != null ? String(image).trim() : '';
+const normalizeFrontmatterImage = (
+  slug: string,
+  image: unknown,
+): string | undefined => {
+  const raw =
+    typeof image === "string"
+      ? image.trim()
+      : image != null
+        ? String(image).trim()
+        : "";
   if (raw.length === 0) return undefined;
-  if (raw.startsWith('/') || raw.startsWith('http')) return raw;
+  if (raw.startsWith("/") || raw.startsWith("http")) return raw;
   return normalizeArticleAssetPath(slug, raw);
 };
 
@@ -81,31 +92,33 @@ export function getPostSlugs() {
   if (!fs.existsSync(targetDirectory)) {
     return [];
   }
-  return fs.readdirSync(targetDirectory, { withFileTypes: true })
-    .filter((dirent) => dirent.isDirectory() && !dirent.name.startsWith('.'))
+  return fs
+    .readdirSync(targetDirectory, { withFileTypes: true })
+    .filter((dirent) => dirent.isDirectory() && !dirent.name.startsWith("."))
     .map((dirent) => dirent.name);
 }
 
 export function getPostBySlug(slug: string): PostData | null {
-  const realSlug = slug.replace(/\.mdx$/, '');
-  const fullPath = path.join(targetDirectory, realSlug, 'content.mdx');
-  
+  const realSlug = slug.replace(/\.mdx$/, "");
+  const fullPath = path.join(targetDirectory, realSlug, "content.mdx");
+
   if (!fs.existsSync(fullPath)) {
     return null;
   }
 
-  const fileContents = fs.readFileSync(fullPath, 'utf8');
+  const fileContents = fs.readFileSync(fullPath, "utf8");
   const { data, content } = matter(fileContents);
   const toc = extractTOC(content);
-  
+
   // password는 문자열 또는 숫자이고 비어있지 않은 경우에만 포함
   // YAML에서 숫자로 파싱될 수 있으므로 문자열로 변환
-  const passwordValue = data.password != null ? String(data.password).trim() : '';
+  const passwordValue =
+    data.password != null ? String(data.password).trim() : "";
   const password = passwordValue.length > 0 ? passwordValue : undefined;
-  
-  return { 
-    slug: realSlug, 
-    content, 
+
+  return {
+    slug: realSlug,
+    content,
     toc,
     date: data.date,
     title: data.title,
@@ -118,19 +131,21 @@ export function getPostBySlug(slug: string): PostData | null {
     tags: data.tags,
     hidden: data.hidden ?? false,
     password,
+    slides: data.slides ?? false,
   };
 }
 
 export function getAllPosts(includeHidden: boolean = false): PostData[] {
   const slugs = getPostSlugs();
-  const posts = slugs.map((slug) => getPostBySlug(slug)).filter((post): post is PostData => post !== null);
-  
+  const posts = slugs
+    .map((slug) => getPostBySlug(slug))
+    .filter((post): post is PostData => post !== null);
+
   // 개발 모드이거나 includeHidden이 true인 경우 hidden 포스트 포함
-  const isDev = process.env.NODE_ENV === 'development';
-  const filteredPosts = (isDev || includeHidden) 
-    ? posts 
-    : posts.filter(post => !post.hidden);
-  
+  const isDev = process.env.NODE_ENV === "development";
+  const filteredPosts =
+    isDev || includeHidden ? posts : posts.filter((post) => !post.hidden);
+
   // 날짜순 정렬 (최신순)
   return filteredPosts.sort((a, b) => {
     if (!a.date && !b.date) return 0;
@@ -141,24 +156,30 @@ export function getAllPosts(includeHidden: boolean = false): PostData[] {
 }
 
 export function getSeriesPosts(seriesName: string): PostData[] {
-  const allPosts = getAllPosts().filter((post): post is PostData => post !== null);
-  const seriesPosts = allPosts.filter(post => post.series === seriesName);
-  
+  const allPosts = getAllPosts().filter(
+    (post): post is PostData => post !== null,
+  );
+  const seriesPosts = allPosts.filter((post) => post.series === seriesName);
+
   return seriesPosts.sort((a, b) => {
     return (a.seriesOrder || 0) - (b.seriesOrder || 0);
   });
 }
 
 export function getPostsByTag(tag: string): PostData[] {
-  const allPosts = getAllPosts().filter((post): post is PostData => post !== null);
-  return allPosts.filter(post => post.tags?.includes(tag));
+  const allPosts = getAllPosts().filter(
+    (post): post is PostData => post !== null,
+  );
+  return allPosts.filter((post) => post.tags?.includes(tag));
 }
 
 export function getAllTags(): string[] {
-  const allPosts = getAllPosts().filter((post): post is PostData => post !== null);
+  const allPosts = getAllPosts().filter(
+    (post): post is PostData => post !== null,
+  );
   const tags = new Set<string>();
-  allPosts.forEach(post => {
-    post.tags?.forEach(tag => tags.add(tag));
+  allPosts.forEach((post) => {
+    post.tags?.forEach((tag) => tags.add(tag));
   });
   return Array.from(tags).sort();
 }
