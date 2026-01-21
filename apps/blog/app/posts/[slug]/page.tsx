@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getPostBySlug, getAllPosts, getSeriesPosts } from "../../../lib/posts";
 import { CustomMDX } from "../../../components/mdx-remote";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { cn } from "../../../lib/utils";
 import { Metadata } from "next";
 import { generateBibTeX } from "../../../lib/bibtex";
@@ -167,6 +167,10 @@ export default async function Post({
 
   if (!post) {
     notFound();
+  }
+
+  if (post.slides) {
+    redirect(`/slides/${slug}`);
   }
 
   const isDev = process.env.NODE_ENV === "development";
@@ -344,36 +348,6 @@ export default async function Post({
                     </span>
                   ))}
                 </div>
-              )}
-
-              {post.slides && (
-                <Link
-                  href={`/slides/${slug}`}
-                  className={cn(
-                    "inline-flex items-center gap-2 mt-4",
-                    "px-4 py-2 rounded-lg",
-                    "text-sm font-medium",
-                    "bg-blue-50 dark:bg-blue-900/30",
-                    "text-blue-700 dark:text-blue-300",
-                    "border border-blue-200 dark:border-blue-800",
-                    "hover:bg-blue-100 dark:hover:bg-blue-900/50",
-                    "transition-colors",
-                  )}
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <rect x="2" y="3" width="20" height="14" rx="2" />
-                    <path d="M8 21h8" />
-                    <path d="M12 17v4" />
-                  </svg>
-                  슬라이드로 보기
-                </Link>
               )}
             </header>
 

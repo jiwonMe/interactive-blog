@@ -13,6 +13,7 @@ import { SlideProvider, useSlide } from "../context/slide-context";
 import { SlideControls } from "./slide-controls";
 import { useSlideNavigation } from "../hooks/use-slide-navigation";
 import { useFullscreen } from "../hooks/use-fullscreen";
+import { PwnzLogo } from "../../pwnz-logo";
 
 const SLIDE_WIDTH = 1280;
 const SLIDE_HEIGHT = 720;
@@ -114,8 +115,7 @@ function SlideViewerInner({
         "fixed inset-0 z-50",
         "flex flex-col",
         isFullscreen ? "bg-black" : "bg-zinc-100 dark:bg-zinc-900",
-        isFullscreen && "cursor-none",
-        isFullscreen && !isIdle && "cursor-auto",
+        isFullscreen && isIdle && "cursor-none",
       )}
     >
       <header
@@ -130,15 +130,15 @@ function SlideViewerInner({
         )}
       >
         <a
-          href={`/posts/${slug}`}
+          href="/"
           className={cn(
-            "text-sm font-medium",
-            "text-zinc-600 dark:text-zinc-400",
-            "hover:text-zinc-900 dark:hover:text-zinc-100",
+            "text-zinc-900 dark:text-zinc-100",
+            "hover:text-zinc-600 dark:hover:text-zinc-400",
             "transition-colors",
           )}
+          aria-label="홈으로"
         >
-          ← 포스트로 돌아가기
+          <PwnzLogo width={80} />
         </a>
         <h1
           className={cn(
@@ -192,8 +192,10 @@ function SlideViewerInner({
                   : "rounded-lg shadow-2xl",
               )}
             >
-              <div className={cn("absolute inset-0", "p-16", "overflow-auto")}>
-                <div className="slide-content h-full flex flex-col justify-center">
+              <div
+                className={cn("absolute inset-0", "p-16", "overflow-hidden")}
+              >
+                <div className="slide-content relative h-full flex flex-col justify-center">
                   {children[currentIndex]}
                 </div>
               </div>
